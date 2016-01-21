@@ -1,0 +1,21 @@
+{
+  "name": "go-cmms",
+  "homepage": "https://github.com/steveoc64/go-cmms",
+  "authors": [
+    "SteveOC64 <steveoc64@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "Materialize": "materialize#~0.97.5"
+  }
+}

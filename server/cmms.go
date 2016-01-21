@@ -18,11 +18,11 @@ func main() {
 
 	Config := config.LoadConfig()
 	cpus := smt.Init()
-	fmt.Printf("Yo Ho Ho, here we Go on %d CPU cores\n", cpus)
+	fmt.Printf("Go-CMMS running on %d CPU cores\n", cpus)
 
 	e = echo.New()
-	e.Index("./dist/index.html")
-	e.ServeDir("/", "./dist")
+	e.Index("public/index.html")
+	e.ServeDir("/", "public/")
 
 	e.Use(mw.Logger())
 	e.Use(mw.Recover())

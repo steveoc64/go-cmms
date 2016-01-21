@@ -1,0 +1,18 @@
+@font-face {
+	font-family: 'Roboto';
+	font-style: normal;
+	font-weight: normal;
+	src:
+		local('Roboto'),
+		local('Roboto-Regular'),
+		/* from http://fonts.gstatic.com/s/roboto/v15/5YB-ifwqHP20Yn46l_BDhA.eot */
+		url('Roboto.eot?#iefix') format('embedded-opentype'),
+		/* from http://fonts.gstatic.com/s/roboto/v15/2UX7WLTfW3W8TclTUvlFyQ.woff */
+		url('Roboto.woff') format('woff'),
+		/* from http://fonts.gstatic.com/s/roboto/v15/CWB0XYA8bzo0kSThX0UTuA.woff2 */
+		url('Roboto.woff2') format('woff2'),
+		/* from http://fonts.gstatic.com/l/font?kit=_YZOZaQ9UBZzaxiLBLcgZg&skey=a0a0114a1dcab3ac#Roboto */
+		url('Roboto.svg#Roboto') format('svg'),
+		/* from http://fonts.gstatic.com/s/roboto/v15/zN7GBFwfMP4uA6AR0HCoLQ.ttf */
+		url('Roboto.ttf') format('truetype');
+}

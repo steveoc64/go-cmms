@@ -1,5 +1,6 @@
 dist
 config.json
-server
+cmms
 app.js
 *.map
+bower_components

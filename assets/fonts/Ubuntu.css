@@ -1,0 +1,17 @@
+@font-face {
+	font-family: 'Ubuntu';
+	font-style: normal;
+	font-weight: normal;
+	src:
+		local('Ubuntu'),
+		/* from http://fonts.gstatic.com/s/ubuntu/v8/_tMhxyW6i8lbI7YsUdFlGA.eot */
+		url('Ubuntu.eot?#iefix') format('embedded-opentype'),
+		/* from http://fonts.gstatic.com/s/ubuntu/v8/_xyN3apAT_yRRDeqB3sPRg.woff */
+		url('Ubuntu.woff') format('woff'),
+		/* from http://fonts.gstatic.com/s/ubuntu/v8/sDGTilo5QRsfWu6Yc11AXg.woff2 */
+		url('Ubuntu.woff2') format('woff2'),
+		/* from http://fonts.gstatic.com/l/font?kit=MOWTjcs_zhdIcGnXsgVhnA&skey=7e59fc036a1a8481#Ubuntu */
+		url('Ubuntu.svg#Ubuntu') format('svg'),
+		/* from http://fonts.gstatic.com/s/ubuntu/v8/2Q-AW1e_taO6pHwMXcXW5w.ttf */
+		url('Ubuntu.ttf') format('truetype');
+}
