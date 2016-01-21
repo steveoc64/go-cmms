@@ -1,0 +1,5 @@
+dist
+config.json
+server
+app.js
+*.map
