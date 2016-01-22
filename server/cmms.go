@@ -34,6 +34,10 @@ func main() {
 
 	db.Init(Config.DataSourceName)
 
+	// Add the all important Websocket handler
+	e.WebSocket("/ws", webSocket)
+	go pinger()
+
 	// Start the web server
 	if Config.Debug {
 		log.Printf("... Starting Web Server on port %d", Config.WebPort)
