@@ -1,1 +1,6 @@
 // Application level CSS
+
+.sidebar {
+	width: 240px;
+	background-color: red;
+}

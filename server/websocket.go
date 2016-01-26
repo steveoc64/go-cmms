@@ -16,16 +16,28 @@ func webSocket(c *echo.Context) error {
 
 	ws := c.Socket()
 	msg := ""
-	subscribers = append(subscribers, ws)
-	showSubscriberPool("Connetion Pool Grows To:")
 	for {
 		if err := websocket.Message.Receive(ws, &msg); err != nil {
 			return c.String(http.StatusOK, "Rx ws")
 		}
-		fmt.Println(msg)
+		// log.Println(ws.Request().RemoteAddr, "Rx:", msg)
 		// big routing table here based on the
 		// incoming request
+		switch msg {
+		case "Hello":
+			hello(ws)
+		case "login":
+			login(ws)
+		}
+
 	}
+}
+
+func hello(ws *websocket.Conn) {
+	start := time.Now()
+	subscribers = append(subscribers, ws)
+	log.Printf("» %s » Hello %s", ws.Request().RemoteAddr, time.Since(start))
+	showSubscriberPool("Connetion Pool Grows To:")
 }
 
 type socketMsg struct {
@@ -79,7 +91,7 @@ func pingSockets() {
 	gotKills := false
 	var newSubs []*websocket.Conn
 	for _, wss := range subscribers {
-		err := websocket.Message.Send(wss, `ping`)
+		err := websocket.Message.Send(wss, ``)
 		if err != nil {
 			log.Println("Writing to connection", wss, "got error", err.Error(), "Removing connection from pool")
 			gotKills = true
@@ -94,7 +106,8 @@ func pingSockets() {
 }
 
 func pinger() {
-	ticker := time.NewTicker(time.Second * 50) // just under the 1 min mark for nginx default timeouts
+	// ticker := time.NewTicker(time.Second * 50) // just under the 1 min mark for nginx default timeouts
+	ticker := time.NewTicker(time.Second * 5) // just under the 1 min mark for nginx default timeouts
 	for range ticker.C {
 		pingSockets()
 	}

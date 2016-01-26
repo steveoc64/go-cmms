@@ -12,7 +12,7 @@ dist:
 	##### Copy Our Assets
 	cp assets/index.html dist/public
 	cp -R assets/img dist/public
-	cp -R assets/fonts dist/public
+	# cp -R assets/fonts dist/public
 	cp -R assets/css dist/public
 	##### Copy 3rd Party Assets
 	cp bower_components/Materialize/dist/css/materialize.css dist/public/css

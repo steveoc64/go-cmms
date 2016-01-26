@@ -4,143 +4,17 @@ import (
 	"honnef.co/go/js/dom"
 )
 
-// Create a new DIV element
-func (doc *Doc) addDiv() *dom.HTMLDivElement {
-	return doc.Document.CreateElement("div").(*dom.HTMLDivElement)
-}
-
-// Create a new DIV row element
-func (doc *Doc) addRow() *dom.HTMLDivElement {
-	row := doc.Document.CreateElement("div").(*dom.HTMLDivElement)
-	row.SetClass("row")
-	return row
-}
-
-// Create a new Basic Element
-func (doc *Doc) addElement(name string) *dom.BasicHTMLElement {
-	return doc.Document.CreateElement(name).(*dom.BasicHTMLElement)
-}
-
-// Create a new UL Element
-func (doc *Doc) addUL() *dom.HTMLUListElement {
-	return doc.Document.CreateElement("ul").(*dom.HTMLUListElement)
-}
-
-// Create a new List Item Element, with a link
-func (doc *Doc) addLI(name string, link string) *dom.HTMLLIElement {
-	li := doc.Document.CreateElement("li").(*dom.HTMLLIElement)
-	a := doc.Document.CreateElement("a").(*dom.HTMLAnchorElement)
-	a.URLUtils.Href = link
-	print("a=", a)
-	a.SetTextContent(name)
-	li.AppendChild(a)
-	return li
-}
-
-// Create a Heading element
-func (doc *Doc) addH(level string, content string) *dom.HTMLHeadingElement {
-	h := doc.Document.CreateElement(level).(*dom.HTMLHeadingElement)
-	h.SetTextContent(content)
-	return h
-}
-
-// Create an IMG element
-func (doc *Doc) addIMG(image string) *dom.HTMLImageElement {
-	i := doc.Document.CreateElement("img").(*dom.HTMLImageElement)
-	i.Src = image
-	return i
-}
-
-// Create a Label element
-func (doc *Doc) addLabel(id string, content string) *dom.HTMLLabelElement {
-	l := doc.Document.CreateElement("label").(*dom.HTMLLabelElement)
-	l.For = id
-	l.SetTextContent(content)
-	return l
-}
-
-// Create a simple input field
-func (doc *Doc) addInput(id string, tp string, pl string) *dom.HTMLInputElement {
-	i := doc.Document.CreateElement("input").(*dom.HTMLInputElement)
-	i.Placeholder = pl
-	i.Type = tp
-	return i
-}
-
-// Create an InputField, with label
-func (doc *Doc) addInputField(id string, tp string, pl string, cols string) *dom.HTMLDivElement {
-
-	div := doc.addDiv()
-	div.SetClass("input-field col " + cols)
-
-	input := doc.addInput(id, tp, pl)
-	input.SetClass("validate")
-	label := doc.addLabel(id, pl)
-
-	div.AppendChild(input)
-	div.AppendChild(label)
-
-	return div
-}
-
-// Create an Checkbox, with label
-func (doc *Doc) addCheckbox(id string, pl string, cols string) *dom.HTMLDivElement {
-
-	div := doc.addDiv()
-	div.SetClass("input-field col " + cols)
-
-	ch := doc.Document.CreateElement("input").(*dom.HTMLInputElement)
-	ch.Type = "checkbox"
-	ch.SetID(id)
-
-	label := doc.addLabel(id, pl)
-
-	div.AppendChild(ch)
-	div.AppendChild(label)
-
-	return div
-}
-
-// Create a Submit Button
-func (doc *Doc) addSubmit(name string, cols string, fn func()) *dom.HTMLDivElement {
-
-	div := doc.addDiv()
-	div.SetClass("col " + cols)
-
-	btn := doc.Document.CreateElement("button").(*dom.HTMLButtonElement)
-	btn.SetClass("btn btn-large waves-effect waves-light")
-	btn.Name = name
-	btn.Type = "button"
-	btn.SetTextContent(name)
-	btn.AddEventListener("click", false, func(event dom.Event) {
-		print("clicked submit btn")
-		login()
-	})
-
-	div.AppendChild(btn)
-	return div
-}
-
 // Create a gridded layout
-func (doc *Doc) createLayout() *dom.HTMLDivElement {
+func createLayout() *dom.HTMLDivElement {
 
 	// Create the basic layout
 	layout := doc.addDiv()
+	layout.SetID("layout")
 	layout.SetClass("row")
 	return layout
 }
 
-// <nav>
-//     <div class="nav-wrapper">
-//       <a href="#" class="brand-logo">Logo</a>
-//       <ul id="nav-mobile" class="right hide-on-med-and-down">
-//         <li><a href="sass.html">Sass</a></li>
-//         <li><a href="badges.html">Components</a></li>
-//         <li><a href="collapsible.html">JavaScript</a></li>
-//       </ul>
-//     </div>
-// </nav>
-func (doc *Doc) createNavBar() *dom.BasicHTMLElement {
+func createNavBar() *dom.BasicHTMLElement {
 
 	nav := doc.addElement("nav")
 	nav.SetClass("indigo")
@@ -160,8 +34,8 @@ func (doc *Doc) createNavBar() *dom.BasicHTMLElement {
 	login := doc.addLI("Login", "#")
 	ul.AppendChild(login)
 	login.AddEventListener("click", false, func(event dom.Event) {
-		print("clicked login btn")
-		doc.showLoginForm()
+		// print("clicked login btn")
+		showLoginForm()
 	})
 
 	navwrapper.AppendChild(ul)
@@ -172,7 +46,7 @@ func (doc *Doc) createNavBar() *dom.BasicHTMLElement {
 }
 
 // Create a Splash screen
-func (doc *Doc) createSplash() *dom.HTMLDivElement {
+func createSplash() *dom.HTMLDivElement {
 
 	div := doc.addDiv()
 	div.SetID("splash")
@@ -183,8 +57,11 @@ func (doc *Doc) createSplash() *dom.HTMLDivElement {
 	return div
 }
 
+var username, pw, rem *dom.HTMLInputElement
+var udiv, pdiv, remdiv *dom.HTMLDivElement
+
 // Create a login form
-func (doc *Doc) createLoginForm() *dom.HTMLDivElement {
+func createLoginForm() *dom.HTMLDivElement {
 
 	// basic container and framework for the form
 	div := doc.addDiv()
@@ -202,19 +79,19 @@ func (doc *Doc) createLoginForm() *dom.HTMLDivElement {
 
 	// username
 	ruser := doc.addRow()
-	username := doc.addInputField("l-username", "text", "User Name", "s12")
-	ruser.AppendChild(username)
+	udiv, username = doc.addInputField("l-username", "text", "User Name", "s12")
+	ruser.AppendChild(udiv)
 
 	// passwd
 	rpass := doc.addRow()
-	pw := doc.addInputField("l-passwd", "password", "PassWord", "s12")
-	rpass.AppendChild(pw)
+	pdiv, pw = doc.addInputField("l-passwd", "password", "PassWord", "s12")
+	rpass.AppendChild(pdiv)
 
 	// remember me
 	rrem := doc.addRow()
-	rem := doc.addCheckbox("l-remember", "Remember Me ?", "s6")
+	remdiv, rem = doc.addCheckbox("l-remember", "Remember Me ?", "s6")
 	sub := doc.addSubmit("Login", "s6", login)
-	rrem.AppendChild(rem)
+	rrem.AppendChild(remdiv)
 	rrem.AppendChild(sub)
 
 	// submit
@@ -231,15 +108,51 @@ func (doc *Doc) createLoginForm() *dom.HTMLDivElement {
 	return div
 }
 
-func (doc *Doc) showLoginForm() {
+func showLoginForm() {
 
 	// hide splash and show login
 	sp := doc.GetElementByID("splash").(*dom.HTMLDivElement)
 	sp.Style().SetProperty("display", "none", "")
 	lf := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
 	lf.Style().SetProperty("display", "inline", "")
+	lb := doc.GetElementByID("nav-login-btn")
+	lb.SetTextContent("Login")
+
+	// It the menu exists, remove it
+	sb := doc.GetElementByID("sidebar-menu")
+	if sb != nil {
+		layout := doc.GetElementByID("layout")
+		layout.RemoveChild(sb)
+		print("removing menu")
+	} else {
+		print("no menu to remove")
+	}
 }
 
-func login() {
-	print("Here we are !!")
+func hideLoginForm() {
+
+	// hide login, and change to logout btn
+	lf := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
+	lf.Style().SetProperty("display", "none", "")
+	lb := doc.GetElementByID("nav-login-btn")
+	lb.SetTextContent("Logout")
+}
+
+func createMenu(menu []string) {
+
+	layout := doc.GetElementByID("layout")
+	div := doc.addDiv()
+	div.SetID("sidebar-menu")
+	div.SetClass("col s1 m2 sidebar")
+
+	ul := doc.addUL()
+	div.AppendChild(ul)
+
+	for _, v := range menu {
+		li := doc.addLI(v, "#")
+		ul.AppendChild(li)
+	}
+
+	layout.AppendChild(div)
+	print("created menu", div)
 }

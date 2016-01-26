@@ -2,22 +2,17 @@ package main
 
 import (
 	"honnef.co/go/js/dom"
-	// "strconv"
 )
-
-type Doc struct {
-	dom.Document
-}
 
 func main() {
 	window := dom.GetWindow()
-	doc := Doc{window.Document()}
+	doc = Doc{window.Document()}
 	appBody := doc.GetElementByID("app")
 
-	layout := doc.createLayout()
-	nav := doc.createNavBar()
-	splash := doc.createSplash()
-	lf := doc.createLoginForm()
+	layout := createLayout()
+	nav := createNavBar()
+	splash := createSplash()
+	lf := createLoginForm()
 
 	// Add the heirachy of parts
 	layout.AppendChild(nav)
