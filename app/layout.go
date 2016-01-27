@@ -4,6 +4,8 @@ import (
 	"honnef.co/go/js/dom"
 )
 
+var mainColor = "blue-grey"
+
 // Create a gridded layout
 func createLayout() *dom.HTMLDivElement {
 
@@ -17,7 +19,7 @@ func createLayout() *dom.HTMLDivElement {
 func createNavBar() *dom.BasicHTMLElement {
 
 	nav := doc.addElement("nav")
-	nav.SetClass("indigo")
+	nav.SetClass(mainColor + " darken-2")
 
 	// Wrapper
 	navwrapper := doc.addDiv()
@@ -90,7 +92,7 @@ func createLoginForm() *dom.HTMLDivElement {
 	// remember me
 	rrem := doc.addRow()
 	remdiv, rem = doc.addCheckbox("l-remember", "Remember Me ?", "s6")
-	sub := doc.addSubmit("Login", "s6", login)
+	sub := doc.addSubmit("Login", "s6", rpc_login)
 	rrem.AppendChild(remdiv)
 	rrem.AppendChild(sub)
 
@@ -143,7 +145,7 @@ func createMenu(menu []string) {
 	layout := doc.GetElementByID("layout")
 	div := doc.addDiv()
 	div.SetID("sidebar-menu")
-	div.SetClass("col s1 m2 sidebar")
+	div.SetClass(mainColor + " col s1 m2 lighten-1 text-white sidebar")
 
 	ul := doc.addUL()
 	div.AppendChild(ul)

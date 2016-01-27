@@ -2,5 +2,9 @@
 
 .sidebar {
 	width: 240px;
-	background-color: red;
+}
+
+.sidebar a {
+	//font-weight: bold;
+	color: white;
 }

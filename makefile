@@ -21,11 +21,12 @@ dist:
 	cp -R bower_components/Materialize/dist/font dist/public
 	cp server/config.json dist
 	##### Building Client App
-	cd app && gopherjs build *.go -o ../dist/public/app.js
+	# cd app && gopherjs build *.go -o ../dist/public/app.js
+	cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	##### Building Server App
-	cd server && go build -o ../dist/cmms-server
+	cd server && go build -o ../dist/cmms-server.exe
 	##### Dist directory looks like this	
-	cd dist && ls -l && du -k
+	cd dist && ls -l && ls public/app.js && du -k .
 
 run: dist
 	###################################################################################################

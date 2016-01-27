@@ -5,7 +5,11 @@ import (
 	// "github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/websocket"
 	"honnef.co/go/js/dom"
+	"net/rpc"
 )
+
+var ws *websocket.Conn
+var rpcClient *rpc.Client
 
 func getWSBaseURL() string {
 	document := dom.GetWindow().Document().(dom.HTMLDocument)
@@ -18,8 +22,6 @@ func getWSBaseURL() string {
 	return fmt.Sprintf("%s://%s:%s/ws", wsProtocol, location.Hostname, location.Port)
 }
 
-var ws *websocket.Conn
-
 func websocketInit() *websocket.Conn {
 	wsBaseURL := getWSBaseURL()
 	wss, err := websocket.Dial(wsBaseURL)
@@ -27,5 +29,7 @@ func websocketInit() *websocket.Conn {
 		print("failed to open websocket")
 	}
 	ws = wss
+	rpcClient = rpc.NewClient(ws)
+
 	return wss
 }

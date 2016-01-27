@@ -20,7 +20,7 @@ func webSocket(c *echo.Context) error {
 		if err := websocket.Message.Receive(ws, &msg); err != nil {
 			return c.String(http.StatusOK, "Rx ws")
 		}
-		// log.Println(ws.Request().RemoteAddr, "Rx:", msg)
+		log.Println("»", ws.Request().RemoteAddr, "»", msg)
 		// big routing table here based on the
 		// incoming request
 		switch msg {
@@ -34,10 +34,10 @@ func webSocket(c *echo.Context) error {
 }
 
 func hello(ws *websocket.Conn) {
-	start := time.Now()
 	subscribers = append(subscribers, ws)
-	log.Printf("» %s » Hello %s", ws.Request().RemoteAddr, time.Since(start))
+	//log.Printf("» %s » Hello %s", ws.Request().RemoteAddr, time.Since(start))
 	showSubscriberPool("Connetion Pool Grows To:")
+	loginServer(ws) // run this synchronously
 }
 
 type socketMsg struct {
@@ -107,7 +107,7 @@ func pingSockets() {
 
 func pinger() {
 	// ticker := time.NewTicker(time.Second * 50) // just under the 1 min mark for nginx default timeouts
-	ticker := time.NewTicker(time.Second * 5) // just under the 1 min mark for nginx default timeouts
+	ticker := time.NewTicker(time.Second * 55) // just under the 1 min mark for nginx default timeouts
 	for range ticker.C {
 		pingSockets()
 	}
