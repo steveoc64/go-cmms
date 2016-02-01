@@ -31,5 +31,11 @@ func websocketInit() *websocket.Conn {
 	ws = wss
 	rpcClient = rpc.NewClient(ws)
 
+	// Now we can spawn a pinger against the backetd
+	go sendPings(55000)
+
+	// And run a server at this end that accepts pings
+	//go PingServer(ws)
+
 	return wss
 }

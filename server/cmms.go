@@ -35,8 +35,10 @@ func main() {
 	db.Init(Config.DataSourceName)
 
 	// Add the all important Websocket handler
+	Connections = new(ConnectionsList)
+	registerRPC()
 	e.WebSocket("/ws", webSocket)
-	go pinger()
+	//go pinger()
 
 	// Start the web server
 	if Config.Debug {

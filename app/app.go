@@ -21,8 +21,7 @@ func main() {
 	appBody.AppendChild(layout)
 
 	// Make a websocket connection
-	ws := websocketInit()
-	ws.Send("Hello")
+	websocketInit()
 
 	// All Done !
 }
