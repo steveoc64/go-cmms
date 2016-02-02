@@ -43,7 +43,7 @@ func webSocket(c *echo.Context) error {
 	ws.PayloadType = websocket.BinaryFrame
 
 	Connections.Add(ws).Show("Connections Grows To:")
-	go sendPings(ws, 10000)
+	go sendPings(ws, 50000)
 	rpc.ServeConn(ws)
 	return nil
 }

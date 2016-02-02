@@ -1,11 +1,9 @@
 package shared
 
 type PingReq struct {
-	PingName string
-	Seq      int
+	Msg string
 }
 
 type PingRep struct {
-	Seq    int
 	Result string
 }

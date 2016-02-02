@@ -7,7 +7,6 @@ import (
 
 func rpc_login() {
 
-	print("called rpc login")
 	lc := &shared.LoginCredentials{
 		Username:   username.Value,
 		Password:   pw.Value,
@@ -15,7 +14,6 @@ func rpc_login() {
 	}
 	lr := &shared.LoginReply{}
 	err := rpcClient.Call("LoginRPC.Login", lc, lr)
-	print("finished the rpc call", lc, lr)
 	if err != nil {
 		log.Println(err.Error())
 	}

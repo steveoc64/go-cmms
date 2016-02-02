@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 	//	"errors"
 	"github.com/gopherjs/websocket"
+	//	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
 	"io"
 	"net/rpc"
@@ -37,6 +38,13 @@ func websocketInit() *websocket.Conn {
 	encBuf := bufio.NewWriter(ws)
 	client := &myClientCodec{ws, gob.NewDecoder(ws), gob.NewEncoder(encBuf), encBuf}
 	rpcClient = rpc.NewClientWithCodec(client)
+
+	// Call PingRPC to burn through the message with seq = 0
+	/*	in := &shared.PingReq{
+			Msg: "Use up the first msg",
+		}
+		out := &shared.PingRep{}*/
+	//rpcClient.Call("PingRPC.Ping", in, out)
 
 	// Now we can spawn a pinger against the backetd
 	//go sendPings(55000)
