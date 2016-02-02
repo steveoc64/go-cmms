@@ -48,22 +48,24 @@ func webSocket(c *echo.Context) error {
 	return nil
 }
 
+type MsgPayload struct {
+	Msg string
+}
+
 // Constantly Ping the Backend
 func sendPings(ws *websocket.Conn, ms time.Duration) {
 
 	ticker := time.NewTicker(time.Millisecond * ms)
 	enc := gob.NewEncoder(ws)
+	r := rpc.Response{}
 	for _ = range ticker.C {
-		r := rpc.Response{}
-		r.ServiceMethod = "*Ping"
+		r.ServiceMethod = "Ping"
 		log.Println("sending ping to client", r)
 		if err := enc.Encode(&r); err != nil {
 			log.Println("Some sort of error sending Ping header", err.Error())
 			return
 		}
-		payload := "an example payload"
-		enc.Encode(&payload)
-		// send an empty body
-
+		payload := &MsgPayload{}
+		enc.Encode(payload)
 	}
 }

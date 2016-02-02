@@ -15,7 +15,7 @@ func rpc_login() {
 	}
 	lr := &shared.LoginReply{}
 	err := rpcClient.Call("LoginRPC.Login", lc, lr)
-	print("finished the rpc call")
+	print("finished the rpc call", lc, lr)
 	if err != nil {
 		log.Println(err.Error())
 	}

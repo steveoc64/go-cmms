@@ -5,7 +5,7 @@ import (
 	// "github.com/gopherjs/gopherjs/js"
 	"bufio"
 	"encoding/gob"
-	// "errors"
+	//	"errors"
 	"github.com/gopherjs/websocket"
 	"honnef.co/go/js/dom"
 	"io"
@@ -39,7 +39,7 @@ func websocketInit() *websocket.Conn {
 	rpcClient = rpc.NewClientWithCodec(client)
 
 	// Now we can spawn a pinger against the backetd
-	go sendPings(55000)
+	//go sendPings(55000)
 
 	//go PingServer(ws)
 
@@ -56,7 +56,7 @@ type myClientCodec struct {
 }
 
 func (c *myClientCodec) WriteRequest(r *rpc.Request, body interface{}) (err error) {
-	print("rpc writes a new header", r)
+	print("rpc ->", r.ServiceMethod, r.Seq)
 	if err = c.enc.Encode(r); err != nil {
 		return
 	}
@@ -66,24 +66,30 @@ func (c *myClientCodec) WriteRequest(r *rpc.Request, body interface{}) (err erro
 	return c.encBuf.Flush()
 }
 
+type MsgPayload struct {
+	Msg string
+}
+
 func (c *myClientCodec) ReadResponseHeader(r *rpc.Response) error {
 	err := c.dec.Decode(r)
+	//	print("rpc header <-", r)
 	if err != nil {
-		print("rpc error", err.Error())
-		return err
+		print("rpc error", err)
+		if err != nil && err.Error() == "extra data in buffer" {
+			err = c.dec.Decode(r)
+		}
 	}
-	if r.ServiceMethod[:1] == "*" {
-		print("Async update from server", r.ServiceMethod)
+	if r.Seq == 0 {
+		print("Async update from server -", r.ServiceMethod)
 		return nil
-		// return errors.New("Async update from server - NOT an RPC call")
+		//return errors.New("Async update from server")
 	}
 	return err
 }
 
 func (c *myClientCodec) ReadResponseBody(body interface{}) error {
-	print("rpc reads message body")
 	err := c.dec.Decode(body)
-	print("rpc gets body", body)
+	//print("rpc <-", body)
 	return err
 }
 
