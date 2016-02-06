@@ -7,14 +7,16 @@ import (
 	"encoding/gob"
 	//	"errors"
 	"github.com/gopherjs/websocket"
-	//	"github.com/steveoc64/go-cmms/shared"
+	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
 	"io"
 	"net/rpc"
+	"strconv"
 )
 
 var ws *websocket.Conn
 var rpcClient *rpc.Client
+var channelID int
 
 func getWSBaseURL() string {
 	document := dom.GetWindow().Document().(dom.HTMLDocument)
@@ -36,20 +38,21 @@ func websocketInit() *websocket.Conn {
 	ws = wss
 
 	encBuf := bufio.NewWriter(ws)
-	client := &myClientCodec{ws, gob.NewDecoder(ws), gob.NewEncoder(encBuf), encBuf}
+	client := &myClientCodec{
+		rwc:    ws,
+		dec:    gob.NewDecoder(ws),
+		enc:    gob.NewEncoder(encBuf),
+		encBuf: encBuf,
+	}
 	rpcClient = rpc.NewClientWithCodec(client)
 
 	// Call PingRPC to burn through the message with seq = 0
-	/*	in := &shared.PingReq{
-			Msg: "Use up the first msg",
-		}
-		out := &shared.PingRep{}*/
-	//rpcClient.Call("PingRPC.Ping", in, out)
-
-	// Now we can spawn a pinger against the backetd
-	//go sendPings(55000)
-
-	//go PingServer(ws)
+	in := &shared.PingReq{
+		Msg: "Use up the first msg",
+	}
+	out := &shared.PingRep{}
+	rpcClient.Call("PingRPC.Ping", in, out)
+	//channelID = 0
 
 	return wss
 }
@@ -57,10 +60,12 @@ func websocketInit() *websocket.Conn {
 // codec to encode requests and decode responses.''
 
 type myClientCodec struct {
-	rwc    io.ReadWriteCloser
-	dec    *gob.Decoder
-	enc    *gob.Encoder
-	encBuf *bufio.Writer
+	rwc           io.ReadWriteCloser
+	dec           *gob.Decoder
+	enc           *gob.Encoder
+	encBuf        *bufio.Writer
+	serviceMethod string
+	async         bool
 }
 
 func (c *myClientCodec) WriteRequest(r *rpc.Request, body interface{}) (err error) {
@@ -79,16 +84,22 @@ type MsgPayload struct {
 }
 
 func (c *myClientCodec) ReadResponseHeader(r *rpc.Response) error {
+	c.async = false
+	c.serviceMethod = ""
 	err := c.dec.Decode(r)
 	//	print("rpc header <-", r)
 	if err != nil {
-		print("rpc error", err)
 		if err != nil && err.Error() == "extra data in buffer" {
 			err = c.dec.Decode(r)
 		}
+		if err != nil {
+			print("rpc error", err)
+		}
 	}
-	if r.Seq == 0 {
-		print("Async update from server -", r.ServiceMethod)
+	if err == nil && r.Seq == 0 {
+		// print("Async update from server -", r.ServiceMethod)
+		c.async = true
+		c.serviceMethod = r.ServiceMethod
 		return nil
 		//return errors.New("Async update from server")
 	}
@@ -96,12 +107,32 @@ func (c *myClientCodec) ReadResponseHeader(r *rpc.Response) error {
 }
 
 func (c *myClientCodec) ReadResponseBody(body interface{}) error {
+
+	if c.async {
+		// Read the response body into a string
+		var b string
+		c.dec.Decode(&b)
+		processAsync(c.serviceMethod, b)
+		return nil
+	}
+
 	err := c.dec.Decode(body)
-	//print("rpc <-", body)
 	return err
 }
 
 func (c *myClientCodec) Close() error {
 	print("calling close")
 	return c.rwc.Close()
+}
+
+func processAsync(method string, body string) {
+
+	switch method {
+	case "Ping":
+		channelID, _ = strconv.Atoi(body)
+		print("Ping on channel", channelID)
+	default:
+		print("Rx cmd", method, "body:", body)
+	}
+
 }

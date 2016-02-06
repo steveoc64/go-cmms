@@ -11,7 +11,9 @@ func rpc_login() {
 		Username:   username.Value,
 		Password:   pw.Value,
 		RememberMe: rem.Checked,
+		Channel:    channelID,
 	}
+	print("login params", lc)
 	lr := &shared.LoginReply{}
 	err := rpcClient.Call("LoginRPC.Login", lc, lr)
 	if err != nil {
