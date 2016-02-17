@@ -24,7 +24,8 @@ dist:
 	cd app && gopherjs build *.go -o ../dist/public/app.js
 	# cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	##### Building Server App
-	cd server && go build -o ../dist/cmms-server.exe
+	# cd server && go build -o ../dist/cmms-server.exe
+	cd server && go build -o ../dist/cmms-server
 	##### Dist directory looks like this	
 	cd dist && ls -l && ls -l public/app.js && du -k .
 

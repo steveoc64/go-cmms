@@ -21,9 +21,68 @@
   </head>
 
 <body id="app">
-  <!-- Our App -->
-  <script src="app.js"></script>
+  <!-- basic layout in here -->
+  <div class="row fullscreen" id="layout">
+  
+    <!-- Nav Bar -->  
+    <nav class="blue-grey darken-2">
+      <div class="brand-logo">CMMS</div>
+      <ul class="right">
+        <li id="d-site"></li>
+        <li> </li>
+        <li> </li>
+        <li id="d-username"></li>
+        <li> </li>
+        <li id="d-role"></li>
+        <li> </li>
+        <li>
+          <a href="#" id="logoutbtn" style="display: none;">Logout</a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Temp Splash Screen -->
+    <div class="row" id="splash" class="visible">
+      <img src="img/sbs01.jpg" alt="">
+    </div>
+
+    <!-- Login Screen, initially hidden -->
+    <div class="container" id="loginform" style="display:none">
+      <form action="#">
+      <div class="row">
+        <div class="col s6 offset-s3">
+          <h3 class="center-align">Login</h3>        
+          <div class="row">
+            <div class="input-field col s12">
+              <input id="l-username" type="text" class="validate" placeholder="User Name">
+              <label for="l-username" class="active">User Name</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-field col s12">
+              <input id="l-passwd" type="password" class="validate" placeholder="Password">
+              <label for="l-passwd" class="active">Password</label>
+            </div>
+          </div>
+          <div class="row">
+            <div class="input-field col s6">
+              <input id="l-remember" type="checkbox">
+              <label for="l-remember">Remember Me ?</label>
+            </div>
+            <div class="input-field col s6">
+              <button id="l-loginbtn" class="btn btn-large waves-effect waves-light" name="Login" type="submit">Login</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </form>
+    </div>
+
+  </div>
 
 </body>
+
+<!-- Our App -->
+<script src="app.js"></script>
 
 </html>

@@ -22,6 +22,9 @@ type Connection struct {
 	Mutex    *sync.Mutex
 	Username string
 	UserID   int
+	UserRole string
+	Route    string
+	Home     string
 	Time     time.Time
 	ticker   *time.Ticker
 	enc      *gob.Encoder
@@ -48,9 +51,12 @@ func (c *Connection) Send(name string, payload string) error {
 }
 
 // Upgrade the session data for this connection
-func (c *Connection) Login(username string, id int) {
+func (c *Connection) Login(username string, id int, role string, home string) {
 	c.Username = username
 	c.UserID = id
+	c.UserRole = role
+	c.Home = home
+	c.Route = ""
 	c.Time = time.Now()
 }
 
@@ -59,7 +65,7 @@ func (c *Connection) KeepAlive(sec time.Duration) {
 	c.Send("Ping", strconv.Itoa(c.ID))
 	c.ticker = time.NewTicker(time.Second * sec)
 	for _ = range c.ticker.C {
-		log.Println("sending ping to client", c.ID)
+		// log.Println("sending ping to client", c.ID)
 		c.Send("Ping", strconv.Itoa(c.ID))
 	}
 }
@@ -124,6 +130,8 @@ func (c *ConnectionsList) Show(header string) *ConnectionsList {
 		if conn.UserID != 0 {
 			fmt.Println(conn.ID, conn.Socket.Request().RemoteAddr,
 				"User:", conn.Username, conn.UserID,
+				"Route:", conn.Route,
+				"Home:", conn.Home,
 				"Time:", time.Since(conn.Time))
 		} else {
 			fmt.Println(conn.ID, conn.Socket.Request().RemoteAddr)
