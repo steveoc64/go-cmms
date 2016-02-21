@@ -130,7 +130,7 @@ func processAsync(method string, body string) {
 	switch method {
 	case "Ping":
 		channelID, _ = strconv.Atoi(body)
-		print("Ping on channel", channelID)
+		// print("Ping on channel", channelID)
 	default:
 		print("Rx cmd", method, "body:", body)
 	}

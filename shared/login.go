@@ -11,6 +11,17 @@ type LoginReply struct {
 	Result string
 	Role   string
 	Site   string
-	Home   string
-	Menu   []string
+	Menu   []UserMenu
+	Routes []UserRoute
+}
+
+type UserMenu struct {
+	Icon  string
+	Title string
+	URL   string
+}
+
+type UserRoute struct {
+	Route string
+	Func  string
 }

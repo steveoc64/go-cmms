@@ -24,7 +24,6 @@ type Connection struct {
 	UserID   int
 	UserRole string
 	Route    string
-	Home     string
 	Time     time.Time
 	ticker   *time.Ticker
 	enc      *gob.Encoder
@@ -51,11 +50,10 @@ func (c *Connection) Send(name string, payload string) error {
 }
 
 // Upgrade the session data for this connection
-func (c *Connection) Login(username string, id int, role string, home string) {
+func (c *Connection) Login(username string, id int, role string) {
 	c.Username = username
 	c.UserID = id
 	c.UserRole = role
-	c.Home = home
 	c.Route = ""
 	c.Time = time.Now()
 }
@@ -131,7 +129,6 @@ func (c *ConnectionsList) Show(header string) *ConnectionsList {
 			fmt.Println(conn.ID, conn.Socket.Request().RemoteAddr,
 				"User:", conn.Username, conn.UserID,
 				"Route:", conn.Route,
-				"Home:", conn.Home,
 				"Time:", time.Since(conn.Time))
 		} else {
 			fmt.Println(conn.ID, conn.Socket.Request().RemoteAddr)

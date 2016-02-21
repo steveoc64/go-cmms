@@ -19,8 +19,8 @@ func registerRPC() {
 		log.Fatal(err)
 	}
 
-	r := new(RouteRPC)
-	if err := rpc.Register(r); err != nil {
-		log.Fatal(err)
-	}
+	// r := new(RouteRPC)
+	// if err := rpc.Register(r); err != nil {
+	// 	log.Fatal(err)
+	// }
 }

@@ -1,26 +1,28 @@
 // Application level CSS
 
-.fullscreen {
-	height: 100vh;
+header, main, footer {
+  padding-left: 240px;
 }
 
-.sidebar {
-	/*width: 240px;*/
-	overflow: auto;
-	height: 100%;
+@media only screen and (max-width : 992px) {
+  header, main, footer {
+    padding-left: 0;
+  }
 }
 
-.sidebar a {
-	//font-weight: bold;
-	color: white;	
-	padding: 20px;
-	line-height: 40px;
-	font-weight: 900;
-}
-
-.sidebar a :hover {
-		background-color: red;
-}
+/*.side-nav {*/
+  /*background-color: #78909c; // blue-grey lighten-1  */
+  /*padding-top: 40px !important;*/
+/*}*/
+/*.side-nav li {*/
+  /*width: 240px;*/  
+  /*font-weight: bold;*/
+  /*color: #eceff1; // blue-grey lighten-5*/
+  /*color: #004; */
+  /*padding: 20px;*/
+  /*line-height: 25px;*/
+  /*font-weight: 900;  */
+/*}*/
 
 .visible,
 .hidden {

@@ -44,7 +44,8 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 		if err != nil {
 			log.Println("Login Failed:", err.Error())
 			lr.Result = "Failed"
-			lr.Menu = []string{}
+			lr.Menu = []shared.UserMenu{}
+			lr.Routes = []shared.UserRoute{}
 			lr.Role = ""
 			lr.Site = ""
 		} else {
@@ -53,12 +54,12 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 
 			//lr.Menu = []string{"RPC Dashboard", "Events", "Sites", "Machines", "Tools", "Parts", "Vendors", "Users", "Skills", "Reports"}
 			lr.Menu = getMenu(res.Role)
-			lr.Home = getHome(res.Role)
+			lr.Routes = getRoutes(res.Role)
 			lr.Role = res.Role
 			if res.SiteName.Valid {
 				lr.Site = res.SiteName.String
 			}
-			conn.Login(lc.Username, res.ID, res.Role, lr.Home)
+			conn.Login(lc.Username, res.ID, res.Role)
 			Connections.Show("connections after new login")
 		}
 	}
@@ -74,36 +75,74 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 	return nil
 }
 
-func getMenu(role string) []string {
+func getMenu(role string) []shared.UserMenu {
 
 	switch role {
 	case "Admin":
-		return []string{"Dashboard", "Events", "Sites", "Machines", "Tools", "Parts", "Vendors", "Users", "Skills", "Reports"}
+		return []shared.UserMenu{
+			{Title: "Dashboard", Icon: "dashboard", URL: "/"},
+			{Title: "Events", Icon: "report_problem", URL: "/events"},
+			{Title: "Sites", Icon: "store", URL: "/sites"},
+			{Title: "Machines", Icon: "view_array", URL: "/machines"},
+			{Title: "Tools", Icon: "view_column", URL: "/tools"},
+			{Title: "Parts", Icon: "view_module", URL: "/parts"},
+			{Title: "Vendors", Icon: "contact_phone", URL: "/vendors"},
+			{Title: "Users", Icon: "supervisor_account", URL: "/users"},
+			{Title: "Skills", Icon: "verified_user", URL: "/skills"},
+			{Title: "Reports", Icon: "comment", URL: "/reports"},
+		}
 	case "Worker":
-		return []string{}
+		return []shared.UserMenu{}
 	case "Site Manager":
-		return []string{"Dashboard", "WorkOrders", "Machines", "Sites", "Users", "Reports"}
+		return []shared.UserMenu{
+			{Title: "Dashboard", Icon: "", URL: "/"},
+			{Title: "WorkOrders", Icon: "", URL: "/workorders"},
+			{Title: "Sites", Icon: "", URL: "/sites"},
+			{Title: "Machines", Icon: "", URL: "/machines"},
+			{Title: "Users", Icon: "", URL: "/users"},
+			{Title: "Reports", Icon: "", URL: "/reports"},
+		}
 	case "Floor":
-		return []string{}
+		return []shared.UserMenu{}
 	case "Service Contractor":
-		return []string{"Dashboard", "WorkOrders", "Machines", "Sites", "Reports"}
+		return []shared.UserMenu{
+			{Title: "Dashboard", Icon: "", URL: "/"},
+			{Title: "WorkOrders", Icon: "", URL: "/workorders"},
+			{Title: "Machines", Icon: "", URL: "/machines"},
+			{Title: "Sites", Icon: "", URL: "/sites"},
+			{Title: "Reports", Icon: "", URL: "/reports"},
+		}
 	}
-	return []string{}
+	return []shared.UserMenu{}
 }
 
-func getHome(role string) string {
+func getRoutes(role string) []shared.UserRoute {
 
 	switch role {
 	case "Admin":
-		return "Dashboard"
+		return []shared.UserRoute{
+			{Route: "/", Func: "dashboard"},
+			{Route: "/machines", Func: "machines"},
+		}
 	case "Worker":
-		return "SiteMap"
+		return []shared.UserRoute{
+			{Route: "/", Func: "machines"},
+		}
 	case "Site Manager":
-		return "Dashboard"
+		return []shared.UserRoute{
+			{Route: "/", Func: "dashboard"},
+			{Route: "/machines", Func: "machines"},
+		}
 	case "Floor":
-		return "SiteMap"
+		return []shared.UserRoute{
+			{Route: "/", Func: "machines"},
+		}
 	case "Service Contractor":
-		return "DashBoard"
+		return []shared.UserRoute{
+			{Route: "/", Func: "dashboard"},
+			{Route: "/machines", Func: "machines"},
+		}
 	}
-	return "Index"
+	return []shared.UserRoute{}
+
 }

@@ -1,12 +1,11 @@
 package main
 
-import (
-	"honnef.co/go/js/dom"
-)
-
-var mainColor = "blue-grey"
+import "honnef.co/go/js/dom"
 
 func main() {
+
+	initRouter()
+
 	// setup some vars
 	w := dom.GetWindow()
 	doc := w.Document()
@@ -28,6 +27,7 @@ func main() {
 	loginBtn := doc.GetElementByID("l-loginbtn").(*dom.HTMLButtonElement)
 	loginBtn.AddEventListener("click", false, func(evt dom.Event) {
 		print("clicked login btn")
+		evt.PreventDefault()
 
 		username := doc.GetElementByID("l-username").(*dom.HTMLInputElement).Value
 		passwd := doc.GetElementByID("l-passwd").(*dom.HTMLInputElement).Value
@@ -38,6 +38,7 @@ func main() {
 
 	logoutBtn := doc.GetElementByID("logoutbtn").(*dom.HTMLAnchorElement)
 	logoutBtn.AddEventListener("click", false, func(evt dom.Event) {
+		evt.PreventDefault()
 		print("clicked logout btn")
 		showLoginForm()
 	})
