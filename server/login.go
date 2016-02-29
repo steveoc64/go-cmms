@@ -144,11 +144,11 @@ func getRoutes(role string) []shared.UserRoute {
 		}
 	case "Floor":
 		return []shared.UserRoute{
-			{Route: "/home", Func: "machines"},
+			{Route: "/", Func: "machines"},
 		}
 	case "Service Contractor":
 		return []shared.UserRoute{
-			{Route: "/home", Func: "dashboard"},
+			{Route: "/", Func: "dashboard"},
 			{Route: "/machines", Func: "machines"},
 		}
 	}

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"strings"
-
+	"github.com/gopherjs/gopherjs/js"
 	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
+	"strings"
 )
 
 func Login(username string, passwd string, rem bool) {
@@ -38,13 +38,14 @@ func Login(username string, passwd string, rem bool) {
 		usite.SetTextContent(lr.Site)
 
 		// Navigate to the default route
-		r.Navigate("/home")
+		//r.Navigate("/")
 	} else {
 		print("login failed")
 	}
 }
 
 func Logout() {
+	js.Global.Get("location").Set("hash", "")
 	showLoginForm()
 	initRouter() // reset all the routes to nothing
 }
@@ -55,9 +56,6 @@ func hideLoginForm() {
 	loginForm := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
 	// loginForm.Class().SetString("hidden")
 	loginForm.Style().Set("display", "none")
-
-	gf := doc.GetElementByID("gridform").(*dom.HTMLDivElement)
-	gf.Style().Set("display", "inline-block")
 
 	disqus := doc.GetElementByID("disqus_thread").(*dom.HTMLDivElement)
 	disqus.Style().Set("display", "inline")
@@ -73,9 +71,6 @@ func showLoginForm() {
 	loginForm := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
 	// loginForm.Class().SetString("visible")
 	loginForm.Style().Set("display", "inline")
-
-	gf := doc.GetElementByID("gridform").(*dom.HTMLDivElement)
-	gf.Style().Set("display", "none")
 
 	disqus := doc.GetElementByID("disqus_thread").(*dom.HTMLDivElement)
 	disqus.Style().Set("display", "none")

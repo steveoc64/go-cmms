@@ -28,7 +28,8 @@ dist:
 	cp -R bower_components/Materialize/dist/font dist/public
 	cp server/config.json dist
 	##### Building Client App
-	cd app && gopherjs build *.go -o ../dist/public/app.js
+	temple build templates app/template.go --package main
+	cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	# cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	##### Building Server App
 	cd server && go build -o ../dist/cmms-server.exe
