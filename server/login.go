@@ -123,10 +123,19 @@ func getRoutes(role string) []shared.UserRoute {
 		return []shared.UserRoute{
 			{Route: "/", Func: "dashboard"},
 			{Route: "/machines", Func: "machines"},
+			{Route: "/sites", Func: "sites"},
+			{Route: "/events", Func: "events"},
+			{Route: "/tools", Func: "tools"},
+			{Route: "/parts", Func: "parts"},
+			{Route: "/vendors", Func: "vendors"},
+			{Route: "/users", Func: "machines"},
+			{Route: "/skills", Func: "users"},
+			{Route: "/reports", Func: "reports"},
 		}
 	case "Worker":
 		return []shared.UserRoute{
-			{Route: "/", Func: "machines"},
+			{Route: "/", Func: "sitemap"},
+			{Route: "/machines", Func: "machines"},
 		}
 	case "Site Manager":
 		return []shared.UserRoute{
@@ -135,11 +144,11 @@ func getRoutes(role string) []shared.UserRoute {
 		}
 	case "Floor":
 		return []shared.UserRoute{
-			{Route: "/", Func: "machines"},
+			{Route: "/home", Func: "machines"},
 		}
 	case "Service Contractor":
 		return []shared.UserRoute{
-			{Route: "/", Func: "dashboard"},
+			{Route: "/home", Func: "dashboard"},
 			{Route: "/machines", Func: "machines"},
 		}
 	}

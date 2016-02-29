@@ -6,6 +6,6 @@ import (
 	// "honnef.co/go/js/dom"
 )
 
-func dashboard(context *router.Context) {
+func adminDashboard(context *router.Context) {
 	print("in the dashboard function")
 }

@@ -1,8 +1,14 @@
-all: clean dist
+all: clean run
 
 clean:
+	terminate.bat
 	rm -rf dist server/cmms
 
+content:
+	cp assets/index.html dist/public
+	cp -R assets/img dist/public
+	cp -R assets/css dist/public
+	cd app && gopherjs build *.go -o ../dist/public/app.js
 
 dist: 
 	##### Clean Out Dist Directory
@@ -14,6 +20,7 @@ dist:
 	cp -R assets/img dist/public
 	# cp -R assets/fonts dist/public
 	cp -R assets/css dist/public
+	cp -R assets/js dist/public
 	##### Copy 3rd Party Assets
 	cp bower_components/Materialize/dist/css/materialize.css dist/public/css
 	cp bower_components/Materialize/dist/js/materialize.js dist/public/js
@@ -24,8 +31,8 @@ dist:
 	cd app && gopherjs build *.go -o ../dist/public/app.js
 	# cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	##### Building Server App
-	# cd server && go build -o ../dist/cmms-server.exe
-	cd server && go build -o ../dist/cmms-server
+	cd server && go build -o ../dist/cmms-server.exe
+	#cd server && go build -o ../dist/cmms-server
 	##### Dist directory looks like this	
 	cd dist && ls -l && ls -l public/app.js && du -k .
 

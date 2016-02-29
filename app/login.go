@@ -7,7 +7,7 @@ import (
 	"honnef.co/go/js/dom"
 )
 
-func login(username string, passwd string, rem bool) {
+func Login(username string, passwd string, rem bool) {
 
 	lc := &shared.LoginCredentials{
 		Username:   username,
@@ -36,9 +36,17 @@ func login(username string, passwd string, rem bool) {
 		urole.SetTextContent(lr.Role)
 		usite := doc.GetElementByID("d-site").(*dom.HTMLLIElement)
 		usite.SetTextContent(lr.Site)
+
+		// Navigate to the default route
+		r.Navigate("/home")
 	} else {
 		print("login failed")
 	}
+}
+
+func Logout() {
+	showLoginForm()
+	initRouter() // reset all the routes to nothing
 }
 
 func hideLoginForm() {
@@ -47,6 +55,12 @@ func hideLoginForm() {
 	loginForm := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
 	// loginForm.Class().SetString("hidden")
 	loginForm.Style().Set("display", "none")
+
+	gf := doc.GetElementByID("gridform").(*dom.HTMLDivElement)
+	gf.Style().Set("display", "inline-block")
+
+	disqus := doc.GetElementByID("disqus_thread").(*dom.HTMLDivElement)
+	disqus.Style().Set("display", "inline")
 
 	logoutBtn := doc.GetElementByID("logoutbtn").(*dom.HTMLAnchorElement)
 	// logoutBtn.Class().SetString("visible")
@@ -59,6 +73,12 @@ func showLoginForm() {
 	loginForm := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
 	// loginForm.Class().SetString("visible")
 	loginForm.Style().Set("display", "inline")
+
+	gf := doc.GetElementByID("gridform").(*dom.HTMLDivElement)
+	gf.Style().Set("display", "none")
+
+	disqus := doc.GetElementByID("disqus_thread").(*dom.HTMLDivElement)
+	disqus.Style().Set("display", "none")
 
 	logoutBtn := doc.GetElementByID("logoutbtn").(*dom.HTMLAnchorElement)
 	// logoutBtn.Class().SetString("hidden")

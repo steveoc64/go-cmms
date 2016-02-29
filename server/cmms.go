@@ -12,6 +12,7 @@ import (
 	"github.com/steveoc64/godev/echocors"
 	"github.com/steveoc64/godev/smt"
 	"gopkg.in/mgutz/dat.v1/sqlx-runner"
+	"net/http"
 )
 
 var e *echo.Echo
@@ -34,6 +35,20 @@ func main() {
 	e = echo.New()
 	e.Index("public/index.html")
 	e.ServeDir("/", "public/")
+	e.SetHTTPErrorHandler(func(err error, context *echo.Context) {
+		httpError, ok := err.(*echo.HTTPError)
+		if ok {
+			errorCode := httpError.Code()
+			switch errorCode {
+			case http.StatusNotFound:
+				// TODO handle not found case
+				log.Println("what is all this ?", err.Error())
+				context.Redirect(http.StatusMovedPermanently, "/")
+			default:
+				// TODO handle any other case
+			}
+		}
+	})
 
 	e.Use(mw.Logger())
 	e.Use(mw.Recover())

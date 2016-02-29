@@ -13,12 +13,15 @@
     <!-- <link rel="stylesheet" href="fonts/Ubuntu.css">    -->
     <link type="text/css" rel="stylesheet" href="css/materialize.css"  media="screen,projection"/>
     <link href="css/app.css" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" type="text/css" href="css/gridforms.css">  
+
     <link rel="icon" href="img/favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
-		<!-- Third Party Scripts -->
+    <!-- Third Party Scripts -->
     <script type="text/javascript" src="js/jquery.js"></script>
     <script type="text/javascript" src="js/materialize.js"></script>
+    <script type="text/javascript" src="js/gridforms.js"></script>
   </head>
 
 <body id="app">
@@ -92,6 +95,49 @@
     </div>
 
   </main>
+
+<div class="container center-align" id="gridform" style="display:none">
+<img src="img/features.png" alt="">
+<form class="grid-form">
+    <fieldset>
+        <legend>Form Section</legend>
+        <div data-row-span="2">
+            <div data-field-span="1">
+                <label>Field 1</label>
+                <input type="text">
+            </div>
+            <div data-field-span="1">
+                <label>Field 2</label>
+                <input type="text">
+            </div>
+        </div>
+    </fieldset>
+</form>
+</div>
+
+<div class="container" id="disqus_thread" style="display:none">
+</div>
+<script>
+/**
+* RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+* LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables
+*/
+/*
+var disqus_config = function () {
+this.page.url = PAGE_URL; // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+
+s.src = '//golangchatter.disqus.com/embed.js';
+
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>  
 
 </body>
 

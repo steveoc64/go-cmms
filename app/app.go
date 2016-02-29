@@ -33,14 +33,14 @@ func main() {
 		passwd := doc.GetElementByID("l-passwd").(*dom.HTMLInputElement).Value
 		rem := doc.GetElementByID("l-remember").(*dom.HTMLInputElement).Checked
 
-		go login(username, passwd, rem)
+		go Login(username, passwd, rem)
 	})
 
 	logoutBtn := doc.GetElementByID("logoutbtn").(*dom.HTMLAnchorElement)
 	logoutBtn.AddEventListener("click", false, func(evt dom.Event) {
 		evt.PreventDefault()
 		print("clicked logout btn")
-		showLoginForm()
+		Logout()
 	})
 
 	// All Done !
