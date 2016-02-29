@@ -7,5 +7,5 @@ import (
 )
 
 func adminDashboard(context *router.Context) {
-	print("in the dashboard function")
+	print("in the admin dashboard function")
 }

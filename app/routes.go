@@ -23,6 +23,7 @@ func enableRoutes(Role string) {
 			"vendors":   vendorList,
 			"users":     usersList,
 			"reports":   adminReports,
+			"skills":    skillsList,
 		}
 	case "Worker":
 		appFn = map[string]router.Handler{

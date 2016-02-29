@@ -128,8 +128,8 @@ func getRoutes(role string) []shared.UserRoute {
 			{Route: "/tools", Func: "tools"},
 			{Route: "/parts", Func: "parts"},
 			{Route: "/vendors", Func: "vendors"},
-			{Route: "/users", Func: "machines"},
-			{Route: "/skills", Func: "users"},
+			{Route: "/users", Func: "users"},
+			{Route: "/skills", Func: "skills"},
 			{Route: "/reports", Func: "reports"},
 		}
 	case "Worker":
