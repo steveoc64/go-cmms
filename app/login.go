@@ -68,12 +68,17 @@ func hideLoginForm() {
 func showLoginForm() {
 	w := dom.GetWindow()
 	doc := w.Document()
-	loginForm := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
-	// loginForm.Class().SetString("visible")
-	loginForm.Style().Set("display", "inline")
 
-	disqus := doc.GetElementByID("disqus_thread").(*dom.HTMLDivElement)
-	disqus.Style().Set("display", "none")
+	// Activate the login form, and get focus on the username
+	t, err := GetTemplate("login")
+	if err != nil {
+		print(err.Error())
+	}
+	el := doc.QuerySelector("main")
+	if err := t.ExecuteEl(el, nil); err != nil {
+		print(err.Error())
+	}
+	doc.GetElementByID("l-username").(*dom.HTMLInputElement).Focus()
 
 	logoutBtn := doc.GetElementByID("logoutbtn").(*dom.HTMLAnchorElement)
 	// logoutBtn.Class().SetString("hidden")

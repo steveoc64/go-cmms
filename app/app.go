@@ -18,8 +18,14 @@ func main() {
 	splash.Style().Set("display", "none")
 
 	// Activate the login form, and get focus on the username
-	loginForm := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
-	loginForm.Style().Set("display", "inline")
+	t, err := GetTemplate("login")
+	if err != nil {
+		print(err.Error())
+	}
+	el := doc.QuerySelector("main")
+	if err := t.ExecuteEl(el, nil); err != nil {
+		print(err.Error())
+	}
 	doc.GetElementByID("l-username").(*dom.HTMLInputElement).Focus()
 
 	// loginForm.Class().SetString("visible")
