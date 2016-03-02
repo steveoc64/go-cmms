@@ -7,3 +7,4 @@ bower_components
 cmms-server
 cmms-server.exe
 makefile
+app/template.go

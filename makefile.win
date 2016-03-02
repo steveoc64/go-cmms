@@ -8,6 +8,7 @@ content:
 	cp assets/index.html dist/public
 	cp -R assets/img dist/public
 	cp -R assets/css dist/public
+	temple build templates app/template.go	
 	cd app && gopherjs build *.go -o ../dist/public/app.js
 
 dist: 

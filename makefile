@@ -1,13 +1,14 @@
 all: clean run
 
 clean:
-	./terminate
+	terminate.bat
 	rm -rf dist server/cmms
 
 content:
 	cp assets/index.html dist/public
 	cp -R assets/img dist/public
 	cp -R assets/css dist/public
+	temple build templates app/template.go
 	cd app && gopherjs build *.go -o ../dist/public/app.js
 
 dist: 
@@ -32,8 +33,8 @@ dist:
 	cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	# cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	##### Building Server App
-	# cd server && go build -o ../dist/cmms-server.exe
-	cd server && go build -o ../dist/cmms-server
+	cd server && go build -o ../dist/cmms-server.exe
+	#cd server && go build -o ../dist/cmms-server
 	##### Dist directory looks like this	
 	cd dist && ls -l && ls -l public/app.js && du -k .
 
