@@ -13,10 +13,6 @@ func main() {
 	// Make a websocket connection
 	websocketInit()
 
-	// hide the splash screen
-	splash := doc.GetElementByID("splash").(*dom.HTMLDivElement)
-	splash.Style().Set("display", "none")
-
 	// Activate the login form, and get focus on the username
 	t, err := GetTemplate("login")
 	if err != nil {
@@ -30,7 +26,7 @@ func main() {
 
 	// loginForm.Class().SetString("visible")
 	//	loginForm.Style().SetProperty("visibility", "visible", "")
-	loginBtn := doc.GetElementByID("l-loginbtn").(*dom.HTMLButtonElement)
+	loginBtn := doc.GetElementByID("l-loginbtn").(*dom.HTMLInputElement)
 	loginBtn.AddEventListener("click", false, func(evt dom.Event) {
 		print("clicked login btn")
 		evt.PreventDefault()

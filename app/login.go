@@ -4,7 +4,7 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
-	"strings"
+	// "strings"
 )
 
 func Login(username string, passwd string, rem bool) {
@@ -25,17 +25,18 @@ func Login(username string, passwd string, rem bool) {
 		hideLoginForm()
 		createMenu(lr.Menu)
 		loadRoutes(lr.Role, lr.Routes)
-		w := dom.GetWindow()
-		doc := w.Document()
+
+		// w := dom.GetWindow()
+		// doc := w.Document()
 
 		// Fill in the details on the nav bar
-		uuname := strings.ToUpper(username[0:1]) + username[1:]
-		uname := doc.GetElementByID("d-username").(*dom.HTMLLIElement)
-		uname.SetTextContent(uuname)
-		urole := doc.GetElementByID("d-role").(*dom.HTMLLIElement)
-		urole.SetTextContent(lr.Role)
-		usite := doc.GetElementByID("d-site").(*dom.HTMLLIElement)
-		usite.SetTextContent(lr.Site)
+		// uuname := strings.ToUpper(username[0:1]) + username[1:]
+		// uname := doc.GetElementByID("d-username").(*dom.HTMLLIElement)
+		// uname.SetTextContent(uuname)
+		// urole := doc.GetElementByID("d-role").(*dom.HTMLLIElement)
+		// urole.SetTextContent(lr.Role)
+		// usite := doc.GetElementByID("d-site").(*dom.HTMLLIElement)
+		// usite.SetTextContent(lr.Site)
 
 		// Navigate to the default route
 		//r.Navigate("/")
@@ -53,15 +54,15 @@ func Logout() {
 func hideLoginForm() {
 	w := dom.GetWindow()
 	doc := w.Document()
-	loginForm := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
-	// loginForm.Class().SetString("hidden")
-	loginForm.Style().Set("display", "none")
 
-	disqus := doc.GetElementByID("disqus_thread").(*dom.HTMLDivElement)
-	disqus.Style().Set("display", "inline")
+	// loginForm := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
+	// loginForm.Class().SetString("hidden")
+	// loginForm.Style().Set("display", "none")
+
+	// disqus := doc.GetElementByID("disqus_thread").(*dom.HTMLDivElement)
+	// disqus.Style().Set("display", "inline")
 
 	logoutBtn := doc.GetElementByID("logoutbtn").(*dom.HTMLAnchorElement)
-	// logoutBtn.Class().SetString("visible")
 	logoutBtn.Style().Set("display", "inline")
 }
 
@@ -86,10 +87,10 @@ func showLoginForm() {
 
 	removeMenu()
 
-	uname := doc.GetElementByID("d-username").(*dom.HTMLLIElement)
-	uname.SetTextContent("")
-	urole := doc.GetElementByID("d-role").(*dom.HTMLLIElement)
-	urole.SetTextContent("")
-	usite := doc.GetElementByID("d-site").(*dom.HTMLLIElement)
-	usite.SetTextContent("")
+	// uname := doc.GetElementByID("d-username").(*dom.HTMLLIElement)
+	// uname.SetTextContent("")
+	// urole := doc.GetElementByID("d-role").(*dom.HTMLLIElement)
+	// urole.SetTextContent("")
+	// usite := doc.GetElementByID("d-site").(*dom.HTMLLIElement)
+	// usite.SetTextContent("")
 }

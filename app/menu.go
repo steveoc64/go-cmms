@@ -9,13 +9,13 @@ func createMenu(Menu []shared.UserMenu) {
 	w := dom.GetWindow()
 	doc := w.Document()
 
-	header := doc.GetElementByID("app-header")
+	// header := doc.GetElementByID("app-header")
 	removeMenu()
 
 	if len(Menu) > 1 {
 
-		hamburger := doc.GetElementByID("hamburger").(*dom.HTMLAnchorElement)
-		hamburger.Style().Set("display", "inline")
+		// hamburger := doc.GetElementByID("hamburger").(*dom.HTMLAnchorElement)
+		// hamburger.Style().Set("display", "inline")
 
 		// create a new menu
 		ul := doc.CreateElement("ul").(*dom.HTMLUListElement)
@@ -44,7 +44,7 @@ func createMenu(Menu []shared.UserMenu) {
 			ul.AppendChild(li)
 		}
 
-		header.AppendChild(ul)
+		// header.AppendChild(ul)
 	}
 
 	r.InterceptLinks()
