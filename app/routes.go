@@ -65,7 +65,7 @@ func initRouter() {
 }
 
 func defaultRoute(context *router.Context) {
-	print("default route")
+	// print("default route")
 }
 
 func loadRoutes(Role string, Routes []shared.UserRoute) {

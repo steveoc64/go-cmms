@@ -36,6 +36,7 @@ dist:
 	##### Building Server App
 	#cd server && go build -o ../dist/cmms-server.exe
 	cd server && go build -o ../dist/cmms-server
+	mplayer -quiet alldone.ogg 2> /dev/null > /dev/null
 	##### Dist directory looks like this	
 	cd dist && ls -l && ls -l public/app.js && du -k .
 

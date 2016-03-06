@@ -6,12 +6,13 @@ import (
 	"bufio"
 	"encoding/gob"
 	//	"errors"
-	"github.com/gopherjs/websocket"
-	"github.com/steveoc64/go-cmms/shared"
-	"honnef.co/go/js/dom"
 	"io"
 	"net/rpc"
 	"strconv"
+
+	"github.com/gopherjs/websocket"
+	"github.com/steveoc64/go-cmms/shared"
+	"honnef.co/go/js/dom"
 )
 
 var ws *websocket.Conn
@@ -69,7 +70,7 @@ type myClientCodec struct {
 }
 
 func (c *myClientCodec) WriteRequest(r *rpc.Request, body interface{}) (err error) {
-	print("rpc ->", r.ServiceMethod, r.Seq)
+	print("rpc ->", r.ServiceMethod)
 	if err = c.enc.Encode(r); err != nil {
 		return
 	}

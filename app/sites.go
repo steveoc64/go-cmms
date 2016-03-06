@@ -49,7 +49,7 @@ type SiteMachineData struct {
 // Param:  site
 func siteMachines(context *router.Context) {
 	idStr := context.Params["site"]
-	print("in the machineDet function", idStr)
+	// print("in the machineDet function", idStr)
 	id, _ := strconv.Atoi(idStr)
 
 	// Get a list of machines at this site
@@ -62,8 +62,7 @@ func siteMachines(context *router.Context) {
 	go func() {
 		data.MultiSite = true
 		rpcClient.Call("SiteRPC.Get", id, &data.Site)
-		print("Site =", data.Site)
-		fmt.Printf("%#v", data.Site)
+		// print("Site =", data.Site)
 
 		err := rpcClient.Call("SiteRPC.MachineList", &req, &data.Machines)
 		if err != nil {
