@@ -85,9 +85,11 @@ This is the Site List
 
 	if err = g.AddTemplate("sitemachines", `<div class="fluid skipheader">
 	<div class="row">
+    {{if .MultiSite}}
 		<div class="column column-30">	
 	    <img src="/img/aust.png" height="64" id="austmap">
 		</div>
+    {{end}}
 		<div class="column column-70">
 	    <h1>{{.Site.Name}}</h1>		
 		</div>

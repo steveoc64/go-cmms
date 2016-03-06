@@ -4,14 +4,15 @@ import (
 	"bufio"
 	"encoding/gob"
 	"fmt"
-	"github.com/labstack/echo"
-	"golang.org/x/net/websocket"
 	"io"
 	"log"
 	"net/rpc"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/labstack/echo"
+	"golang.org/x/net/websocket"
 )
 
 // Wrapper for socket, which has a controlling mutex to be shared with the RPC server

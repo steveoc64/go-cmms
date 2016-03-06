@@ -52,13 +52,13 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 			lr.Role = ""
 			lr.Site = ""
 		} else {
-			log.Println("Login OK")
+			// log.Println("Login OK")
 			lr.Result = "OK"
 			lr.Token = fmt.Sprintf("%d", lc.Channel)
 
 			//lr.Menu = []string{"RPC Dashboard", "Events", "Sites", "Machines", "Tools", "Parts", "Vendors", "Users", "Skills", "Reports"}
 			lr.Menu = getMenu(res.Role)
-			lr.Routes = getRoutes(res.Role)
+			lr.Routes = getRoutes(res.ID, res.Role)
 			lr.Role = res.Role
 			if res.SiteName.Valid {
 				lr.Site = res.SiteName.String
@@ -68,12 +68,9 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 		}
 	}
 
-	log.Printf(`Login.Login -> %s
-    » (%s,%s,%t,%d)
-    « (%s,%s,%s)`,
-		time.Since(start),
-		lc.Username, lc.Password, lc.RememberMe, lc.Channel,
-		lr.Result, lr.Role, lr.Site)
+	logger(start, "Login.Login",
+		fmt.Sprintf("%s,%s,%t,%d", lc.Username, lc.Password, lc.RememberMe, lc.Channel),
+		fmt.Sprintf("%s,%s,%s", lr.Result, lr.Role, lr.Site))
 
 	return nil
 }
@@ -119,7 +116,7 @@ func getMenu(role string) []shared.UserMenu {
 	return []shared.UserMenu{}
 }
 
-func getRoutes(role string) []shared.UserRoute {
+func getRoutes(uid int, role string) []shared.UserRoute {
 
 	switch role {
 	case "Admin":
@@ -136,9 +133,17 @@ func getRoutes(role string) []shared.UserRoute {
 			{Route: "/reports", Func: "reports"},
 		}
 	case "Worker":
+		// If this user has 1 site, they ony get 1 route
+		// Otherwise they get a map and 1 route to show the machines at each site
+		numSites := 1
+		DB.SQL(`select count(*) from user_site where user_id=$1`, uid).QueryScalar(&numSites)
+		if numSites == 1 {
+			return []shared.UserRoute{
+				{Route: "/", Func: "homesite"},
+			}
+		}
 		return []shared.UserRoute{
 			{Route: "/", Func: "sitemap"},
-			{Route: "/machines", Func: "machines"},
 			{Route: "/sitemachines/{site}", Func: "sitemachines"},
 		}
 	case "Site Manager":

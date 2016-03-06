@@ -52,6 +52,7 @@ func enableRoutes(Role string) {
 		appFn = map[string]router.Handler{
 			"sitemap":      siteMap,
 			"sitemachines": siteMachines,
+			"homesite":     homeSite,
 		}
 	}
 }
