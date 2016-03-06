@@ -1,10 +1,20 @@
-<div class="fluid">
+<div class="fluid skipheader">
+	<div class="row">
+		<div class="column column-30">	
+	    <img src="/img/aust.png" height="64" id="austmap">
+		</div>
+		<div class="column column-70">
+	    <h1>{{.Site.Name}}</h1>		
+		</div>
+	</div>
+
 	<div class="row row-wrap" style="flex-wrap: wrap">
-	{{range .}}
+	{{range .Machines}}
 		<div class="column span-{{.Span}}">
 
   <svg class="svg-panel" xmlns="http://www.w3.org/2000/svg" 
-    	 width="{{.SVGWidth1}}">
+    	 width="95%"
+    	 viewBox="0 0 {{.SVGWidth1}} 200">
     <defs>
       <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" style="stop-color:#eee;stop-opacity:1" />

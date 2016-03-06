@@ -40,6 +40,31 @@ func (s *SiteRPC) List(channel int, sites *[]shared.Site) error {
 	return nil
 }
 
+func (s *SiteRPC) Get(siteID int, site *shared.Site) error {
+	start := time.Now()
+
+	// Read the sites that this user has access to
+	err := DB.SQL(`select s.*,p.name as parent_site_name,t.name as stock_site_name
+		from site s
+		left join site p on (p.id=s.parent_site)
+		left join site t on (t.id=s.stock_site)
+		where s.id = $1
+		order by lower(s.name)`, siteID).QueryStruct(site)
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	log.Printf(`Site.Get -> %s
+    » (Site %d)
+    « (%s ...)`,
+		time.Since(start),
+		siteID,
+		site.Name)
+
+	return nil
+}
+
 func (s *SiteRPC) MachineList(req *shared.MachineReq, machines *[]shared.Machine) error {
 	start := time.Now()
 

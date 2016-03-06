@@ -87,7 +87,7 @@ func (c *Component) SVGName(index int) string {
 }
 
 func (c *Component) SVGFill() string {
-	print("getting fill for status", c.Status)
+	// print("getting fill for status", c.Status)
 	switch c.Status {
 	case "Needs Attention":
 		return "#fff176"

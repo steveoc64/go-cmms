@@ -14,27 +14,34 @@ import (
 func siteMap(context *router.Context) {
 
 	// Get a list of sites
-	sites := []shared.Site{}
-	err := rpcClient.Call("SiteRPC.List", channelID, &sites)
-	if err != nil {
-		print("RPC error", err.Error())
-	} else {
-		// print("got an array of sites !!")
+	go func() {
+		sites := []shared.Site{}
+		err := rpcClient.Call("SiteRPC.List", channelID, &sites)
+		if err != nil {
+			print("RPC error", err.Error())
+		} else {
+			// print("got an array of sites !!")
 
-		w := dom.GetWindow()
-		doc := w.Document()
-		loadTemplate("sitemap", sites)
+			w := dom.GetWindow()
+			doc := w.Document()
+			loadTemplate("sitemap", sites)
 
-		// Attach listeners for each button
-		for _, v := range sites {
-			mbtn := doc.GetElementByID(fmt.Sprintf("%d", v.ID)).(*dom.HTMLInputElement)
-			mbtn.AddEventListener("click", false, func(evt dom.Event) {
-				id := evt.Target().GetAttribute("id") // site id is a string
-				evt.PreventDefault()
-				r.Navigate("/sitemachines/" + id)
-			})
+			// Attach listeners for each button
+			for _, v := range sites {
+				mbtn := doc.GetElementByID(fmt.Sprintf("%d", v.ID)).(*dom.HTMLInputElement)
+				mbtn.AddEventListener("click", false, func(evt dom.Event) {
+					id := evt.Target().GetAttribute("id") // site id is a string
+					evt.PreventDefault()
+					r.Navigate("/sitemachines/" + id)
+				})
+			}
 		}
-	}
+	}()
+}
+
+type SiteMachineData struct {
+	Machines []shared.Machine
+	Site     shared.Site
 }
 
 // Show all the machines at a Site
@@ -48,14 +55,24 @@ func siteMachines(context *router.Context) {
 		Channel: channelID,
 		SiteID:  id,
 	}
-	machines := []shared.Machine{}
+	data := SiteMachineData{}
 
 	go func() {
-		err := rpcClient.Call("SiteRPC.MachineList", &req, &machines)
+		rpcClient.Call("SiteRPC.Get", id, &data.Site)
+		print("Site =", data.Site)
+		err := rpcClient.Call("SiteRPC.MachineList", &req, &data.Machines)
 		if err != nil {
 			print("RPC error", err.Error())
 		} else {
-			loadTemplate("sitemachines", machines)
+			loadTemplate("sitemachines", data)
+
+			w := dom.GetWindow()
+			doc := w.Document()
+			austmap := doc.GetElementByID("austmap")
+			austmap.AddEventListener("click", false, func(evt dom.Event) {
+				r.Navigate("/")
+			})
+
 		}
 	}()
 
