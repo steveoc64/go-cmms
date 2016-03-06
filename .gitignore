@@ -9,3 +9,4 @@ cmms-server.exe
 makefile
 template.go
 .sass-cache
+app.css
