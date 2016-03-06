@@ -13,14 +13,17 @@ func registerRPC() {
 	if err := rpc.Register(l); err != nil {
 		log.Fatal(err)
 	}
+	log.Println("» Login")
 
-	p := new(PingRPC)
-	if err := rpc.Register(p); err != nil {
+	s := new(SiteRPC)
+	if err := rpc.Register(s); err != nil {
 		log.Fatal(err)
 	}
+	log.Println("» Site")
 
-	// r := new(RouteRPC)
-	// if err := rpc.Register(r); err != nil {
+	// m := new(MachineRPC)
+	// if err := rpc.Register(m); err != nil {
 	// 	log.Fatal(err)
 	// }
+	// log.Println("» Machine")
 }

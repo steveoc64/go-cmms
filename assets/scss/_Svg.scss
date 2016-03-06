@@ -1,0 +1,243 @@
+.svg-panel {
+  height: 200px;
+  width: 900px;
+  width: 100%;
+  // background-color: $green-100;
+  border: 2px;
+  stroke: $sbs-dkblue;
+  overflow: scroll;
+}
+.svg-map {
+  width: 80%;
+  height: 80%;
+}
+.svg-panel:hover {
+  background-color: #eee; 
+}
+.pending {
+  background-color: green;
+}
+.attn {
+  background-color: yellow;
+}
+.stopped {
+  background-color: red;
+}
+.hoverme:hover {
+  stroke: red;
+  stroke-width: 3;
+}
+.fillhover:hover {
+  stroke: red;
+  stroke-width: 3;
+  fill: #fffde7;
+  fill: white;
+}
+.bhover:hover {
+  stroke: red;
+  stroke-width: 3;
+  fill: #fffde7;
+  fill: white;
+  fill: url(#bgradh)
+}
+
+.svg-tool-panel {
+  height: 160px;
+  //width: 100%;
+  background-color: $sbs-grey1;
+  border: 2px;
+  stroke: black;
+}
+.svg-tool-panel-attn {
+  height: 160px;
+  //width: 100%;
+  background-color: orange;
+  border: 2px;
+  stroke: black;
+}
+.svg-tool-panel-stopped {
+  height: 160px;
+  //width: 100%;
+  background-color: red;
+  border: 2px;
+  stroke: black;
+}
+.svg-tool-panel-pending {
+  height: 160px;
+  //width: 100%;
+  background-color: brown;
+  border: 2px;
+  stroke: black;
+}
+
+.machine-svg {
+	y: 100px;
+  x: 100px;
+  width: 80%;
+  height: 60px;
+  fill: $sbs-blue;
+  fill-opacity: 0.8;
+  stroke-width: 4;
+  stroke: black;
+  stroke-opacity: 0.8;
+}
+.machine-svg-pending {
+	y: 100px;
+  x: 100px;
+  width: 80%;
+  height: 60px;
+  fill: brown;
+  fill-opacity: 0.8;
+  stroke-width: 4;
+  stroke: black;
+  stroke-opacity: 0.8;
+}
+.machine-svg-attn {
+	y: 100px;
+  x: 100px;
+  width: 80%;
+  height: 60px;
+  fill: orange;
+  fill-opacity: 0.8;
+  stroke-width: 4;
+  stroke: black;
+  stroke-opacity: 0.8;
+}
+.machine-svg-stopped {
+	y: 100px;
+  x: 100px;
+  width: 80%;
+  height: 60px;
+  fill: red;
+  fill-opacity: 0.8;
+  stroke-width: 4;
+  stroke: black;
+  stroke-opacity: 0.8;
+}
+
+.tool-svg {
+  y: 30px;
+  height: 60px;
+  fill: green;
+  fill-opacity: 0.8;
+  stroke-width: 4;
+  stroke: black;
+  stroke-opacity: 0.9;
+}
+.tool-svg:hover {
+    fill: green;  
+    fill-opacity: 0.9;
+}
+
+.tool-svg-attention {
+  y: 30px;
+  height: 60px;
+  fill: orange;
+  fill-opacity: 0.8;
+  stroke-width: 4;
+  stroke: black;
+  stroke-opacity: 0.9;
+  a:hover {
+    fill: #fa0;
+  }
+}
+.tool-svg-attention:hover {
+    fill: orange;  
+    fill-opacity: 0.9;
+}
+
+.tool-svg-pending {
+  y: 30px;
+  height: 60px;
+  fill: brown;
+  fill-opacity: 0.8;
+  stroke-width: 4;
+  stroke: black;
+  stroke-opacity: 0.9;
+  a:hover {
+    fill: #ff0;
+  }
+}
+.tool-svg-pending:hover {
+    fill: brown;  
+    fill-opacity: 0.9;
+}
+
+.tool-svg-stopped {
+	y: 30px;
+	height: 60px;
+	fill: red;
+	fill-opacity: 0.8;
+	stroke-width: 4;
+	stroke: black;
+	stroke-opacity: 0.9;
+  a:hover {
+    fill: #f00;
+  }
+}
+.tool-svg-stopped:hover {
+    fill: red;  
+    fill-opacity: 0.9;
+}
+
+.part-svg {
+	y: 90px;
+	height: 50px;
+	fill: blue;
+	fill-opacity: 0.8;
+	stroke-width: 4;
+	stroke: black;
+	stroke-opacity: 0.9;
+}
+.part-svg:hover {
+  fill: blue;
+  fill-opacity: 0.9;
+
+}
+
+.label-svg {
+  font-size: 10px;
+  fill: blue-grey;
+}
+.label-svg-header {
+	font-size: 14px;
+	fill: blue;
+}
+
+.machine__running td {
+  // Default 
+}
+.machine__attention td {
+  background-color: amber;
+  font-weight: bold;
+}
+.machine__attention:hover {
+  background-color: amber;
+}
+
+.machine__stopped td {
+  background-color: deep-orange;  
+  font-weight: bold;
+  font-size: 16px;
+}
+.machine__pending td {
+  background-color: brown;
+  font-weight: bold;
+}
+.machine__new td {
+  background-color: teal;
+  color: white;
+  font-style: italic;
+  a: !important {
+    color: white;   
+    font-size: 16px;
+    font-weight: 900;
+  }
+
+  hover:td {
+      background-color: teal;
+  }
+
+}
+
+

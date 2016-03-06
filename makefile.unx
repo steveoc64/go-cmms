@@ -8,6 +8,7 @@ content:
 	cp assets/index.html dist/public
 	cp -R assets/img dist/public
 	cp -R assets/css dist/public
+	temple build templates app/template.go
 	cd app && gopherjs build *.go -o ../dist/public/app.js
 
 dist: 
@@ -22,10 +23,14 @@ dist:
 	cp -R assets/css dist/public
 	cp -R assets/js dist/public
 	##### Copy 3rd Party Assets
-	cp bower_components/Materialize/dist/css/materialize.css dist/public/css
-	cp bower_components/Materialize/dist/js/materialize.js dist/public/js
-	cp bower_components/jquery/dist/jquery.js dist/public/js
-	cp -R bower_components/Materialize/dist/font dist/public
+	#### Materialize
+	# cp bower_components/Materialize/dist/css/materialize.css dist/public/css
+	# cp bower_components/Materialize/dist/js/materialize.js dist/public/js
+	# cp bower_components/jquery/dist/jquery.js dist/public/js
+	# cp -R bower_components/Materialize/dist/font dist/public
+	#### Milligram
+	cp bower_components/milligram/dist/milligram.min.css dist/public/css
+	cp bower_components/normalize.css/normalize.css dist/public/css
 	cp server/config.json dist
 	##### Building Client App
 	temple build templates app/template.go --package main

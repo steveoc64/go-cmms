@@ -1,0 +1,15 @@
+<div class="container" id="sitemap">
+	<div class="row">
+		<div class="colunm" style="justify-content: space-around;">
+			<img src="img/aust.png" alt="Australia" width="402px" height="364px">
+		</div>
+	</div>
+	<div class="row">
+		{{range .}}
+		<div class="column">
+			<input type="button" value="{{.Name}}" id="{{.ID}}">						
+		</div>
+		{{end}}
+	</div>
+</div>
+

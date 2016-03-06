@@ -16,6 +16,7 @@ func Login(username string, passwd string, rem bool) {
 		Channel:    channelID,
 	}
 	print("login params", lc)
+
 	lr := &shared.LoginReply{}
 	err := rpcClient.Call("LoginRPC.Login", lc, lr)
 	if err != nil {
@@ -25,45 +26,30 @@ func Login(username string, passwd string, rem bool) {
 		hideLoginForm()
 		createMenu(lr.Menu)
 		loadRoutes(lr.Role, lr.Routes)
-
-		// w := dom.GetWindow()
-		// doc := w.Document()
-
-		// Fill in the details on the nav bar
-		// uuname := strings.ToUpper(username[0:1]) + username[1:]
-		// uname := doc.GetElementByID("d-username").(*dom.HTMLLIElement)
-		// uname.SetTextContent(uuname)
-		// urole := doc.GetElementByID("d-role").(*dom.HTMLLIElement)
-		// urole.SetTextContent(lr.Role)
-		// usite := doc.GetElementByID("d-site").(*dom.HTMLLIElement)
-		// usite.SetTextContent(lr.Site)
-
-		// Navigate to the default route
-		//r.Navigate("/")
 	} else {
 		print("login failed")
 	}
 }
 
 func Logout() {
-	js.Global.Get("location").Set("hash", "")
 	showLoginForm()
 	initRouter() // reset all the routes to nothing
+	js.Global.Get("location").Set("hash", "")
+	r.Navigate("/")
 }
 
 func hideLoginForm() {
 	w := dom.GetWindow()
 	doc := w.Document()
 
-	// loginForm := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
-	// loginForm.Class().SetString("hidden")
-	// loginForm.Style().Set("display", "none")
-
-	// disqus := doc.GetElementByID("disqus_thread").(*dom.HTMLDivElement)
-	// disqus.Style().Set("display", "inline")
-
 	logoutBtn := doc.GetElementByID("logoutbtn").(*dom.HTMLAnchorElement)
 	logoutBtn.Style().Set("display", "inline")
+	logoutBtn.AddEventListener("click", false, func(evt dom.Event) {
+		print("clicked logout btn")
+		evt.PreventDefault()
+		Logout()
+	})
+
 }
 
 func showLoginForm() {
@@ -71,26 +57,23 @@ func showLoginForm() {
 	doc := w.Document()
 
 	// Activate the login form, and get focus on the username
-	t, err := GetTemplate("login")
-	if err != nil {
-		print(err.Error())
-	}
-	el := doc.QuerySelector("main")
-	if err := t.ExecuteEl(el, nil); err != nil {
-		print(err.Error())
-	}
+	loadTemplate("login", nil)
 	doc.GetElementByID("l-username").(*dom.HTMLInputElement).Focus()
 
+	loginBtn := doc.GetElementByID("l-loginbtn").(*dom.HTMLInputElement)
+	loginBtn.AddEventListener("click", false, func(evt dom.Event) {
+		print("clicked login btn")
+		evt.PreventDefault()
+
+		username := doc.GetElementByID("l-username").(*dom.HTMLInputElement).Value
+		passwd := doc.GetElementByID("l-passwd").(*dom.HTMLInputElement).Value
+		rem := doc.GetElementByID("l-remember").(*dom.HTMLInputElement).Checked
+
+		go Login(username, passwd, rem)
+	})
+
 	logoutBtn := doc.GetElementByID("logoutbtn").(*dom.HTMLAnchorElement)
-	// logoutBtn.Class().SetString("hidden")
 	logoutBtn.Style().Set("display", "none")
 
 	removeMenu()
-
-	// uname := doc.GetElementByID("d-username").(*dom.HTMLLIElement)
-	// uname.SetTextContent("")
-	// urole := doc.GetElementByID("d-role").(*dom.HTMLLIElement)
-	// urole.SetTextContent("")
-	// usite := doc.GetElementByID("d-site").(*dom.HTMLLIElement)
-	// usite.SetTextContent("")
 }

@@ -6,104 +6,43 @@
     <!--Let browser know website is optimized for mobile-->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
+    <link rel="icon" href="img/favicon.ico" type="image/x-icon">
     <title>CMMS v.3</title>
 
     <!-- Fonts -->
-    <!-- <link rel="stylesheet" href="fonts/Roboto.css">    -->
-    <!-- <link rel="stylesheet" href="fonts/Ubuntu.css">    -->
-    <!-- <link type="text/css" rel="stylesheet" href="css/materialize.css"  media="screen,projection"/> -->
+    <link rel="stylesheet" href="fonts/Roboto.css">   
+    <link rel="stylesheet" href="css/font-awesome.css">   
+
+    <!-- Styles -->
     <link type="text/css" rel="stylesheet" href="css/normalize.css"/>
-    <link type="text/css" rel="stylesheet" href="css/milligram.min.css"/>
-    <link type="text/css" href="css/m-style.css" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="css/app.css"/>
+    <link type="text/css" rel="stylesheet" href="css/gridforms.css"/>
 
-    <!-- <link type="text/css" href="css/app.css" rel="stylesheet"> -->
-    <!-- <link rel="stylesheet" type="text/css" href="css/gridforms.css">   -->
-
-    <link rel="icon" href="img/favicon.ico" type="image/x-icon">
-    <!-- <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> -->
-
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.5.0/css/font-awesome.min.css">
-
-    <!-- Third Party Scripts -->    
-<!-- 
-    Material Design
-    <script type="text/javascript" src="js/jquery.js"></script>
-    <script type="text/javascript" src="js/materialize.js"></script>
-    <script type="text/javascript" src="js/gridforms.js"></script>
- -->
   </head>
 
 <body id="app">
   <!-- basic layout in here -->
   <div class="wrapper">
 
-      <nav class="navigation">
-        <section class="container">
+    <nav class="navigation">
+      <section class="container">
+        <a class="navigation-title" href="/">
+          <img class="img" src="img/logo.png" height="30" alt="SBS" title="SBS">
+          <h1 class="title">iTrak</h1>
+        </a>
 
-          <a class="navigation-title" href="/">
-            <img class="img" src="img/logo.png" height="30" alt="SBS" title="SBS">
-            <h1 class="title">iTrak</h1>
-          </a>
-
-          <ul class="navigation-list float-right">
-            <li class="navigation-item">
-              <a class="navigation-link" href="#popover-grid" data-popover>Menu</a>
-              <div class="popover" style="display: none" id="popover-grid">
-                <ul class="popover-list">
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#getting-started" title="Getting Started">Getting Started</a></li>
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#typography" title="Typography">Typography</a></li>
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#blockquotes" title="Blockquotes">Blockquotes</a></li>
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#buttons" title="Buttons">Buttons</a></li>
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#lists" title="Lists">Lists</a></li>
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#forms" title="Forms">Forms</a></li>
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#tables" title="Tables">Tables</a></li>
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#grids" title="Grids">Grids</a></li>
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#codes" title="Codes">Codes</a></li>
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#utilities" title="Utilities">Utilities</a></li>
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#tips" title="Tips">Tips</a></li>
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#browser-support" title="Browser Support">Browser Support</a></li>
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#examples" title="Examples">Examples</a></li>
-                  <li class="popover-item"><a class="popover-link" href="https://milligram.github.io/#contributing" title="Contributing">Contributing</a></li>
-                </ul>
-              </div>
-            </li>
-          </ul>
-
-          <a class="navigation-link" href="#" id="logoutbtn" style="display: none;">
-            <h1 class="title">Logout</h1>
-          </a>
-
-  </section>
-  </nav>
+        <a class="navigation-link float-right" href="#" id="logoutbtn" style="display: none;">
+          <h1 class="title">Logout</h1>
+        </a>
+      </section>
+    </nav>
   </div>
 
-    <!-- Temp Splash Screen -->
+  <!-- Temp Splash Screen -->
   <main>
-      <section class="container" id="examples">
-        <img src="img/ajax-loader.gif" alt="">
-        <h5 class="title">Examples</h5>
-        <p>You can view more examples of using Milligram.</p>
-        <p>
-          <ul>
-            <li><a href="https://milligram.github.io/#getting-started" title="Getting Started">Getting Started</a></li>
-            <li><a href="https://milligram.github.io/#typography" title="Typography">Typography</a></li>
-            <li><a href="https://milligram.github.io/#blockquotes" title="Blockquotes">Blockquotes</a></li>
-            <li><a href="https://milligram.github.io/#buttons" title="Buttons">Buttons</a></li>
-            <li><a href="https://milligram.github.io/#lists" title="Lists">Lists</a></li>
-            <li><a href="https://milligram.github.io/#forms" title="Forms">Forms</a></li>
-            <li><a href="https://milligram.github.io/#tables" title="Tables">Tables</a></li>
-            <li><a href="https://milligram.github.io/#grids" title="Grids">Grids</a></li>
-            <li><a href="https://milligram.github.io/#codes" title="Codes">Codes</a></li>
-            <li><a href="https://milligram.github.io/#utilities" title="Utilities">Utilities</a></li>
-            <li><a href="https://milligram.github.io/#tips" title="Tips">Tips</a></li>
-            <li><a href="https://milligram.github.io/#browser-support" title="Browser Support">Browser Support</a></li>
-          </ul>
-        </p>
-      </section>
-
-      <div class="container">
-    </div>  
+    <section class="container" id="examples">
+      <img src="img/ajax-loader.gif" alt="">
+    </section>
   </main>
 
 </body>

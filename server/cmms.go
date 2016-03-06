@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
@@ -12,7 +13,6 @@ import (
 	"github.com/steveoc64/godev/echocors"
 	"github.com/steveoc64/godev/smt"
 	"gopkg.in/mgutz/dat.v1/sqlx-runner"
-	"net/http"
 )
 
 var e *echo.Echo

@@ -9,6 +9,7 @@ type LoginCredentials struct {
 
 type LoginReply struct {
 	Result string
+	Token  string
 	Role   string
 	Site   string
 	Menu   []UserMenu

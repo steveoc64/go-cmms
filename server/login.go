@@ -2,15 +2,17 @@ package main
 
 import (
 	"database/sql"
-	"github.com/steveoc64/go-cmms/shared"
+	"fmt"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/steveoc64/go-cmms/shared"
 )
 
 type LoginRPC struct{}
 
-type loginResponse struct {
+type dbLoginResponse struct {
 	ID       int            `db:"id"`
 	Username string         `db:"username"`
 	Name     string         `db:"name"`
@@ -32,7 +34,7 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 	// log.Println("got conn", conn)
 	if conn != nil {
 		// validate that username and passwd is correct
-		res := &loginResponse{}
+		res := &dbLoginResponse{}
 		usename := strings.ToLower(lc.Username)
 		err := DB.
 			Select("u.id,u.username,u.name,u.role,u.site_id,s.name as sitename").
@@ -44,6 +46,7 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 		if err != nil {
 			log.Println("Login Failed:", err.Error())
 			lr.Result = "Failed"
+			lr.Token = ""
 			lr.Menu = []shared.UserMenu{}
 			lr.Routes = []shared.UserRoute{}
 			lr.Role = ""
@@ -51,6 +54,7 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 		} else {
 			log.Println("Login OK")
 			lr.Result = "OK"
+			lr.Token = fmt.Sprintf("%d", lc.Channel)
 
 			//lr.Menu = []string{"RPC Dashboard", "Events", "Sites", "Machines", "Tools", "Parts", "Vendors", "Users", "Skills", "Reports"}
 			lr.Menu = getMenu(res.Role)
@@ -64,13 +68,12 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 		}
 	}
 
-	log.Printf(`Login.Login ->
+	log.Printf(`Login.Login -> %s
     » (%s,%s,%t,%d)
-    « (%s,%s,%s) 
-    = %s`,
+    « (%s,%s,%s)`,
+		time.Since(start),
 		lc.Username, lc.Password, lc.RememberMe, lc.Channel,
-		lr.Result, lr.Role, lr.Site,
-		time.Since(start))
+		lr.Result, lr.Role, lr.Site)
 
 	return nil
 }
@@ -136,6 +139,7 @@ func getRoutes(role string) []shared.UserRoute {
 		return []shared.UserRoute{
 			{Route: "/", Func: "sitemap"},
 			{Route: "/machines", Func: "machines"},
+			{Route: "/sitemachines/{site}", Func: "sitemachines"},
 		}
 	case "Site Manager":
 		return []shared.UserRoute{

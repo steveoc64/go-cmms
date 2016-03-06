@@ -1,13 +1,15 @@
 all: clean run
 
 clean:
-	terminate.bat
+	./terminate
 	rm -rf dist server/cmms
 
 content:
 	cp assets/index.html dist/public
 	cp -R assets/img dist/public
+	cd assets/scss && sass --style compressed app.sass ../css/app.css
 	cp -R assets/css dist/public
+	cp -R assets/fonts dist/public
 	temple build templates app/template.go
 	cd app && gopherjs build *.go -o ../dist/public/app.js
 
@@ -19,17 +21,12 @@ dist:
 	##### Copy Our Assets
 	cp assets/index.html dist/public
 	cp -R assets/img dist/public
-	# cp -R assets/fonts dist/public
+	# cd assets/scss && sass --style compressed app.sass ../css/app.css
+	cd assets/scss && sass app.sass ../css/app.css
 	cp -R assets/css dist/public
+	cp -R assets/fonts dist/public
 	cp -R assets/js dist/public
-	##### Copy 3rd Party Assets
-	#### Materialize
-	# cp bower_components/Materialize/dist/css/materialize.css dist/public/css
-	# cp bower_components/Materialize/dist/js/materialize.js dist/public/js
-	# cp bower_components/jquery/dist/jquery.js dist/public/js
-	# cp -R bower_components/Materialize/dist/font dist/public
-	#### Milligram
-	cp bower_components/milligram/dist/milligram.min.css dist/public/css
+	# cp bower_components/milligram/dist/milligram.css dist/public/css
 	cp bower_components/normalize.css/normalize.css dist/public/css
 	cp server/config.json dist
 	##### Building Client App
@@ -37,8 +34,8 @@ dist:
 	cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	# cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	##### Building Server App
-	cd server && go build -o ../dist/cmms-server.exe
-	#cd server && go build -o ../dist/cmms-server
+	#cd server && go build -o ../dist/cmms-server.exe
+	cd server && go build -o ../dist/cmms-server
 	##### Dist directory looks like this	
 	cd dist && ls -l && ls -l public/app.js && du -k .
 

@@ -3,9 +3,32 @@ package main
 import (
 	"github.com/go-humble/router"
 	"github.com/steveoc64/go-cmms/shared"
+	"honnef.co/go/js/dom"
 )
 
 var appFn map[string]router.Handler
+
+var r *router.Router
+
+func fixLinks() {
+	r.InterceptLinks()
+}
+
+func loadTemplate(template string, data interface{}) {
+	w := dom.GetWindow()
+	doc := w.Document()
+
+	t, err := GetTemplate(template)
+	if err != nil {
+		print(err.Error())
+	}
+
+	el := doc.QuerySelector("main")
+	if err := t.ExecuteEl(el, data); err != nil {
+		print(err.Error())
+	}
+	r.InterceptLinks()
+}
 
 func enableRoutes(Role string) {
 
@@ -27,13 +50,11 @@ func enableRoutes(Role string) {
 		}
 	case "Worker":
 		appFn = map[string]router.Handler{
-			"sitemap":  siteMap,
-			"machines": machineList,
+			"sitemap":      siteMap,
+			"sitemachines": siteMachines,
 		}
 	}
 }
-
-var r *router.Router
 
 func initRouter() {
 	r = router.New()
@@ -57,7 +78,6 @@ func loadRoutes(Role string, Routes []shared.UserRoute) {
 	r.ShouldInterceptLinks = true
 
 	for _, v := range Routes {
-		// print("route:", v.Route, v.Func)
 		if f, ok := appFn[v.Func]; ok {
 			// print("found a function called", v.Func)
 			print("adding route", v.Route, v.Func)
@@ -65,5 +85,4 @@ func loadRoutes(Role string, Routes []shared.UserRoute) {
 		}
 	}
 	r.Start()
-
 }
