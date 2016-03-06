@@ -8,3 +8,4 @@ cmms-server
 cmms-server.exe
 makefile
 template.go
+.sass-cache
