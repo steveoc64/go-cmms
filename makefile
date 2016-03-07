@@ -1,8 +1,8 @@
 all: clean run
 
-clean:
-	./terminate
-	rm -rf dist server/cmms
+clean:	
+	terminate.bat
+	rm -rf dist 
 
 content:
 	cp assets/index.html dist/public
@@ -28,6 +28,7 @@ dist:
 	cp -R assets/js dist/public
 	# cp bower_components/milligram/dist/milligram.css dist/public/css
 	cp bower_components/normalize.css/normalize.css dist/public/css
+	cp bower_components/hint.css/hint.css dist/public/css
 	cp server/config.json dist
 	##### Building Client App
 	temple build templates app/template.go --package main
@@ -36,7 +37,7 @@ dist:
 	##### Building Server App
 	#cd server && go build -o ../dist/cmms-server.exe
 	cd server && go build -o ../dist/cmms-server
-	mplayer -quiet alldone.ogg 2> /dev/null > /dev/null
+	# mplayer -quiet alldone.ogg 2> /dev/null > /dev/null
 	##### Dist directory looks like this	
 	cd dist && ls -l && ls -l public/app.js && du -k .
 
