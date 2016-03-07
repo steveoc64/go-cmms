@@ -884,6 +884,12 @@ img {
   float: right;
   margin-top: 1.2rem; }
 
+.fillhover :hover {
+  stroke: red;
+  stroke-width: 3;
+  fill: #fffde7;
+  fill: white; }
+
 option:checked {
   background: linear-gradient(#E27A3F, #E27A3F); }
 

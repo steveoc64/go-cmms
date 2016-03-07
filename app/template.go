@@ -164,7 +164,8 @@ This is the Site List
     <!-- Add picture for uncoiler -->
     <g stroke="#114" stroke-width="2" 
           ng-click="Machines.raiseIssue(row,0,0,'Uncoiler')" 
-          class="fillhover hint--top" data-hint="Raise Issue on Uncoiler">    
+          class="fillhover">    
+      <title>Raise Event on Uncoiler</title>
       <polygon points="30,90 0,148 60,148" fill="url(#grad1)"/>
       <circle cx="30" cy="90" r="30" fill="#eee"/>
     </g>

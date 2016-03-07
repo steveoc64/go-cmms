@@ -29,6 +29,7 @@ dist:
 	# cp bower_components/milligram/dist/milligram.css dist/public/css
 	cp bower_components/normalize.css/normalize.css dist/public/css
 	cp bower_components/hint.css/hint.css dist/public/css
+	cp bower_components/jquery/dist/jquery.min.js dist/public/js
 	cp server/config.json dist
 	##### Building Client App
 	temple build templates app/template.go --package main
