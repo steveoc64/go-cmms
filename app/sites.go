@@ -86,7 +86,21 @@ func siteMachines(context *router.Context) {
 			austmap.AddEventListener("click", false, func(evt dom.Event) {
 				r.Navigate("/")
 			})
-		}
+
+			// Attach a menu opener for each machine
+			for _, v := range data.Machines {
+				machinediv := doc.GetElementByID(fmt.Sprintf("machine-div-%d", v.ID))
+				machinediv.AddEventListener("click", false, func(evt dom.Event) {
+					machinediv := evt.Target().(*dom.BasicHTMLElement)
+					print("machinediv =", machinediv)
+					mid1 := machinediv.GetAttribute("id")
+					mid2 := machinediv.GetAttribute("machine-id")
+					print("clicked on machine id", mid1, mid2) // this is a string at this point
+					machinemenu := doc.GetElementByID("machine-menu").(*dom.BasicHTMLElement)
+					machinemenu.Class().Toggle("cbp-spmenu-open")
+				})
+			} // range
+		} // else
 	}()
 }
 

@@ -144,9 +144,31 @@ This is the Site List
 		</div>
 	</div>
 
+<!-- Give it a menu on the right -->
+<nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right" id="machine-menu">
+  <h3>Plate Machine</h3>
+  <a href="#">1 Single Dimple Square</a>
+  <a href="#">2 Service Hole / Curl</a>
+  <a href="#">3 Tie Down Slot</a>
+  <a href="#">4 Notch</a>
+  <a href="#">5 Nogging</a>
+  <a href="#">6 Guillo</a>
+  <a href="#">Electric</a>
+  <a href="#">Hydraulic</a>
+  <a href="#">Lube</a>
+  <a href="#">Printer</a>
+  <a href="#">Console</a>
+  <a href="#">Uncoiler</a>
+  <a href="#">Roll Bed</a>
+</nav>
+<!-- End of menu -->
+
 	<div class="row row-wrap" style="flex-wrap: wrap">
+
 	{{range .Machines}}
-		<div class="column span-{{.Span}}">
+		<div class="column span-{{.Span}}" id="machine-div-{{.ID}}" machine-id="{{.ID}}">
+    ID = {{.ID}}
+
 
   <svg class="svg-panel" xmlns="http://www.w3.org/2000/svg" 
     	 width="95%"
@@ -224,6 +246,7 @@ This is the Site List
           ng-click="Machines.raiseIssue(row,0,0,'Electrical')" 
           class="fillhover"
           lx-tooltip="Electrical" tooltip-position="right">
+      <title>Electrical</title>
       <rect x="0" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
       <image xlink:href="/img/elec.png" x="1" y="2" height="38px" width="38px"/>
     </g>
@@ -231,6 +254,7 @@ This is the Site List
           ng-click="Machines.raiseIssue(row,0,0,'Hydraulic')" 
           class="fillhover"
           lx-tooltip="Hydraulic" tooltip-position="top">
+      <title>Hydraulic</title>
       <rect x="50" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
       <image xlink:href="/img/hydraulic.png" x="51" y="2" height="38px" width="38px"/>
     </g>
@@ -238,6 +262,7 @@ This is the Site List
           ng-click="Machines.raiseIssue(row,0,0,'Lube')" 
           class="fillhover"
           lx-tooltip="Lube" tooltip-position="top">
+      <title>Lube</title>
       <rect x="100" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
       <image xlink:href="/img/lube.png" x="101" y="2" height="38px" width="38px"/>
     </g>
@@ -245,6 +270,7 @@ This is the Site List
           ng-click="Machines.raiseIssue(row,0,0,'Printer')" 
           class="fillhover"
           lx-tooltip="Printer" tooltip-position="top">
+      <title>Printer</title>
       <rect x="150" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
       <image xlink:href="/img/printer.png" x="151" y="2" height="38px" width="38px"/>
     </g>
@@ -252,6 +278,7 @@ This is the Site List
           ng-click="Machines.raiseIssue(row,0,0,'Console')" 
           class="fillhover"
           lx-tooltip="Console" tooltip-position="top">
+      <title>Console</title>
       <rect x="200" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
       <image xlink:href="/img/console.png" x="201" y="2" height="38px" width="38px"/>
     </g>
@@ -283,6 +310,7 @@ This is the Site List
           ng-click="Machines.raiseIssue(row,0,0,'Rollbed')" 
           class="fillhover"
           lx-tooltip="Raise Issue with Roll Bed" tooltip-position="right">
+      <title>Roll Bed</title>
   
     <rect x="80" y="60" width="30" height="40" fill="#eee"/>
       <circle cx="95" cy="73" r="6" fill="#ccc"/>
@@ -302,8 +330,8 @@ This is the Site List
 		{{range $index,$comp := .Components}}
     <svg x="{{$comp.SVGX $index}}" 
     		 class="tooltip tooltip--ne"
-    		 data-tooltip="{{$comp.Name}} - {{$comp.Status}}"
          ng-click="Machines.raiseIssue(row,comp,comp.ID,'tool')">
+         <title>{{$comp.Name}} - {{$comp.Status}}</title>
       <a>
       <rect x="16" y="0" width="15" height="20" stroke="black" stroke-width="1" fill="#ddd"/>
       <rect y="20" width="45" rx="10" ry="10" height="80" stroke="black" stroke-width="2" 
