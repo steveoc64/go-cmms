@@ -42,7 +42,9 @@ func main() {
 			switch errorCode {
 			case http.StatusNotFound:
 				// TODO handle not found case
-				log.Println("Not Found", err.Error())
+				// log.Println("Not Found", err.Error())
+				// We are usually here due to an F5 refresh, in which case
+				// the URL is not expected to be there
 				context.Redirect(http.StatusMovedPermanently, "/")
 			default:
 				// TODO handle any other case

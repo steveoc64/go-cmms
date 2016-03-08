@@ -12,4 +12,39 @@ type Site struct {
 	StockSite      int     `db:"stock_site"`
 	StockSiteName  *string `db:"stock_site_name"`
 	Notes          string  `db:"notes"`
+	X              int     `db:"x"`
+	Y              int     `db:"y"`
+}
+
+type SiteStatusReport struct {
+	Edinburgh string
+	Minto     string
+	Tomago    string
+	Chinderah string
+}
+
+func ButtonColor(status string) string {
+	switch status {
+	case "Running":
+		return "GreenBtn"
+	case "Needs Attention":
+		return "YellowBtn"
+	case "Stopped":
+		return "RedBtn"
+	}
+	return ""
+}
+
+func (s SiteStatusReport) EButton() string {
+	return ButtonColor(s.Edinburgh)
+}
+
+func (s SiteStatusReport) MButton() string {
+	return ButtonColor(s.Minto)
+}
+func (s SiteStatusReport) TButton() string {
+	return ButtonColor(s.Tomago)
+}
+func (s SiteStatusReport) CButton() string {
+	return ButtonColor(s.Chinderah)
 }

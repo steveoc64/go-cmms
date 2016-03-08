@@ -87,7 +87,56 @@ This is the Site List
 	<div class="row">
     {{if .MultiSite}}
 		<div class="column column-30">	
-	    <img src="/img/aust.png" height="64" id="austmap">
+      <svg xmlns="http://www.w3.org/2000/svg" 
+        height="190" width="305">
+        <defs>
+          <radialGradient id="GreenBtn">
+              <stop offset="10%" stop-color="#4f2"/>
+              <stop offset="95%" stop-color="#2a1"/>
+          </radialGradient>
+          <radialGradient id="YellowBtn">
+              <stop offset="10%" stop-color="#ff0">
+                <animate attributeName="stop-color"
+                values="#da2;#ee0;#ff0;#ff0;#ee0;#da2"
+                dur="0.8s"
+                repeatCount="indefinite" />
+              </stop>
+              <stop offset="95%" stop-color="#da2"/>
+          </radialGradient>
+          <radialGradient id="RedBtn">   <!--  fx="60%" fy="30%"> -->
+              <stop offset="10%" stop-color="#fa0">
+                <animate attributeName="stop-color"
+                values="#f00;#f80;#fa0;#f80;#f00"
+                dur="0.8s"
+                repeatCount="indefinite" />
+              </stop>
+              <stop offset="95%" stop-color="#e00">
+                <animate attributeName="stop-color"
+                values="#800;#a00;#f00;#a00;#800"
+                dur="0.8s"
+                repeatCount="indefinite" />
+              </stop>
+          </radialGradient>
+        </defs>
+
+        <image xlink:href="/img/aust.png" x="1" y="1" height="182px" width="201px" id="austmap"/>
+        <text x="60" y="160">Edinburgh</text>
+        <g stroke="black" fill="url(#{{.Status.EButton}})">
+          <circle cx="125" cy="130" r="7"/>
+        </g>
+        <text x="202" y="102">Chinderah</text>
+        <g stroke="black" fill="url(#{{.Status.CButton}})">
+          <circle cx="190" cy="100" r="7"/>
+        </g>
+        <text x="200" y="122">Tomago</text>
+        <g stroke="black" fill="url(#{{.Status.TButton}})">
+          <circle cx="190" cy="115" r="7"/>
+        </g>
+        <text x="190" y="142">Minto</text>
+        <g stroke="black" fill="url(#{{.Status.MButton}})">
+          <circle cx="180" cy="130" r="7"/>
+        </g>
+      </svg>
 		</div>
     {{end}}
 		<div class="column column-70">
@@ -276,12 +325,65 @@ This is the Site List
 
 	if err = g.AddTemplate("sitemap", `<div class="container" id="sitemap">
 	<div class="row">
-		<div class="colunm" style="justify-content: space-around;">
-			<img src="img/aust.png" alt="Australia" width="402px" height="364px">
+		<div class="column" style="justify-content: space-around;">
+			<!-- <img src="img/aust.png" alt="Australia" width="402px" height="364px"> -->
+		  <svg class="svg-map"
+		       viewBox="0 0 490 380"
+		       xmlns="http://www.w3.org/2000/svg">
+		    <defs>
+		      <radialGradient id="GreenBtn">
+		          <stop offset="10%" stop-color="#4f2"/>
+		          <stop offset="95%" stop-color="#2a1"/>
+		      </radialGradient>    
+		      <radialGradient id="YellowBtn">
+		          <stop offset="10%" stop-color="#ff0">
+		            <animate attributeName="stop-color"
+		            values="#da2;#ee0;#ff0;#ff0;#ee0;#da2"
+		            dur="0.8s"
+		            repeatCount="indefinite" />
+		          </stop>
+		          <stop offset="95%" stop-color="#da2"/>
+		      </radialGradient>
+		      <radialGradient id="RedBtn">   <!--  fx="60%" fy="30%"> -->
+		          <stop offset="10%" stop-color="#fa0">
+		            <animate attributeName="stop-color"
+		            values="#f00;#f80;#fa0;#f80;#f00"
+		            dur="0.8s"
+		            repeatCount="indefinite" />
+		          </stop>
+		          <stop offset="95%" stop-color="#e00">
+		            <animate attributeName="stop-color"
+		            values="#800;#a00;#f00;#a00;#800"
+		            dur="0.8s"
+		            repeatCount="indefinite" />
+		          </stop>
+		      </radialGradient>
+		    </defs>
+
+		    <image xlink:href="/img/aust.png" x="1" y="1" height="364px" width="402px"/>
+		    <text x="180" y="290">Edinburgh</text>
+ 		    <g stroke="black" fill="url(#{{.Status.EButton}})">
+		      <circle cx="260" cy="250" r="12"/>
+		    </g>
+		    <text x="410" y="205">Chinderah</text>
+		    <g stroke="black" fill="url(#{{.Status.CButton}})">
+		      <circle cx="390" cy="200" r="12"/>
+		    </g>
+		    <text x="400" y="235">Tomago</text>
+		    <g stroke="black" fill="url(#{{.Status.TButton}})">
+		      <circle cx="380" cy="230" r="12"/>
+		    </g>
+	      <text x="380" y="265">Minto</text>
+		    <g stroke="black" fill="url(#{{.Status.MButton}})">
+		      <circle cx="360" cy="260" r="12"/>
+		    </g>
+		  </defs>
+		</svg>
+
 		</div>
 	</div>
 	<div class="row">
-		{{range .}}
+		{{range .Sites}}
 		<div class="column">
 			<input type="button" value="{{.Name}}" id="{{.ID}}">						
 		</div>

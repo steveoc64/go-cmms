@@ -214,3 +214,107 @@ func (s *SiteRPC) HomeMachineList(channel int, machines *[]shared.Machine) error
 
 	return nil
 }
+
+// Get a SiteStatus Report
+func (s *SiteRPC) StatusReport(channel int, retval *shared.SiteStatusReport) error {
+	start := time.Now()
+
+	conn := Connections.Get(channel)
+
+	retval.Edinburgh = "Running"
+	retval.Minto = "Running"
+	retval.Tomago = "Running"
+	retval.Chinderah = "Running"
+
+	i := 0
+
+	// Get the overall status for Edinburgh
+	DB.SQL(`select count(m.*) 
+		from machine m
+		left join site s on (s.id = m.site_id)
+		where m.status = 'Stopped' 
+		and s.name like 'Edinburgh%'`).QueryScalar(&i)
+	if i > 0 {
+		retval.Edinburgh = "Stopped"
+	} else {
+		DB.SQL(`select count(m.*) 
+			from machine m
+			left join site s on (s.id = m.site_id)
+			where m.status = 'Needs Attention' 
+			and s.name like 'Edinburgh%'`).QueryScalar(&i)
+		if i > 0 {
+			retval.Edinburgh = "Needs Attention"
+		}
+	}
+
+	// Get the overall status for Minto
+	i = 0
+	DB.SQL(`select count(m.*) 
+		from machine m
+		left join site s on (s.id = m.site_id)
+		where m.status = 'Stopped' 
+		and s.name = 'Minto'`).QueryScalar(&i)
+	if i > 0 {
+		retval.Minto = "Stopped"
+	} else {
+		DB.SQL(`select count(m.*) 
+			from machine m
+			left join site s on (s.id = m.site_id)
+			where m.status = 'Needs Attention' 
+			and s.name = 'Minto'`).QueryScalar(&i)
+		if i > 0 {
+			retval.Minto = "Needs Attention"
+		}
+	}
+
+	// Get the overall status for Tomago
+	i = 0
+	DB.SQL(`select count(m.*) 
+		from machine m
+		left join site s on (s.id = m.site_id)
+		where m.status = 'Stopped' 
+		and s.name = 'Tomago'`).QueryScalar(&i)
+	if i > 0 {
+		retval.Tomago = "Stopped"
+	} else {
+		DB.SQL(`select count(m.*) 
+			from machine m
+			left join site s on (s.id = m.site_id)
+			where m.status = 'Needs Attention' 
+			and s.name = 'Tomago'`).QueryScalar(&i)
+		if i > 0 {
+			retval.Tomago = "Needs Attention"
+		}
+	}
+
+	// Get the overall status for Chinderah
+	i = 0
+	DB.SQL(`select count(m.*) 
+		from machine m
+		left join site s on (s.id = m.site_id)
+		where m.status = 'Stopped' 
+		and s.name = 'Chinderah'`).QueryScalar(&i)
+	if i > 0 {
+		retval.Chinderah = "Stopped"
+	} else {
+		DB.SQL(`select count(m.*) 
+			from machine m
+			left join site s on (s.id = m.site_id)
+			where m.status = 'Needs Attention' 
+			and s.name = 'Chinderah'`).QueryScalar(&i)
+		if i > 0 {
+			retval.Chinderah = "Needs Attention"
+		}
+	}
+
+	logger(start, "Site.StatusReport",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("E: %s M: %s T: %s C: %s",
+			retval.Edinburgh,
+			retval.Minto,
+			retval.Tomago,
+			retval.Chinderah))
+
+	return nil
+}

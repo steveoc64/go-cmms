@@ -9,25 +9,31 @@ import (
 	"honnef.co/go/js/dom"
 )
 
+type SiteMapData struct {
+	Status shared.SiteStatusReport
+	Sites  []shared.Site
+}
+
 // Display a map showing the status of all sites, with buttons to
 // jump to specific sites
 func siteMap(context *router.Context) {
 
 	// Get a list of sites
 	go func() {
-		sites := []shared.Site{}
-		err := rpcClient.Call("SiteRPC.UserList", channelID, &sites)
+		data := SiteMapData{}
+		err := rpcClient.Call("SiteRPC.UserList", channelID, &data.Sites)
 		if err != nil {
 			print("RPC error", err.Error())
 		} else {
-			// print("got an array of sites !!")
+			// Get the site statuses
+			rpcClient.Call("SiteRPC.StatusReport", channelID, &data.Status)
 
 			w := dom.GetWindow()
 			doc := w.Document()
-			loadTemplate("sitemap", sites)
+			loadTemplate("sitemap", data)
 
 			// Attach listeners for each button
-			for _, v := range sites {
+			for _, v := range data.Sites {
 				mbtn := doc.GetElementByID(fmt.Sprintf("%d", v.ID)).(*dom.HTMLInputElement)
 				mbtn.AddEventListener("click", false, func(evt dom.Event) {
 					id := evt.Target().GetAttribute("id") // site id is a string
@@ -42,6 +48,7 @@ func siteMap(context *router.Context) {
 type SiteMachineData struct {
 	MultiSite bool
 	Site      shared.Site
+	Status    shared.SiteStatusReport
 	Machines  []shared.Machine
 }
 
@@ -68,6 +75,10 @@ func siteMachines(context *router.Context) {
 		if err != nil {
 			print("RPC error", err.Error())
 		} else {
+			// Get the site statuses
+			rpcClient.Call("SiteRPC.StatusReport", channelID, &data.Status)
+			print("SiteMachine status report", data.Status)
+
 			loadTemplate("sitemachines", data)
 			w := dom.GetWindow()
 			doc := w.Document()
