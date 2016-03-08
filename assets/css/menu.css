@@ -4,6 +4,7 @@
 .cbp-spmenu {
 	background: #47a3da;
 	position: fixed;
+	overflow: scroll;
 }
 
 .cbp-spmenu h3 {
