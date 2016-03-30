@@ -1,7 +1,7 @@
 all: clean run
 
 clean:	
-	terminate.bat
+	./terminate
 	rm -rf dist 
 
 content:
@@ -22,15 +22,16 @@ dist:
 	cp assets/index.html dist/public
 	cp -R assets/img dist/public
 	# cd assets/scss && sass --style compressed app.sass ../css/app.css
-	cd assets/scss && sass app.sass ../css/app.css
+	# cd assets/scss && sass app.sass ../css/app.css
+	cd assets/scss && node-sass app.sass ../css/app.css
 	cp -R assets/css dist/public
 	cp -R assets/fonts dist/public
 	cp -R assets/js dist/public
 	# cp bower_components/milligram/dist/milligram.css dist/public/css
 	cp bower_components/normalize.css/normalize.css dist/public/css
-	cp bower_components/hint.css/hint.css dist/public/css
-	cp bower_components/jquery/dist/jquery.min.js dist/public/js
-	cp bower_components/classie/classie.js dist/public/js
+	# cp bower_components/hint.css/hint.css dist/public/css
+	# cp bower_components/jquery/dist/jquery.min.js dist/public/js
+	# cp bower_components/classie/classie.js dist/public/js
 	cp server/config.json dist
 	##### Building Client App
 	temple build templates app/template.go --package main

@@ -89,15 +89,34 @@ func siteMachines(context *router.Context) {
 
 			// Attach a menu opener for each machine
 			for _, v := range data.Machines {
-				machinediv := doc.GetElementByID(fmt.Sprintf("machine-div-%d", v.ID))
+				mid := fmt.Sprintf("machine-div-%d", v.ID)
+				machinediv := doc.GetElementByID(mid)				
 				machinediv.AddEventListener("click", false, func(evt dom.Event) {
-					machinediv := evt.Target().(*dom.BasicHTMLElement)
-					print("machinediv =", machinediv)
-					mid1 := machinediv.GetAttribute("id")
-					mid2 := machinediv.GetAttribute("machine-id")
-					print("clicked on machine id", mid1, mid2) // this is a string at this point
+					machine_id,_ := strconv.Atoi(machinediv.GetAttribute("machine-id"))
 					machinemenu := doc.GetElementByID("machine-menu").(*dom.BasicHTMLElement)
-					machinemenu.Class().Toggle("cbp-spmenu-open")
+
+					// get the machine and construct a new menu based on the components
+					for _,m := range data.Machines {
+						if m.ID == machine_id {
+							menu := fmt.Sprintf("<h3>%s</h3>", m.Name)
+							for i,c := range m.Components {
+								menu += fmt.Sprintf(`<a href="#">%d %s</a>`, i+1, c.Name)
+							}
+							// add the standard components
+							menu += `
+<a href="#">Electric</a>
+<a href="#">Hydraulic</a>
+<a href="#">Lube</a>
+<a href="#">Printer</a>
+<a href="#">Console</a>
+<a href="#">Uncoiler</a>
+<a href="#">Roll Bed</a>
+`
+							machinemenu.SetInnerHTML(menu)
+							machinemenu.Class().Toggle("cbp-spmenu-open")
+						}
+					}
+
 				})
 			} // range
 		} // else

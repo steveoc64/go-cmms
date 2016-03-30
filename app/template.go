@@ -163,13 +163,10 @@ This is the Site List
 </nav>
 <!-- End of menu -->
 
-	<div class="row row-wrap" style="flex-wrap: wrap">
+<div class="row row-wrap" style="flex-wrap: wrap">
 
 	{{range .Machines}}
-		<div class="column span-{{.Span}}" id="machine-div-{{.ID}}" machine-id="{{.ID}}">
-    ID = {{.ID}}
-
-
+	<div class="column span-{{.Span}}" id="machine-div-{{.ID}}" machine-id="{{.ID}}">
   <svg class="svg-panel" xmlns="http://www.w3.org/2000/svg" 
     	 width="95%"
     	 viewBox="0 0 {{.SVGWidth1}} 200">
@@ -326,21 +323,23 @@ This is the Site List
       <circle cx="200" cy="87" r="6" fill="#ccc"/>
     </g>
 
-		<!-- Now draw all the tools     -->
-		{{range $index,$comp := .Components}}
+    <!-- Now draw all the tools     -->
+    {{range $index,$comp := .Components}}
     <svg x="{{$comp.SVGX $index}}" 
-    		 class="tooltip tooltip--ne"
+         class="tooltip tooltip--ne"
          ng-click="Machines.raiseIssue(row,comp,comp.ID,'tool')">
          <title>{{$comp.Name}} - {{$comp.Status}}</title>
       <a>
       <rect x="16" y="0" width="15" height="20" stroke="black" stroke-width="1" fill="#ddd"/>
       <rect y="20" width="45" rx="10" ry="10" height="80" stroke="black" stroke-width="2" 
-      			fill="{{$comp.SVGFill}}"
+            fill="{{$comp.SVGFill}}"
             class="hoverme"/>
       <text x="5" y="50">{{$comp.SVGName $index}}</text>
       </a>
     </svg>
     {{end}}
+
+    </svg>
 
 		</div>		
 	{{end}}
