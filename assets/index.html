@@ -46,11 +46,25 @@
     </nav>
   </div>
 
-  <!-- Temp Splash Screen -->
+  <!-- Login Screen as default content -->
+  <div class="container" id="loginform">
+    <form>
+      <fieldset>
+        <label for="l-username">Name</label>
+        <input type="text" placeholder="User Name" id="l-username">
+        <label for="l-passwd">Password</label>
+        <!-- <input type="password" placeholder="Password" id="l-passwd"> -->
+        <input type="text" placeholder="Password" id="l-passwd">
+        <div class="remember-me">
+          <input type="checkbox" id="l-remember">
+          <label class="label-inline" for="l-remember">Remember Me</label>
+        </div>
+        <input class="button button-outline" type="submit" value="Login" id="l-loginbtn">
+      </fieldset>
+    </form>
+  </div>
+
   <main>
-    <section class="container" id="examples">
-      <img src="img/ajax-loader.gif" alt="">
-    </section>
   </main>
 
   <div id="user-profile" class="md-modal md-effect-7"></div>
@@ -60,9 +74,10 @@
 </body>
 
 <!-- Our Apps -->
-<!-- <script type="text/javascript" src="js/jquery.min.js"></script> -->
-<!-- <script type="text/javascript" src="js/tooltipster.js"></script> -->
-<!-- <script type="text/javascript" src="js/classie.js"></script> -->
+<script type="text/javascript">
+  document.getElementById("l-username").focus()
+</script>
+
 <script src="app.js"></script>
 
 </html>

@@ -28,7 +28,7 @@ func userProfile() {
 		el.Class().Add("md-show")
 
 		// Setup the close button
-		closeBtn := doc.QuerySelector(".md-close")
+		closeBtn := doc.QuerySelector(".md-up-close")
 		if closeBtn != nil {
 			closeBtn.AddEventListener("click", false, func(evt dom.Event) {
 				evt.PreventDefault()
@@ -37,7 +37,7 @@ func userProfile() {
 		}
 
 		// Setup the save button
-		saveBtn := doc.QuerySelector(".md-save")
+		saveBtn := doc.QuerySelector(".md-up-save")
 		if saveBtn != nil {
 			saveBtn.AddEventListener("click", false, func(evt dom.Event) {
 

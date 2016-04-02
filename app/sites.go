@@ -151,6 +151,26 @@ func siteMachines(context *router.Context) {
 									}
 									loadTemplate("raise-comp-issue", "#raise-comp-issue", d)
 									doc.QuerySelector("#raise-comp-issue").Class().Add("md-show")
+
+									// Add the machine diagram to the form
+									for _, m := range data.Machines {
+										print("compare", m.ID, machineID)
+										if m.ID == machineID {
+											print("got match", m)
+											loadTemplate("machine-diag", "#issue-machine-diag", m)
+											break
+										}
+									}
+
+									// Handle button clicks
+									doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
+										print("cancel the event")
+										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
+									})
+									doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
+										print("TODO - save the event details")
+										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
+									})
 								})
 							}
 							// attach event listeners to each non-tool menu item

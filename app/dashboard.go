@@ -11,5 +11,5 @@ func adminDashboard(context *router.Context) {
 	// w := dom.GetWindow()
 	// doc := w.Document()
 
-	loadTemplate("admin_dashboard", "main", nil)
+	loadTemplate("admin-dashboard", "main", nil)
 }

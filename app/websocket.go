@@ -95,6 +95,10 @@ func (c *myClientCodec) ReadResponseHeader(r *rpc.Response) error {
 		}
 		if err != nil {
 			print("rpc error", err)
+			// force application reload
+			w := dom.GetWindow()
+			w.Alert("Connection Lost, click to reconnect ...")
+			w.Location().Call("reload", true)
 		}
 	}
 	if err == nil && r.Seq == 0 {

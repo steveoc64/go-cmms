@@ -28,6 +28,7 @@ func Login(username string, passwd string, rem bool) {
 		loadRoutes(lr.Role, lr.Routes)
 	} else {
 		print("login failed")
+		dom.GetWindow().Alert("Login Failed")
 	}
 }
 
@@ -57,17 +58,26 @@ func hideLoginForm(username string) {
 		userProfile()
 	})
 
+	ldiv := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
+	ldiv.Style().Set("display", "none")
 }
 
 func showLoginForm() {
 	w := dom.GetWindow()
 	doc := w.Document()
 
-	// Activate the login form, and get focus on the username
-	loadTemplate("login", "main", nil)
-	doc.GetElementByID("l-username").(*dom.HTMLInputElement).Focus()
+	// Destroy whateven is in main
+	doc.QuerySelector("main").SetInnerHTML("")
+
+	// Activate the login form, with an outlined loginbtn, and get focus on the username
 
 	loginBtn := doc.GetElementByID("l-loginbtn").(*dom.HTMLInputElement)
+	loginBtn.Class().Remove("button-outline")
+
+	ldiv := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
+	ldiv.Style().Set("display", "block")
+	doc.GetElementByID("l-username").(*dom.HTMLInputElement).Focus()
+
 	loginBtn.AddEventListener("click", false, func(evt dom.Event) {
 		// print("clicked login btn")
 		evt.PreventDefault()
@@ -83,6 +93,15 @@ func showLoginForm() {
 	logoutBtn.Style().Set("display", "none")
 	userBtn := doc.GetElementByID("userbtn").(*dom.HTMLButtonElement)
 	userBtn.Style().Set("display", "none")
+
+	// when the password has been entered, then set the button to full
+	// pw := doc.GetElementByID("l-passwd").(*dom.HTMLInputElement)
+	// pw.AddEventListener("keypress", false, func(evt dom.Event) {
+	// 	loginBtn.Class().Remove("button-outline")
+	// })
+	// pw.AddEventListener("change", false, func(evt dom.Event) {
+	// 	loginBtn.Class().Remove("button-outline")
+	// })
 
 	removeMenu()
 }
