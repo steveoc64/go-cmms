@@ -42,7 +42,7 @@ type Machine struct {
 	Components []Component
 }
 
-func (c *Machine) GetClass(status string) string {
+func (m *Machine) GetClass(status string) string {
 	switch status {
 	case "Needs Attention":
 		return "needs_attention"
@@ -52,6 +52,27 @@ func (c *Machine) GetClass(status string) string {
 		return "stopped"
 	default:
 		return "running"
+	}
+}
+
+func (m *Machine) GetStatus(nontool string) string {
+	switch nontool {
+	case "Electrical":
+		return m.Electrical
+	case "Hydraulic":
+		return m.Hydraulic
+	case "Printer":
+		return m.Printer
+	case "Console":
+		return m.Console
+	case "Rollbed":
+		return m.Rollbed
+	case "Uncoiler":
+		return m.Uncoiler
+	case "Lube":
+		return m.Lube
+	default:
+		return "Running"
 	}
 }
 
@@ -68,6 +89,32 @@ func (m *Machine) SVGWidth2() string {
 func (m *Machine) SVGX() string {
 	i := 250 + (len(m.Components) * 50) - 26
 	return fmt.Sprintf("%d", i)
+}
+
+func (m *Machine) SVGStatus() string {
+	switch m.Status {
+	case "Needs Attention":
+		return "url(#YellowBtn)"
+	case "Maintenance Pending":
+		return "pending"
+	case "Stopped":
+		return "url(#RedBtn)"
+	default:
+		return "url(#GreenBtn)"
+	}
+}
+
+func (m *Machine) NonToolBg(status string) string {
+	switch status {
+	case "Needs Attention":
+		return "url(#YellowBtn)"
+	case "Maintenance Pending":
+		return "pending"
+	case "Stopped":
+		return "url(#RedBtn)"
+	default:
+		return "url(#bgrad)"
+	}
 }
 
 type Component struct {
@@ -101,6 +148,24 @@ func (c *Component) SVGName(index int) string {
 
 func (c *Component) SVGFill() string {
 	// print("getting fill for status", c.Status)
+	switch c.Status {
+	case "Needs Attention":
+		return "#fff176"
+	case "Maintenance Pending":
+		return "#9e9d24"
+	case "Stopped":
+		return "#ff7043"
+	default:
+		return "white"
+	}
+}
+
+func (c *Component) SVGFill2(id int) string {
+	// print("getting fill for status", c.Status)
+	if c.ID == id {
+		return "url(#BlueBtn)"
+	}
+
 	switch c.Status {
 	case "Needs Attention":
 		return "#fff176"

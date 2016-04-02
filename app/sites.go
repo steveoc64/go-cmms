@@ -55,6 +55,10 @@ type SiteMachineData struct {
 type RaiseIssueData struct {
 	MachineID int
 	CompID    int
+	IsTool    bool
+	Machine   *shared.Machine
+	Component *shared.Component
+	NonTool   string
 }
 
 // Show all the machines at a Site, for the case where we have > 1 site
@@ -116,7 +120,7 @@ func siteMachines(context *router.Context) {
 							// add the non-tool components
 							for i, c := range nonTools {
 								menu += fmt.Sprintf(`<a href="#" id="machine-nontool-%d" machine="%d" class="%s" comp="%s">%s</a>`,
-									i, m.ID, m.GetClass(m.Electrical), c, c)
+									i, m.ID, m.GetClass(m.GetStatus(c)), c, c)
 							}
 							machinemenu.SetInnerHTML(menu)
 							tk := machinemenu.Class()
@@ -137,34 +141,40 @@ func siteMachines(context *router.Context) {
 
 									// Get the details of the component that we clicked on
 									t := evt.Target()
-									machineID, _ := strconv.Atoi(t.GetAttribute("machine"))
-									compID, _ := strconv.Atoi(t.GetAttribute("comp"))
-									print("machine id", machineID, "comp id", compID)
+									d := RaiseIssueData{}
+									d.MachineID, _ = strconv.Atoi(t.GetAttribute("machine"))
+									d.CompID, _ = strconv.Atoi(t.GetAttribute("comp"))
+									d.IsTool = true
+									for _, m1 := range data.Machines {
+										if m1.ID == d.MachineID {
+											d.Machine = &m1
+
+											// now get the component
+											for _, c1 := range m1.Components {
+												if c1.ID == d.CompID {
+													d.Component = &c1
+													break
+												}
+											}
+											break
+										}
+									}
 
 									// hide the side menu
 									tk.Remove("cbp-spmenu-open")
 
 									// load a raise issue form from a template
-									d := RaiseIssueData{
-										MachineID: machineID,
-										CompID:    compID,
-									}
 									loadTemplate("raise-comp-issue", "#raise-comp-issue", d)
 									doc.QuerySelector("#raise-comp-issue").Class().Add("md-show")
 
 									// Add the machine diagram to the form
-									for _, m := range data.Machines {
-										print("compare", m.ID, machineID)
-										if m.ID == machineID {
-											print("got match", m)
-											loadTemplate("machine-diag", "#issue-machine-diag", m)
-											break
-										}
+									if d.Machine != nil {
+										loadTemplate("machine-diag", "#issue-machine-diag", d)
 									}
 
 									// Handle button clicks
 									doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
-										print("cancel the event")
+										print("TODO - cancel the event, cleanup any temp attachments")
 										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
 									})
 									doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
@@ -178,7 +188,41 @@ func siteMachines(context *router.Context) {
 								a := doc.GetElementByID(fmt.Sprintf("machine-nontool-%d", i))
 								a.AddEventListener("click", false, func(evt dom.Event) {
 									evt.PreventDefault()
+
+									// Get the details of the component that we clicked on
+									t := evt.Target()
+									d := RaiseIssueData{}
+									d.MachineID, _ = strconv.Atoi(t.GetAttribute("machine"))
+									d.NonTool = t.GetAttribute("comp")
+									d.IsTool = false
+									for _, m1 := range data.Machines {
+										if m1.ID == d.MachineID {
+											d.Machine = &m1
+											break
+										}
+									}
+
+									// hide the side menu
 									tk.Remove("cbp-spmenu-open")
+
+									// load a raise issue form from a template
+									loadTemplate("raise-comp-issue", "#raise-comp-issue", d)
+									doc.QuerySelector("#raise-comp-issue").Class().Add("md-show")
+
+									// Add the machine diagram to the form
+									if d.Machine != nil {
+										loadTemplate("machine-diag", "#issue-machine-diag", d)
+									}
+
+									// Handle button clicks
+									doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
+										print("TODO - cancel the event, cleanup any temp attachments")
+										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
+									})
+									doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
+										print("TODO - save the event details")
+										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
+									})
 								})
 							}
 						} // is matching machine

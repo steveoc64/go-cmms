@@ -1,19 +1,17 @@
 <div class="md-content">
-
-	<div id="issue-machine-diag"></div>
-
-	<h3>Raise Issue</h3>	
+	<h3>Raise New Issue</h3>	
+	<div id="issue-machine-diag" class="row"></div>
 	<div>
 	<form>
 		<fieldset>
-	    <label for="machineID">Machine ID</label>
-	    <input type="text" value="{{.MachineID}}" id="machineID" name="machineID">		
-
-	    <label for="compID">Component ID</label>
-	    <input type="text" value="{{.CompID}}" id="compID" name="compID">		
-
 	    <label for="desc">Description of Problem</label>
-	    <textarea id="desc"></textarea>
+	    {{if .IsTool}}
+	    	<textarea id="desc">Problem with {{.Component.Name}} tool on {{.Machine.Name}} machine.</textarea>
+	    {{else}}
+	    	<textarea id="desc">Problem with {{.NonTool}} on {{.Machine.Name}} machine.</textarea>
+	    {{end}}
+	    <label for="photo">Upload Photo</label>
+	    <input id="photo" name="photo" type="file">
 		</fieldset>
 	</form>
 	</div>

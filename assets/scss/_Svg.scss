@@ -7,6 +7,14 @@
   stroke: $sbs-dkblue;
   overflow: scroll;
 }
+.svg-panel-nohover {
+  height: 180px;
+  width: 900px;
+  width: 100%;
+  border: 2px;
+  stroke: $sbs-dkblue;
+  overflow: scroll;
+}
 .svg-map {
   width: 100%;
   max-width: 500px;

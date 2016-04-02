@@ -69,10 +69,9 @@ This is the admin dashboard
 		panic(err)
 	}
 
-	if err = g.AddTemplate("machine-diag", `Machine {{.}}
-<svg class="svg-panel" xmlns="http://www.w3.org/2000/svg" 
+	if err = g.AddTemplate("machine-diag", `<svg class="svg-panel-nohover" xmlns="http://www.w3.org/2000/svg" 
     	 width="95%"
-    	 viewBox="0 0 {{.SVGWidth1}} 200">
+    	 viewBox="0 0 {{.Machine.SVGWidth1}} 180">
   <defs>
     <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#eee;stop-opacity:1" />
@@ -102,6 +101,15 @@ This is the admin dashboard
     <radialGradient id="DullGreenBtn">
         <stop offset="10%" stop-color="#898"/>
         <stop offset="95%" stop-color="#888"/>
+    </radialGradient>
+    <radialGradient id="BlueBtn">
+        <stop offset="10%" stop-color="#ff0">
+          <animate attributeName="stop-color"
+          values="#26a;#08e;#0af;#0af;#08e;#26a"
+          dur="0.8s"
+          repeatCount="indefinite" />
+        </stop>
+        <stop offset="95%" stop-color="#26a"/>
     </radialGradient>
     <radialGradient id="YellowBtn">
         <stop offset="10%" stop-color="#ff0">
@@ -133,109 +141,81 @@ This is the admin dashboard
   </defs>
 
   <!-- Add picture for uncoiler -->
-  <g stroke="#114" stroke-width="2" 
-        ng-click="Machines.raiseIssue(row,0,0,'Uncoiler')" 
-        class="fillhover">    
+  <g stroke="#114" stroke-width="2" class="fillhover">    
     <title>Raise Event on Uncoiler</title>
     <polygon points="30,90 0,148 60,148" fill="url(#grad1)"/>
-    <circle cx="30" cy="90" r="30" fill="#eee"/>
+    <circle cx="30" cy="90" r="30" fill="{{.Machine.NonToolBg .Machine.Uncoiler}}"/>
   </g>
 
   <!-- Add buttons for elec, etc -->
-  <g stroke="#114" stroke-width="1" 
-        ng-click="Machines.raiseIssue(row,0,0,'Electrical')" 
-        class="fillhover"
-        lx-tooltip="Electrical" tooltip-position="right">
+  <g stroke="#114" stroke-width="1" class="fillhover">
     <title>Electrical</title>
-    <rect x="0" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
+    <rect x="0" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
+          fill="{{.Machine.NonToolBg .Machine.Electrical}}"/>
     <image xlink:href="/img/elec.png" x="1" y="2" height="38px" width="38px"/>
-  </g>
-  <g stroke="#114" stroke-width="1" 
-        ng-click="Machines.raiseIssue(row,0,0,'Hydraulic')" 
-        class="fillhover"
-        lx-tooltip="Hydraulic" tooltip-position="top">
+  </g>  
+  <g stroke="#114" stroke-width="1" class="fillhover">
     <title>Hydraulic</title>
-    <rect x="50" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
+    <rect x="50" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
+          fill="{{.Machine.NonToolBg .Machine.Hydraulic}}"/>
     <image xlink:href="/img/hydraulic.png" x="51" y="2" height="38px" width="38px"/>
   </g>
-  <g stroke="#114" stroke-width="1" 
-        ng-click="Machines.raiseIssue(row,0,0,'Lube')" 
-        class="fillhover"
-        lx-tooltip="Lube" tooltip-position="top">
+  <g stroke="#114" stroke-width="1" class="fillhover">
     <title>Lube</title>
-    <rect x="100" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
+    <rect x="100" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
+          fill="{{.Machine.NonToolBg .Machine.Lube}}"/>
     <image xlink:href="/img/lube.png" x="101" y="2" height="38px" width="38px"/>
   </g>
-  <g stroke="#114" stroke-width="1" 
-        ng-click="Machines.raiseIssue(row,0,0,'Printer')" 
-        class="fillhover"
-        lx-tooltip="Printer" tooltip-position="top">
+  <g stroke="#114" stroke-width="1" class="fillhover">
     <title>Printer</title>
-    <rect x="150" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
+    <rect x="150" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
+          fill="{{.Machine.NonToolBg .Machine.Printer}}"/>
     <image xlink:href="/img/printer.png" x="151" y="2" height="38px" width="38px"/>
   </g>
-  <g stroke="#114" stroke-width="1" 
-        ng-click="Machines.raiseIssue(row,0,0,'Console')" 
-        class="fillhover"
-        lx-tooltip="Console" tooltip-position="top">
+  <g stroke="#114" stroke-width="1" class="fillhover">
     <title>Console</title>
-    <rect x="200" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
+    <rect x="200" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
+          fill="{{.Machine.NonToolBg .Machine.Console}}"/>
     <image xlink:href="/img/console.png" x="201" y="2" height="38px" width="38px"/>
   </g>
-  
+
   <!-- Add main rectangle -->
-  <rect x="80" y="100" width="{{.SVGWidth2}}" 
+  <rect x="80" y="100" width="{{.Machine.SVGWidth2}}" 
     height="48" stroke="black" stroke-width="2" fill="url(#grad1)"/>
-  <text transform="translate(100 135)" style="font-size: 22;">{{.Name}}</text>
+  <text transform="translate(100 135)" style="font-size: 22;">{{.Machine.Name}}</text>
 
   <!-- Add the status indicators -->
-  <g ng-if="row.Status == 'Running'"
-     stroke="black" fill="url(#GreenBtn)">
-    <circle cx="{{.SVGX}}" cy="125" r="18"/>
+  <g stroke="black" fill="{{.Machine.SVGStatus}}">
+    <circle cx="{{.Machine.SVGX}}" cy="125" r="18"/>
   </g>
-<!--     <g ng-if="row.Status == 'Needs Attention'"
-     stroke="black" fill="url(#YellowBtn)">
-    <circle cx="{{.SVGX}}" cy="125" r="18"/>
-  </g>
-  <g ng-if="row.Status == 'Maintenance Pending'"
-     stroke="black" fill="url(#YellowBtn)">
-    <circle cx="{{.SVGX}}" cy="125" r="18"/>
-  </g>
-  <g ng-if="row.Status == 'Stopped'"
-     stroke="black" fill="url(#RedBtn)">
-    <circle cx="{{.SVGX}}" cy="125" r="18"/>
-  </g>
--->
-  <g stroke="#114" stroke-width="2" 
-        ng-click="Machines.raiseIssue(row,0,0,'Rollbed')" 
-        class="fillhover"
-        lx-tooltip="Raise Issue with Roll Bed" tooltip-position="right">
+  <g stroke="#114" stroke-width="2" class="fillhover">
     <title>Roll Bed</title>
 
-  <rect x="80" y="60" width="30" height="40" fill="#eee"/>
+  <rect x="80" y="60" width="30" height="40" fill="{{.Machine.NonToolBg .Machine.Rollbed}}"/>
     <circle cx="95" cy="73" r="6" fill="#ccc"/>
     <circle cx="95" cy="87" r="6" fill="#ccc"/>
-  <rect x="115" y="60" width="30" height="40" fill="#eee"/>
+  <rect x="115" y="60" width="30" height="40" fill="{{.Machine.NonToolBg .Machine.Rollbed}}"/>
     <circle cx="130" cy="73" r="6" fill="#ccc"/>
     <circle cx="130" cy="87" r="6" fill="#ccc"/>
-  <rect x="150" y="60" width="30" height="40" fill="#eee"/>
+  <rect x="150" y="60" width="30" height="40" fill="{{.Machine.NonToolBg .Machine.Rollbed}}"/>
     <circle cx="165" cy="73" r="6" fill="#ccc"/>
     <circle cx="165" cy="87" r="6" fill="#ccc"/>
-  <rect x="185" y="60" width="30" height="40" fill="#eee"/>
+  <rect x="185" y="60" width="30" height="40" fill="{{.Machine.NonToolBg .Machine.Rollbed}}"/>
     <circle cx="200" cy="73" r="6" fill="#ccc"/>
     <circle cx="200" cy="87" r="6" fill="#ccc"/>
   </g>
 
   <!-- Now draw all the tools     -->
-  {{range $index,$comp := .Components}}
+  {{$compID := .CompID}}
+  {{range $index,$comp := .Machine.Components}}
   <svg x="{{$comp.SVGX $index}}" 
        class="tooltip tooltip--ne"
        ng-click="Machines.raiseIssue(row,comp,comp.ID,'tool')">
-       <title>{{$comp.Name}} - {{$comp.Status}}</title>
+       <title>{{$comp.Name}}</title>
     <a>
     <rect x="16" y="0" width="15" height="20" stroke="black" stroke-width="1" fill="#ddd"/>
     <rect y="20" width="45" rx="10" ry="10" height="80" stroke="black" stroke-width="2" 
-          fill="{{$comp.SVGFill}}"
+          fill="{{$comp.SVGFill2 $compID}}"
           class="hoverme"/>
     <text x="5" y="50">{{$comp.SVGName $index}}</text>
     </a>
@@ -254,21 +234,19 @@ This is the Machines List
 	}
 
 	if err = g.AddTemplate("raise-comp-issue", `<div class="md-content">
-
-	<div id="issue-machine-diag"></div>
-
-	<h3>Raise Issue</h3>	
+	<h3>Raise New Issue</h3>	
+	<div id="issue-machine-diag" class="row"></div>
 	<div>
 	<form>
 		<fieldset>
-	    <label for="machineID">Machine ID</label>
-	    <input type="text" value="{{.MachineID}}" id="machineID" name="machineID">		
-
-	    <label for="compID">Component ID</label>
-	    <input type="text" value="{{.CompID}}" id="compID" name="compID">		
-
 	    <label for="desc">Description of Problem</label>
-	    <textarea id="desc"></textarea>
+	    {{if .IsTool}}
+	    	<textarea id="desc">Problem with {{.Component.Name}} tool on {{.Machine.Name}} machine.</textarea>
+	    {{else}}
+	    	<textarea id="desc">Problem with {{.NonTool}} on {{.Machine.Name}} machine.</textarea>
+	    {{end}}
+	    <label for="photo">Upload Photo</label>
+	    <input id="photo" name="photo" type="file">
 		</fieldset>
 	</form>
 	</div>
@@ -428,53 +406,41 @@ This is the Site List
     </defs>
 
     <!-- Add picture for uncoiler -->
-    <g stroke="#114" stroke-width="2" 
-          ng-click="Machines.raiseIssue(row,0,0,'Uncoiler')" 
-          class="fillhover">    
+    <g stroke="#114" stroke-width="2" class="fillhover">    
       <title>Raise Event on Uncoiler</title>
       <polygon points="30,90 0,148 60,148" fill="url(#grad1)"/>
-      <circle cx="30" cy="90" r="30" fill="#eee"/>
+      <circle cx="30" cy="90" r="30" fill="{{.NonToolBg .Uncoiler}}"/>
     </g>
 
     <!-- Add buttons for elec, etc -->
-    <g stroke="#114" stroke-width="1" 
-          ng-click="Machines.raiseIssue(row,0,0,'Electrical')" 
-          class="fillhover"
-          lx-tooltip="Electrical" tooltip-position="right">
+    <g stroke="#114" stroke-width="1" class="fillhover">
       <title>Electrical</title>
-      <rect x="0" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
+      <rect x="0" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
+            fill="{{.NonToolBg .Electrical}}"/>
       <image xlink:href="/img/elec.png" x="1" y="2" height="38px" width="38px"/>
-    </g>
-    <g stroke="#114" stroke-width="1" 
-          ng-click="Machines.raiseIssue(row,0,0,'Hydraulic')" 
-          class="fillhover"
-          lx-tooltip="Hydraulic" tooltip-position="top">
+    </g>  
+    <g stroke="#114" stroke-width="1" class="fillhover">
       <title>Hydraulic</title>
-      <rect x="50" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
+      <rect x="50" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
+            fill="{{.NonToolBg .Hydraulic}}"/>
       <image xlink:href="/img/hydraulic.png" x="51" y="2" height="38px" width="38px"/>
     </g>
-    <g stroke="#114" stroke-width="1" 
-          ng-click="Machines.raiseIssue(row,0,0,'Lube')" 
-          class="fillhover"
-          lx-tooltip="Lube" tooltip-position="top">
+    <g stroke="#114" stroke-width="1" class="fillhover">
       <title>Lube</title>
-      <rect x="100" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
+      <rect x="100" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
+            fill="{{.NonToolBg .Lube}}"/>
       <image xlink:href="/img/lube.png" x="101" y="2" height="38px" width="38px"/>
     </g>
-    <g stroke="#114" stroke-width="1" 
-          ng-click="Machines.raiseIssue(row,0,0,'Printer')" 
-          class="fillhover"
-          lx-tooltip="Printer" tooltip-position="top">
+    <g stroke="#114" stroke-width="1" class="fillhover">
       <title>Printer</title>
-      <rect x="150" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
+      <rect x="150" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
+            fill="{{.NonToolBg .Printer}}"/>
       <image xlink:href="/img/printer.png" x="151" y="2" height="38px" width="38px"/>
     </g>
-    <g stroke="#114" stroke-width="1" 
-          ng-click="Machines.raiseIssue(row,0,0,'Console')" 
-          class="fillhover"
-          lx-tooltip="Console" tooltip-position="top">
+    <g stroke="#114" stroke-width="1" class="fillhover">
       <title>Console</title>
-      <rect x="200" y="0" width="40" rx="3" ry="3" height="40" fill="url(#bgrad)" class="bhover"/>
+      <rect x="200" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
+            fill="{{.NonToolBg .Console}}"/>
       <image xlink:href="/img/console.png" x="201" y="2" height="38px" width="38px"/>
     </g>
     
@@ -484,39 +450,22 @@ This is the Site List
     <text transform="translate(100 135)" style="font-size: 22;">{{.Name}}</text>
 
     <!-- Add the status indicators -->
-    <g ng-if="row.Status == 'Running'"
-       stroke="black" fill="url(#GreenBtn)">
+    <g stroke="black" fill="{{.SVGStatus}}">
       <circle cx="{{.SVGX}}" cy="125" r="18"/>
     </g>
-<!--     <g ng-if="row.Status == 'Needs Attention'"
-       stroke="black" fill="url(#YellowBtn)">
-      <circle cx="{{.SVGX}}" cy="125" r="18"/>
-    </g>
-    <g ng-if="row.Status == 'Maintenance Pending'"
-       stroke="black" fill="url(#YellowBtn)">
-      <circle cx="{{.SVGX}}" cy="125" r="18"/>
-    </g>
-    <g ng-if="row.Status == 'Stopped'"
-       stroke="black" fill="url(#RedBtn)">
-      <circle cx="{{.SVGX}}" cy="125" r="18"/>
-    </g>
- -->
-    <g stroke="#114" stroke-width="2" 
-          ng-click="Machines.raiseIssue(row,0,0,'Rollbed')" 
-          class="fillhover"
-          lx-tooltip="Raise Issue with Roll Bed" tooltip-position="right">
+    <g stroke="#114" stroke-width="2" class="fillhover">
       <title>Roll Bed</title>
   
-    <rect x="80" y="60" width="30" height="40" fill="#eee"/>
+    <rect x="80" y="60" width="30" height="40" fill="{{.NonToolBg .Rollbed}}"/>
       <circle cx="95" cy="73" r="6" fill="#ccc"/>
       <circle cx="95" cy="87" r="6" fill="#ccc"/>
-    <rect x="115" y="60" width="30" height="40" fill="#eee"/>
+    <rect x="115" y="60" width="30" height="40" fill="{{.NonToolBg .Rollbed}}"/>
       <circle cx="130" cy="73" r="6" fill="#ccc"/>
       <circle cx="130" cy="87" r="6" fill="#ccc"/>
-    <rect x="150" y="60" width="30" height="40" fill="#eee"/>
+    <rect x="150" y="60" width="30" height="40" fill="{{.NonToolBg .Rollbed}}"/>
       <circle cx="165" cy="73" r="6" fill="#ccc"/>
       <circle cx="165" cy="87" r="6" fill="#ccc"/>
-    <rect x="185" y="60" width="30" height="40" fill="#eee"/>
+    <rect x="185" y="60" width="30" height="40" fill="{{.NonToolBg .Rollbed}}"/>
       <circle cx="200" cy="73" r="6" fill="#ccc"/>
       <circle cx="200" cy="87" r="6" fill="#ccc"/>
     </g>
@@ -526,7 +475,7 @@ This is the Site List
     <svg x="{{$comp.SVGX $index}}" 
          class="tooltip tooltip--ne"
          ng-click="Machines.raiseIssue(row,comp,comp.ID,'tool')">
-         <title>{{$comp.Name}} - {{$comp.Status}}</title>
+         <title>{{$comp.Name}}</title>
       <a>
       <rect x="16" y="0" width="15" height="20" stroke="black" stroke-width="1" fill="#ddd"/>
       <rect y="20" width="45" rx="10" ry="10" height="80" stroke="black" stroke-width="2" 
@@ -638,8 +587,8 @@ This is the Site List
 	    <input type="text" value="{{.Role}}" id="roleField" readonly>
 
 	    <label for="pwField">New Password</label>
-	    <input type="password" id="pwField" name="p1">
-	    <input type="password" id="pwcField" name="p2">
+	    <input type="password" id="pwField" name="p1" placeholder="Leave Blank to remain unchanged">
+	    <input type="password" id="pwcField" name="p2" placeholder="Repeat Password to change">
 	  </fieldset>
 	</form>
 	</div>

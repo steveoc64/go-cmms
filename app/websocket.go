@@ -59,7 +59,6 @@ func websocketInit() *websocket.Conn {
 }
 
 // codec to encode requests and decode responses.''
-
 type myClientCodec struct {
 	rwc           io.ReadWriteCloser
 	dec           *gob.Decoder
@@ -96,9 +95,7 @@ func (c *myClientCodec) ReadResponseHeader(r *rpc.Response) error {
 		if err != nil {
 			print("rpc error", err)
 			// force application reload
-			w := dom.GetWindow()
-			w.Alert("Connection Lost, click to reconnect ...")
-			w.Location().Call("reload", true)
+			go autoReload()
 		}
 	}
 	if err == nil && r.Seq == 0 {
@@ -109,6 +106,11 @@ func (c *myClientCodec) ReadResponseHeader(r *rpc.Response) error {
 		//return errors.New("Async update from server")
 	}
 	return err
+}
+
+func autoReload() {
+
+	print("TODO - something interesting to force an auto reload")
 }
 
 func (c *myClientCodec) ReadResponseBody(body interface{}) error {
