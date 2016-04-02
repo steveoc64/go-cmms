@@ -1,0 +1,29 @@
+<div class="md-content">
+	<h3>User Profile - {{.Username}}</h3>
+	<div>
+	<form id="user-profile-form">
+	  <fieldset>
+	    <label for="nameField">Name</label>
+	    <input type="text" value="{{.Name}}" id="nameField" name="Name">
+
+	    <label for="emailField">Email</label>
+	    <input type="text" value="{{.Email}}" id="emailField" name="Email">
+
+	    <label for="smsField">SMS</label>
+	    <input type="text" value="{{.SMS}}" id="smsField" name="SMS">
+
+	    <label for="roleField">Role</label>
+	    <input type="text" value="{{.Role}}" id="roleField" readonly>
+
+	    <label for="pwField">New Password</label>
+	    <input type="password" id="pwField" name="p1">
+	    <input type="password" id="pwcField" name="p2">
+	  </fieldset>
+	</form>
+	</div>
+
+	<div class="row">
+	<button class="column button-outline md-close">Cancel</button>
+	<button class="column button-primary md-save">Save</button>
+	</div>
+</div>

@@ -13,7 +13,7 @@ content:
 	temple build templates app/template.go
 	cd app && gopherjs build *.go -o ../dist/public/app.js
 
-dist: 
+dist: assets
 	##### Clean Out Dist Directory
 	rm -rf dist
 	mkdir -p dist/public
@@ -21,26 +21,19 @@ dist:
 	##### Copy Our Assets
 	cp assets/index.html dist/public
 	cp -R assets/img dist/public
-	# cd assets/scss && sass --style compressed app.sass ../css/app.css
-	# cd assets/scss && sass app.sass ../css/app.css
 	cd assets/scss && node-sass app.sass ../css/app.css
 	cp -R assets/css dist/public
 	cp -R assets/fonts dist/public
 	cp -R assets/js dist/public
-	# cp bower_components/milligram/dist/milligram.css dist/public/css
 	cp bower_components/normalize.css/normalize.css dist/public/css
-	# cp bower_components/hint.css/hint.css dist/public/css
-	# cp bower_components/jquery/dist/jquery.min.js dist/public/js
-	# cp bower_components/classie/classie.js dist/public/js
 	cp server/config.json dist
 	##### Building Client App
 	temple build templates app/template.go --package main
 	cd app && gopherjs build *.go -o ../dist/public/app.js -m
-	# cd app && gopherjs build *.go -o ../dist/public/app.js -m
+	mplayer -quiet audio/alldone.ogg 2> /dev/null > /dev/null &
 	##### Building Server App
-	#cd server && go build -o ../dist/cmms-server.exe
 	cd server && go build -o ../dist/cmms-server
-	# mplayer -quiet alldone.ogg 2> /dev/null > /dev/null
+	mplayer -quiet audio/camera.oga 2> /dev/null > /dev/null &
 	##### Dist directory looks like this	
 	cd dist && ls -l && ls -l public/app.js && du -k .
 

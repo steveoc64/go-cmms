@@ -42,6 +42,19 @@ type Machine struct {
 	Components []Component
 }
 
+func (c *Machine) GetClass(status string) string {
+	switch status {
+	case "Needs Attention":
+		return "needs_attention"
+	case "Maintenance Pending":
+		return "pending"
+	case "Stopped":
+		return "stopped"
+	default:
+		return "running"
+	}
+}
+
 func (m *Machine) SVGWidth1() string {
 	i := 250 + (len(m.Components) * 50)
 	return fmt.Sprintf("%d", i)
@@ -97,6 +110,19 @@ func (c *Component) SVGFill() string {
 		return "#ff7043"
 	default:
 		return "white"
+	}
+}
+
+func (c *Component) GetClass() string {
+	switch c.Status {
+	case "Needs Attention":
+		return "needs_attention"
+	case "Maintenance Pending":
+		return "pending"
+	case "Stopped":
+		return "stopped"
+	default:
+		return "running"
 	}
 }
 

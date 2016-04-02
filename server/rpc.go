@@ -21,9 +21,9 @@ func registerRPC() {
 	}
 	log.Println("» Site")
 
-	// m := new(MachineRPC)
-	// if err := rpc.Register(m); err != nil {
-	// 	log.Fatal(err)
-	// }
-	// log.Println("» Machine")
+	up := new(UserProfileRPC)
+	if err := rpc.Register(up); err != nil {
+		log.Fatal(err)
+	}
+	log.Println("» UserProfile")
 }

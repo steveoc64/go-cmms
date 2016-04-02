@@ -7,5 +7,5 @@ import "github.com/go-humble/router"
 
 func machineList(context *router.Context) {
 	print("in the machineList function")
-	loadTemplate("machines", nil)
+	loadTemplate("machines", "main", nil)
 }

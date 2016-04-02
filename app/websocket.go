@@ -70,7 +70,7 @@ type myClientCodec struct {
 }
 
 func (c *myClientCodec) WriteRequest(r *rpc.Request, body interface{}) (err error) {
-	print("rpc ->", r.ServiceMethod)
+	// print("rpc ->", r.ServiceMethod)
 	if err = c.enc.Encode(r); err != nil {
 		return
 	}

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+
 	"github.com/go-humble/router"
 	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
@@ -14,20 +16,32 @@ func fixLinks() {
 	r.InterceptLinks()
 }
 
-func loadTemplate(template string, data interface{}) {
+// Load a template and attach it to the specified element in the doc
+func loadTemplate(template string, selector string, data interface{}) error {
 	w := dom.GetWindow()
 	doc := w.Document()
 
 	t, err := GetTemplate(template)
+	if t == nil {
+		print("Failed to load template", template)
+		return errors.New("Invalid template")
+	}
 	if err != nil {
 		print(err.Error())
+		return err
 	}
 
-	el := doc.QuerySelector("main")
+	el := doc.QuerySelector(selector)
+	if el == nil {
+		print("Could not find selector", selector)
+		return errors.New("Invalid selector")
+	}
 	if err := t.ExecuteEl(el, data); err != nil {
 		print(err.Error())
+		return err
 	}
 	r.InterceptLinks()
+	return nil
 }
 
 func enableRoutes(Role string) {
@@ -70,7 +84,7 @@ func defaultRoute(context *router.Context) {
 
 func loadRoutes(Role string, Routes []shared.UserRoute) {
 
-	print("Loading new routing table")
+	// print("Loading new routing table")
 	enableRoutes(Role)
 	if r != nil {
 		r.Stop()
@@ -81,7 +95,7 @@ func loadRoutes(Role string, Routes []shared.UserRoute) {
 	for _, v := range Routes {
 		if f, ok := appFn[v.Func]; ok {
 			// print("found a function called", v.Func)
-			print("adding route", v.Route, v.Func)
+			// print("adding route", v.Route, v.Func)
 			r.HandleFunc(v.Route, f)
 		}
 	}

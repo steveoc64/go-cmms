@@ -76,6 +76,22 @@ This is the Machines List
 		panic(err)
 	}
 
+	if err = g.AddTemplate("raisecompissue", `<div class="md-content">
+	<h3>Modal Dialog</h3>
+	<div>
+		<p>This is a modal window. You can do the following things with it:</p>
+		<ul>
+			<li><strong>Read:</strong> Modal windows will probably tell you something important so don't forget to read what it says.</li>
+			<li><strong>Look:</strong> modal windows enjoy a certain kind of attention; just look at it and appreciate its presence.</li>
+			<li><strong>Close:</strong> click on the button below to close the modal.</li>
+		</ul>
+		<button class="md-close">Close me!</button>
+	</div>
+</div>
+`); err != nil {
+		panic(err)
+	}
+
 	if err = g.AddTemplate("sitelist", `<div class="container" id="sitelist">
 This is the Site List
 </div>
@@ -142,27 +158,19 @@ This is the Site List
 		<div class="column column-70">
 	    <h1>{{.Site.Name}}</h1>		
 		</div>
-	</div>
+	</div>  <!-- Map of Australia -->
 
 <!-- Give it a menu on the right -->
 <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right" id="machine-menu">
-  <h3>Plate Machine</h3>
-  <a href="#">1 Single Dimple Square</a>
-  <a href="#">2 Service Hole / Curl</a>
-  <a href="#">3 Tie Down Slot</a>
-  <a href="#">4 Notch</a>
-  <a href="#">5 Nogging</a>
-  <a href="#">6 Guillo</a>
-  <a href="#">Electric</a>
-  <a href="#">Hydraulic</a>
-  <a href="#">Lube</a>
-  <a href="#">Printer</a>
-  <a href="#">Console</a>
-  <a href="#">Uncoiler</a>
-  <a href="#">Roll Bed</a>
 </nav>
 <!-- End of menu -->
 
+
+<!-- Raise issue modal dialog -->
+<div class="md-modal md-effect-12" id="raise-comp-issue"></div>
+<div class="md-overlay"></div>
+
+<!-- Grid of machines -->
 <div class="row row-wrap" style="flex-wrap: wrap">
 
 	{{range .Machines}}
@@ -290,7 +298,7 @@ This is the Site List
        stroke="black" fill="url(#GreenBtn)">
       <circle cx="{{.SVGX}}" cy="125" r="18"/>
     </g>
-    <g ng-if="row.Status == 'Needs Attention'"
+<!--     <g ng-if="row.Status == 'Needs Attention'"
        stroke="black" fill="url(#YellowBtn)">
       <circle cx="{{.SVGX}}" cy="125" r="18"/>
     </g>
@@ -302,7 +310,7 @@ This is the Site List
        stroke="black" fill="url(#RedBtn)">
       <circle cx="{{.SVGX}}" cy="125" r="18"/>
     </g>
-
+ -->
     <g stroke="#114" stroke-width="2" 
           ng-click="Machines.raiseIssue(row,0,0,'Rollbed')" 
           class="fillhover"
@@ -418,6 +426,39 @@ This is the Site List
 	</div>
 </div>
 
+`); err != nil {
+		panic(err)
+	}
+
+	if err = g.AddTemplate("user-profile", `<div class="md-content">
+	<h3>User Profile - {{.Username}}</h3>
+	<div>
+	<form id="user-profile-form">
+	  <fieldset>
+	    <label for="nameField">Name</label>
+	    <input type="text" value="{{.Name}}" id="nameField" name="Name">
+
+	    <label for="emailField">Email</label>
+	    <input type="text" value="{{.Email}}" id="emailField" name="Email">
+
+	    <label for="smsField">SMS</label>
+	    <input type="text" value="{{.SMS}}" id="smsField" name="SMS">
+
+	    <label for="roleField">Role</label>
+	    <input type="text" value="{{.Role}}" id="roleField" readonly>
+
+	    <label for="pwField">New Password</label>
+	    <input type="password" id="pwField" name="p1">
+	    <input type="password" id="pwcField" name="p2">
+	  </fieldset>
+	</form>
+	</div>
+
+	<div class="row">
+	<button class="column button-outline md-close">Cancel</button>
+	<button class="column button-primary md-save">Save</button>
+	</div>
+</div>
 `); err != nil {
 		panic(err)
 	}

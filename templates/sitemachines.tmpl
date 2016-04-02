@@ -57,27 +57,19 @@
 		<div class="column column-70">
 	    <h1>{{.Site.Name}}</h1>		
 		</div>
-	</div>
+	</div>  <!-- Map of Australia -->
 
 <!-- Give it a menu on the right -->
 <nav class="cbp-spmenu cbp-spmenu-vertical cbp-spmenu-right" id="machine-menu">
-  <h3>Plate Machine</h3>
-  <a href="#">1 Single Dimple Square</a>
-  <a href="#">2 Service Hole / Curl</a>
-  <a href="#">3 Tie Down Slot</a>
-  <a href="#">4 Notch</a>
-  <a href="#">5 Nogging</a>
-  <a href="#">6 Guillo</a>
-  <a href="#">Electric</a>
-  <a href="#">Hydraulic</a>
-  <a href="#">Lube</a>
-  <a href="#">Printer</a>
-  <a href="#">Console</a>
-  <a href="#">Uncoiler</a>
-  <a href="#">Roll Bed</a>
 </nav>
 <!-- End of menu -->
 
+
+<!-- Raise issue modal dialog -->
+<div class="md-modal md-effect-12" id="raise-comp-issue"></div>
+<div class="md-overlay"></div>
+
+<!-- Grid of machines -->
 <div class="row row-wrap" style="flex-wrap: wrap">
 
 	{{range .Machines}}
@@ -205,7 +197,7 @@
        stroke="black" fill="url(#GreenBtn)">
       <circle cx="{{.SVGX}}" cy="125" r="18"/>
     </g>
-    <g ng-if="row.Status == 'Needs Attention'"
+<!--     <g ng-if="row.Status == 'Needs Attention'"
        stroke="black" fill="url(#YellowBtn)">
       <circle cx="{{.SVGX}}" cy="125" r="18"/>
     </g>
@@ -217,7 +209,7 @@
        stroke="black" fill="url(#RedBtn)">
       <circle cx="{{.SVGX}}" cy="125" r="18"/>
     </g>
-
+ -->
     <g stroke="#114" stroke-width="2" 
           ng-click="Machines.raiseIssue(row,0,0,'Rollbed')" 
           class="fillhover"

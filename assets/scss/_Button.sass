@@ -77,6 +77,29 @@ input[type='submit']
 			&:focus
 				color: $color-primary
 
+	&.button-header
+		color: $color-primary
+		background-color: transparent
+		border-color: transparent
+		font-family: 'Roboto Light', 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif
+		font-size: 0.8em // currently ems cause chrome bug misinterpreting rems on body element
+		font-weight: 200
+		letter-spacing: .01em
+		line-height: 1.0
+
+		&:hover,
+		&:focus
+			color: $color-secondary
+			background-color: transparent
+			border-color: transparent
+
+		&.button-disabled,
+		&[disabled]
+
+			&:hover,
+			&:focus
+				color: $color-primary
+
 .button-secondary
 	@extend .button
 	background-color: $color-tertiary !important

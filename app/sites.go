@@ -30,7 +30,7 @@ func siteMap(context *router.Context) {
 
 			w := dom.GetWindow()
 			doc := w.Document()
-			loadTemplate("sitemap", data)
+			loadTemplate("sitemap", "main", data)
 
 			// Attach listeners for each button
 			for _, v := range data.Sites {
@@ -52,6 +52,11 @@ type SiteMachineData struct {
 	Machines  []shared.Machine
 }
 
+type RaiseIssueData struct {
+	MachineID int
+	CompID    int
+}
+
 // Show all the machines at a Site, for the case where we have > 1 site
 // Param:  site
 func siteMachines(context *router.Context) {
@@ -66,6 +71,10 @@ func siteMachines(context *router.Context) {
 	}
 	data := SiteMachineData{}
 
+	nonTools := []string{
+		"Electrical", "Hydraulic", "Lube", "Printer", "Console", "Uncoiler", "Rollbed",
+	}
+
 	go func() {
 		data.MultiSite = true
 		rpcClient.Call("SiteRPC.Get", id, &data.Site)
@@ -77,9 +86,9 @@ func siteMachines(context *router.Context) {
 		} else {
 			// Get the site statuses
 			rpcClient.Call("SiteRPC.StatusReport", channelID, &data.Status)
-			print("SiteMachine status report", data.Status)
+			// print("SiteMachine status report", data.Status)
 
-			loadTemplate("sitemachines", data)
+			loadTemplate("sitemachines", "main", data)
 			w := dom.GetWindow()
 			doc := w.Document()
 			austmap := doc.GetElementByID("austmap")
@@ -90,31 +99,69 @@ func siteMachines(context *router.Context) {
 			// Attach a menu opener for each machine
 			for _, v := range data.Machines {
 				mid := fmt.Sprintf("machine-div-%d", v.ID)
-				machinediv := doc.GetElementByID(mid)				
+				machinediv := doc.GetElementByID(mid)
 				machinediv.AddEventListener("click", false, func(evt dom.Event) {
-					machine_id,_ := strconv.Atoi(machinediv.GetAttribute("machine-id"))
+					machine_id, _ := strconv.Atoi(machinediv.GetAttribute("machine-id"))
 					machinemenu := doc.GetElementByID("machine-menu").(*dom.BasicHTMLElement)
 
 					// get the machine and construct a new menu based on the components
-					for _,m := range data.Machines {
+					for _, m := range data.Machines {
 						if m.ID == machine_id {
-							menu := fmt.Sprintf("<h3>%s</h3>", m.Name)
-							for i,c := range m.Components {
-								menu += fmt.Sprintf(`<a href="#">%d %s</a>`, i+1, c.Name)
+							menu := fmt.Sprintf(`<h3 id="machine-comp-title">%s</h3>`, m.Name)
+							// add the tool components
+							for i, c := range m.Components {
+								menu += fmt.Sprintf(`<a href="#" id="machine-comp-%d" machine="%d" comp="%d" class="%s">%d %s</a>`,
+									c.ID, m.ID, c.ID, c.GetClass(), i+1, c.Name)
 							}
-							// add the standard components
-							menu += `
-<a href="#">Electric</a>
-<a href="#">Hydraulic</a>
-<a href="#">Lube</a>
-<a href="#">Printer</a>
-<a href="#">Console</a>
-<a href="#">Uncoiler</a>
-<a href="#">Roll Bed</a>
-`
+							// add the non-tool components
+							for i, c := range nonTools {
+								menu += fmt.Sprintf(`<a href="#" id="machine-nontool-%d" machine="%d" class="%s" comp="%s">%s</a>`,
+									i, m.ID, m.GetClass(m.Electrical), c, c)
+							}
 							machinemenu.SetInnerHTML(menu)
-							machinemenu.Class().Toggle("cbp-spmenu-open")
-						}
+							tk := machinemenu.Class()
+							if !tk.Contains("cbp-spmenu-open") {
+								tk.Add("cbp-spmenu-open")
+							}
+							// attach a backout option on the title
+							a := doc.GetElementByID("machine-comp-title")
+							a.AddEventListener("click", false, func(evt dom.Event) {
+								evt.PreventDefault()
+								tk.Remove("cbp-spmenu-open")
+							})
+							// attach event listeners to each tool menu item
+							for _, c := range m.Components {
+								a := doc.GetElementByID(fmt.Sprintf("machine-comp-%d", c.ID))
+								a.AddEventListener("click", false, func(evt dom.Event) {
+									evt.PreventDefault()
+
+									// Get the details of the component that we clicked on
+									t := evt.Target()
+									machineID, _ := strconv.Atoi(t.GetAttribute("machine"))
+									compID, _ := strconv.Atoi(t.GetAttribute("comp"))
+									print("machine id", machineID, "comp id", compID)
+
+									// hide the side menu
+									tk.Remove("cbp-spmenu-open")
+
+									// load a raise issue form from a template
+									d := RaiseIssueData{
+										MachineID: machineID,
+										CompID:    compID,
+									}
+									loadTemplate("raise-comp-issue", "#raise-comp-issue", d)
+									doc.QuerySelector("#raise-comp-issue").Class().Add("md-show")
+								})
+							}
+							// attach event listeners to each non-tool menu item
+							for i, _ := range nonTools {
+								a := doc.GetElementByID(fmt.Sprintf("machine-nontool-%d", i))
+								a.AddEventListener("click", false, func(evt dom.Event) {
+									evt.PreventDefault()
+									tk.Remove("cbp-spmenu-open")
+								})
+							}
+						} // is matching machine
 					}
 
 				})
@@ -138,12 +185,12 @@ func homeSite(context *router.Context) {
 		if err != nil {
 			print("RPC error", err.Error())
 		} else {
-			loadTemplate("sitemachines", data)
+			loadTemplate("sitemachines", "main", data)
 		}
 	}()
 }
 
 // Show a list of all sites
 func siteList(context *router.Context) {
-	loadTemplate("sitelist", nil)
+	loadTemplate("sitelist", "main", nil)
 }
