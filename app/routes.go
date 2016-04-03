@@ -51,18 +51,36 @@ func enableRoutes(Role string) {
 	switch Role {
 	case "Admin":
 		appFn = map[string]router.Handler{
-			"dashboard": adminDashboard,
-			"sites":     siteList,
-			"machines":  machineList,
-			"events":    eventList,
-			"tools":     toolList,
-			"parts":     partsList,
-			"vendors":   vendorList,
-			"users":     usersList,
-			"reports":   adminReports,
-			"skills":    skillsList,
+			"sitemap":      siteMap,
+			"sitemachines": siteMachines,
+			"dashboard":    adminDashboard,
+			"sites":        siteList,
+			"machines":     machineList,
+			"events":       eventList,
+			"workorders":   workOrderList,
+			"tools":        toolList,
+			"parts":        partsList,
+			"vendors":      vendorList,
+			"users":        usersList,
+			"reports":      adminReports,
+			"skills":       skillsList,
+		}
+	case "SiteManager":
+		appFn = map[string]router.Handler{
+			"sitemap":      siteMap,
+			"sitemachines": siteMachines,
+			"tasks":        homeSite,
+			"users":        usersList,
+			"events":       eventList,
+			"workorders":   workOrderList,
 		}
 	case "Worker":
+		appFn = map[string]router.Handler{
+			"sitemap":      siteMap,
+			"sitemachines": siteMachines,
+			"homesite":     homeSite,
+		}
+	case "Floor":
 		appFn = map[string]router.Handler{
 			"sitemap":      siteMap,
 			"sitemachines": siteMachines,

@@ -7,6 +7,8 @@ import (
 	// "strings"
 )
 
+var UserRole = ""
+
 func Login(username string, passwd string, rem bool) {
 
 	lc := &shared.LoginCredentials{
@@ -93,15 +95,6 @@ func showLoginForm() {
 	logoutBtn.Style().Set("display", "none")
 	userBtn := doc.GetElementByID("userbtn").(*dom.HTMLButtonElement)
 	userBtn.Style().Set("display", "none")
-
-	// when the password has been entered, then set the button to full
-	// pw := doc.GetElementByID("l-passwd").(*dom.HTMLInputElement)
-	// pw.AddEventListener("keypress", false, func(evt dom.Event) {
-	// 	loginBtn.Class().Remove("button-outline")
-	// })
-	// pw.AddEventListener("change", false, func(evt dom.Event) {
-	// 	loginBtn.Class().Remove("button-outline")
-	// })
 
 	removeMenu()
 }

@@ -8,8 +8,19 @@ import (
 
 func logger(start time.Time, from string, in string, out string) {
 
-	s1 := fmt.Sprintf(`%-20s %10s`, from, time.Since(start))
+	ms := time.Since(start) / 100
+	d := fmt.Sprintf("%s", time.Since(start))
+	s1 := fmt.Sprintf(`%-20s %10s`, from, d)
 	log.Printf(`%-35s » %-50s « %s`, s1, in, out)
+
+	DB.SQL(`insert 
+		into user_log (duration,ms,func,input,output) 
+		values ($1,$2,$3,$4,$5)`,
+		d,
+		ms,
+		from,
+		in,
+		out).Exec()
 }
 
 // Site.UserList             -> 1.364043ms     » Channel 1, User 45 testw1 Worker         « 2 Sites

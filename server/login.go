@@ -121,10 +121,12 @@ func getRoutes(uid int, role string) []shared.UserRoute {
 	switch role {
 	case "Admin":
 		return []shared.UserRoute{
-			{Route: "/", Func: "dashboard"},
+			{Route: "/", Func: "sitemap"},
+			{Route: "/sitemachines/{site}", Func: "sitemachines"},
 			{Route: "/machines", Func: "machines"},
 			{Route: "/sites", Func: "sites"},
 			{Route: "/events", Func: "events"},
+			{Route: "/workorders", Func: "workorders"},
 			{Route: "/tools", Func: "tools"},
 			{Route: "/parts", Func: "parts"},
 			{Route: "/vendors", Func: "vendors"},
@@ -148,8 +150,12 @@ func getRoutes(uid int, role string) []shared.UserRoute {
 		}
 	case "Site Manager":
 		return []shared.UserRoute{
-			{Route: "/", Func: "dashboard"},
-			{Route: "/machines", Func: "machines"},
+			{Route: "/", Func: "sitemap"},
+			{Route: "/sitemachines/{site}", Func: "sitemachines"},
+			{Route: "/tasks", Func: "tasks"},
+			{Route: "/users", Func: "users"},
+			{Route: "/events", Func: "events"},
+			{Route: "/workorders", Func: "workorders"},
 		}
 	case "Floor":
 		return []shared.UserRoute{
