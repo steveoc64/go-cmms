@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 	//	"errors"
 	"io"
+	"net"
 	"net/rpc"
 	"strconv"
 
@@ -16,7 +17,10 @@ import (
 	"honnef.co/go/js/dom"
 )
 
+<<<<<<< HEAD
 // var ws *websocket.Conn
+=======
+>>>>>>> 914abf8a9c9ed890c05b548b47c9db6c84633ff2
 var ws net.Conn
 var rpcClient *rpc.Client
 var channelID int
@@ -34,9 +38,10 @@ func getWSBaseURL() string {
 
 func websocketInit() net.Conn {
 	wsBaseURL := getWSBaseURL()
+	print("init websocket", wsBaseURL)
 	wss, err := websocket.Dial(wsBaseURL)
 	if err != nil {
-		print("failed to open websocket")
+		print("failed to open websocket", wsBaseURL, err.Error())
 	}
 	ws = wss
 

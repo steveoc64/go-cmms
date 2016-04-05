@@ -558,7 +558,7 @@ This is the Site List
 	</div>
 	<div class="row row-wrap" style="flex-wrap: wrap">
 		{{range .Sites}}
-		<div class="column row-">
+		<div class="column">
 			<input type="button" value="{{.Name}}" id="{{.ID}}">						
 		</div>
 		{{end}}
