@@ -40,7 +40,7 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 			Select("u.id,u.username,u.name,u.role,u.site_id,s.name as sitename").
 			From(`users u
 			left join site s on (s.id = u.site_id)`).
-			Where("u.username = $1 and passwd = $2", usename, lc.Password).
+			Where("u.username = lower($1) and passwd = lower($2)", usename, lc.Password).
 			QueryStruct(res)
 
 		if err != nil {

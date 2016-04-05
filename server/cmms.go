@@ -6,13 +6,17 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/engine/standard"
 	mw "github.com/labstack/echo/middleware"
 	_ "github.com/lib/pq"
 	"github.com/steveoc64/godev/config"
 	"github.com/steveoc64/godev/db"
 	"github.com/steveoc64/godev/echocors"
 	"github.com/steveoc64/godev/smt"
-	"gopkg.in/mgutz/dat.v1/sqlx-runner"
+	runner "gopkg.in/mgutz/dat.v1/sqlx-runner"
+
+	"github.com/facebookgo/grace/gracehttp"
+	"golang.org/x/net/websocket"
 )
 
 var e *echo.Echo
@@ -33,12 +37,15 @@ func main() {
 
 	// Start up the basic web server
 	e = echo.New()
-	e.Index("public/index.html")
-	e.ServeDir("/", "public/")
-	e.SetHTTPErrorHandler(func(err error, context *echo.Context) {
+	e.Static("/", "public")
+
+	// e.Index("public/index.html")
+	// e.ServeDir("/", "public/")
+	e.SetHTTPErrorHandler(func(err error, context echo.Context) {
 		httpError, ok := err.(*echo.HTTPError)
 		if ok {
-			errorCode := httpError.Code()
+			// errorCode := httpError.Code()
+			errorCode := httpError.Code
 			switch errorCode {
 			case http.StatusNotFound:
 				// TODO handle not found case
@@ -66,11 +73,16 @@ func main() {
 	// Add the all important Websocket handler
 	Connections = new(ConnectionsList)
 	registerRPC()
-	e.WebSocket("/ws", webSocket)
+	e.Get("/ws", standard.WrapHandler(websocket.Handler(webSocket)))
+
+	// e.WebSocket("/ws", webSocket)
 
 	// Start the web server
 	if Config.Debug {
 		log.Printf("... Starting Web Server on port %d", Config.WebPort)
 	}
-	e.Run(fmt.Sprintf(":%d", Config.WebPort))
+	std := standard.New(fmt.Sprintf(":%d", Config.WebPort))
+	std.SetHandler(e)
+	gracehttp.Serve(std.Server)
+
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net"
 	// "github.com/gopherjs/gopherjs/js"
 	"bufio"
 	"encoding/gob"
@@ -15,7 +16,8 @@ import (
 	"honnef.co/go/js/dom"
 )
 
-var ws *websocket.Conn
+// var ws *websocket.Conn
+var ws net.Conn
 var rpcClient *rpc.Client
 var channelID int
 
@@ -30,7 +32,7 @@ func getWSBaseURL() string {
 	return fmt.Sprintf("%s://%s:%s/ws", wsProtocol, location.Hostname, location.Port)
 }
 
-func websocketInit() *websocket.Conn {
+func websocketInit() net.Conn {
 	wsBaseURL := getWSBaseURL()
 	wss, err := websocket.Dial(wsBaseURL)
 	if err != nil {

@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/labstack/echo"
 	"golang.org/x/net/websocket"
 )
 
@@ -139,9 +138,9 @@ func (c *ConnectionsList) Show(header string) *ConnectionsList {
 	return c
 }
 
-func webSocket(c *echo.Context) error {
+func webSocket(ws *websocket.Conn) {
 
-	ws := c.Socket()
+	// ws := c.Socket()
 	ws.PayloadType = websocket.BinaryFrame
 
 	conn := Connections.Add(ws)
@@ -157,7 +156,6 @@ func webSocket(c *echo.Context) error {
 		encBuf: buf,
 	}
 	rpc.ServeCodec(srv)
-	return nil
 }
 
 // gobbing RPC Codec with a Mutex to allow sharing of the line with other senders
