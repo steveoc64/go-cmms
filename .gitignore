@@ -10,3 +10,6 @@ makefile
 template.go
 .sass-cache
 app.css
+assets/css/app.css
+app/template.go
+template.go
