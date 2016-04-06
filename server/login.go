@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/steveoc64/go-cmms/shared"
@@ -35,12 +34,12 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 	if conn != nil {
 		// validate that username and passwd is correct
 		res := &dbLoginResponse{}
-		usename := strings.ToLower(lc.Username)
 		err := DB.
 			Select("u.id,u.username,u.name,u.role,u.site_id,s.name as sitename").
 			From(`users u
 			left join site s on (s.id = u.site_id)`).
-			Where("u.username = lower($1) and passwd = lower($2)", usename, lc.Password).
+			Where("lower(u.username) = lower($1) and lower(passwd) = lower($2)",
+				lc.Username, lc.Password).
 			QueryStruct(res)
 
 		if err != nil {

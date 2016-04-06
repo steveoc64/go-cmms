@@ -1,5 +1,7 @@
 all: sassgen templegen app-assets appjs sv run
 
+build: sassgen templegen app-assets appjs sv 
+
 help: 
 	# sassgen    - make SASS files
 	# templegen  - make Templates
@@ -40,13 +42,22 @@ appjs: dist/public/app.js
 
 dist/public/app.js: app/*.go
 	@mkdir -p dist/public/js
+	@gosimple app
 	cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	@ls -l dist/public/app.js
 	@mplayer -quiet audio/alldone.ogg 2> /dev/null > /dev/null &
 
+remake: 
+	rm -f dist/cmms-server
+	@gosimple server
+	cd server && go build -o ../dist/cmms-server
+	@mplayer -quiet audio/camera.oga 2> /dev/null > /dev/null &
+	@ls -l dist/cmms-server
+
 sv: dist/cmms-server 
 
 dist/cmms-server: server/*.go
+	@gosimple server
 	cd server && go build -o ../dist/cmms-server
 	@mplayer -quiet audio/camera.oga 2> /dev/null > /dev/null &
 	@ls -l dist/cmms-server

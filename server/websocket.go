@@ -62,7 +62,7 @@ func (c *Connection) Login(username string, id int, role string) {
 func (c *Connection) KeepAlive(sec time.Duration) {
 	c.Send("Ping", strconv.Itoa(c.ID))
 	c.ticker = time.NewTicker(time.Second * sec)
-	for _ = range c.ticker.C {
+	for range c.ticker.C {
 		// log.Println("sending ping to client", c.ID)
 		c.Send("Ping", strconv.Itoa(c.ID))
 	}

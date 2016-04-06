@@ -65,7 +65,7 @@ func enableRoutes(Role string) {
 			"reports":      adminReports,
 			"skills":       skillsList,
 		}
-	case "SiteManager":
+	case "Site Manager":
 		appFn = map[string]router.Handler{
 			"sitemap":      siteMap,
 			"sitemachines": siteMachines,
