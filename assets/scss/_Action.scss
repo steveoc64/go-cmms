@@ -1,0 +1,60 @@
+/* http://tympanus.net/Development/PricingTablesInspiration/  */
+
+.action {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-wrap: wrap;
+	flex-wrap: wrap;
+	-webkit-justify-content: center;
+	justify-content: center;
+	width: 100%;
+	margin: 1em;
+	padding: 2em;
+	cursor: default;
+	border: 1px;
+	border-radius: 10px;
+	background: #fff;
+}
+
+.action__item {
+	position: relative;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+	-webkit-align-items: stretch;
+	align-items: stretch;
+	text-align: center;
+	-webkit-flex: 0 1 330px;
+	flex: 0 1 330px;
+	background: #eff;
+	box-shadow: 0 5px 20px rgba(0,0,0,0.05), 0 15px 30px -10px rgba(0,0,0,0.3);
+	-webkit-transition: background 0.3s;
+	transition: background 0.3s;
+}
+
+.action__item:hover {
+	background: #dde;
+}
+
+.pricing__action:focus {
+	outline: none;
+}
+
+.action__title {
+	font-size: 2em;
+	width: 100%;
+	margin: 0 0 0.25em;
+	padding: 0 0 0.5em;
+	border-bottom: 3px solid rgb(27, 26, 28);
+}
+
+.action .action__sentence {
+	font-weight: bold;
+}
+
+.action .action__feature-list {
+	margin: 0;
+	padding: 1em 1.25em 2em;
+}
+

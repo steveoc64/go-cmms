@@ -12,22 +12,26 @@ help:
 
 clean:	
 	# Delete existing build
+	@mplayer -quiet audio/trash-empty.oga 2> /dev/null > /dev/null &
 	rm -rf dist
 
 sassgen: dist/public/css/app.css
 
 dist/public/css/app.css: assets/scss/*
+	@mplayer -quiet audio/attention.oga 2> /dev/null > /dev/null
 	@mkdir -p dist/public/css
 	cd assets/scss && node-sass app.sass ../../dist/public/css/app.css
 
 templegen: app/template.go 
 
 app/template.go: templates/*.tmpl 	
+	@mplayer -quiet audio/attention.oga 2> /dev/null > /dev/null
 	temple build templates app/template.go --package main
 
 app-assets: dist/assets.log
 
 dist/assets.log: assets/index.html assets/img/*  assets/fonts/* assets/css/*
+	@mplayer -quiet audio/attention.oga 2> /dev/null > /dev/null
 	@mkdir -p dist/public/css dist/public/font dist/public/js
 	cp assets/index.html dist/public
 	cp -R assets/img dist/public
@@ -41,27 +45,30 @@ dist/assets.log: assets/index.html assets/img/*  assets/fonts/* assets/css/*
 appjs: dist/public/app.js
 
 dist/public/app.js: app/*.go
+	@mplayer -quiet audio/frontend-compiled.ogg 2> /dev/null > /dev/null &
 	@mkdir -p dist/public/js
 	@gosimple app
 	cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	@ls -l dist/public/app.js
-	@mplayer -quiet audio/alldone.ogg 2> /dev/null > /dev/null &
 
 remake: 
+	@mplayer -quiet audio/compiling-server.oga 2> /dev/null > /dev/null &
 	rm -f dist/cmms-server
 	@gosimple server
 	cd server && go build -o ../dist/cmms-server
-	@mplayer -quiet audio/camera.oga 2> /dev/null > /dev/null &
+	@mplayer -quiet audio/server-compiled.oga 2> /dev/null > /dev/null &
 	@ls -l dist/cmms-server
 
 sv: dist/cmms-server 
 
 dist/cmms-server: server/*.go
+	@mplayer -quiet audio/compiling-server.oga 2> /dev/null > /dev/null &
 	@gosimple server
 	cd server && go build -o ../dist/cmms-server
-	@mplayer -quiet audio/camera.oga 2> /dev/null > /dev/null &
+	@mplayer -quiet audio/server-compiled.oga 2> /dev/null > /dev/null &
 	@ls -l dist/cmms-server
 
 run: 
 	./terminate
+	@mplayer -quiet audio/running.oga 2> /dev/null > /dev/null &
 	@cd dist && ./cmms-server
