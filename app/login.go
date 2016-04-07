@@ -11,6 +11,7 @@ var UserRole = ""
 
 func Login(username string, passwd string, rem bool) {
 
+	UserRole = ""
 	lc := &shared.LoginCredentials{
 		Username:   username,
 		Password:   passwd,
@@ -28,6 +29,7 @@ func Login(username string, passwd string, rem bool) {
 		hideLoginForm(lc.Username)
 		createMenu(lr.Menu)
 		loadRoutes(lr.Role, lr.Routes)
+		UserRole = lr.Role
 	} else {
 		print("login failed")
 		dom.GetWindow().Alert("Login Failed")

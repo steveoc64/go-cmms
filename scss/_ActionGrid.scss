@@ -1,0 +1,85 @@
+/* http://tympanus.net/Development/PricingTablesInspiration/  */
+
+.action-grid {
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-wrap: wrap;
+	flex-wrap: wrap;
+	-webkit-justify-content: center;
+	justify-content: center;
+	width: 100%;
+	margin: 0em;
+	padding: 0em;
+	cursor: default;
+	border: 1px;
+	background: #fff;
+	border-top: 1px solid $sbs-dksand;
+}
+
+.action__item {
+	position: relative;
+	display: -webkit-flex;
+	display: flex;
+	margin: 1rem;
+	padding: 0rem;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+	-webkit-align-items: stretch;
+	align-items: stretch;
+	text-align: center;
+	-webkit-flex: 0 1 22rem;
+	flex: 0 1 22rem;
+	background-color: $sbs-box;
+	box-shadow: 0 5px 20px rgba(0,0,0,0.05), 0 15px 30px -10px rgba(0,0,0,0.3);
+	-webkit-transition: background 0.3s;
+	transition: background 0.3s;
+	border-radius: .4rem;	
+	border: 4px solid(#344);
+	font-size: 1.6rem;
+	height: 20rem;
+
+	.action__title {
+		font-size: 2.0rem;
+		width: 100%;
+		margin: 0 0 0.25em;
+		padding: 0 0 0.5em;
+		color: $sbs-blue;
+		border-top: 3px solid $sbs-box;
+	}
+
+	.action__icon {
+		color: $sbs-blue;
+		width: 100%;
+		font-size: 4.0rem;
+	}
+
+	.action__text {
+		color: black;
+		font-size: 1rem;
+		font-style: italic;
+		text-align: justify;
+		padding: 0.3rem 3rem 0.3rem 3rem;
+		text-justify: inter-word;
+		border-top: 1px solid $sbs-dksand;
+		height: 100%;
+	}
+
+	&:hover {
+		transition: 0.3s;
+		background-color: $sbs-ltbox;
+		// outline: 1px solid $sbs-ltblue;
+		.action__title {
+			transition: 0.8s;
+			border-top: 3px solid $sbs-ltblue;	
+		}
+		.action__icon {
+			transition: 0.8s;
+			color: $sbs-ltblue;
+			width: 100%;
+		}
+		.action__text {
+			border-bottom: 3px solid $sbs-ltblue;	
+		}
+	}
+
+}

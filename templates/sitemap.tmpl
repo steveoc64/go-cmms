@@ -57,38 +57,16 @@
 
 		</div>
 	</div>
-	<div class="row row-wrap" style="flex-wrap: wrap">
-		{{range .Sites}}
-		<div class="column">
-			<input type="button" value="{{.Name}}" id="{{.ID}}">						
-		</div>
-		{{end}}
-	</div>
+</div>  <!-- End container -->
 
-<div class="action">
-	<div class="action__item">
-		Stoppages
+<div class="site-grid">
+	{{range .Sites}}
+	<div class="site__item" id="{{.ID}}">
+		<div class="site__title">{{.Name}}</div>
 	</div>
-	<div class="action__item">
-		Tasks
-	</div>
-	<div class="action__item">
-		Sites
-	</div>
-	<div class="action__item">
-		Users		
-	</div>
-	<div class="action__item">
-		Parts		
-	</div>
-	<div class="action__item">
-		Reports
-	</div>
-
+	{{end}}
 </div>
 
-</div>
+<div id="action-grid"></div>
 
-
-</div>
 

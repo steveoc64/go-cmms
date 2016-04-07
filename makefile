@@ -17,10 +17,10 @@ clean:
 
 sassgen: dist/public/css/app.css
 
-dist/public/css/app.css: assets/scss/*
+dist/public/css/app.css: scss/*
 	@mplayer -quiet audio/attention.oga 2> /dev/null > /dev/null
 	@mkdir -p dist/public/css
-	cd assets/scss && node-sass app.sass ../../dist/public/css/app.css
+	cd scss && node-sass --output-style compressed app.sass ../dist/public/css/app.css
 
 templegen: app/template.go 
 
@@ -38,34 +38,32 @@ dist/assets.log: assets/index.html assets/img/*  assets/fonts/* assets/css/*
 	cp -R assets/css dist/public
 	cp -R assets/fonts dist/public
 	cp -R assets/js dist/public
-	cp bower_components/normalize.css/normalize.css dist/public/css
+	#cp bower_components/normalize.css/normalize.css dist/public/css
 	cp server/config.json dist	
 	@date > dist/assets.log
 
 appjs: dist/public/app.js
 
 dist/public/app.js: app/*.go
-	@mplayer -quiet audio/frontend-compiled.ogg 2> /dev/null > /dev/null &
+	@mplayer -quiet audio/frontend-compile.ogg 2> /dev/null > /dev/null &
 	@mkdir -p dist/public/js
 	@gosimple app
 	cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	@ls -l dist/public/app.js
 
 remake: 
-	@mplayer -quiet audio/compiling-server.oga 2> /dev/null > /dev/null &
+	@mplayer -quiet audio/server-compile.oga 2> /dev/null > /dev/null &
 	rm -f dist/cmms-server
 	@gosimple server
 	cd server && go build -o ../dist/cmms-server
-	@mplayer -quiet audio/server-compiled.oga 2> /dev/null > /dev/null &
 	@ls -l dist/cmms-server
 
 sv: dist/cmms-server 
 
 dist/cmms-server: server/*.go
-	@mplayer -quiet audio/compiling-server.oga 2> /dev/null > /dev/null &
+	@mplayer -quiet audio/server-compile.oga 2> /dev/null > /dev/null &
 	@gosimple server
 	cd server && go build -o ../dist/cmms-server
-	@mplayer -quiet audio/server-compiled.oga 2> /dev/null > /dev/null &
 	@ls -l dist/cmms-server
 
 run: 

@@ -34,12 +34,21 @@ func siteMap(context *router.Context) {
 
 			// Attach listeners for each button
 			for _, v := range data.Sites {
-				mbtn := doc.GetElementByID(fmt.Sprintf("%d", v.ID)).(*dom.HTMLInputElement)
+				mbtn := doc.GetElementByID(fmt.Sprintf("%d", v.ID)).(*dom.HTMLDivElement)
 				mbtn.AddEventListener("click", false, func(evt dom.Event) {
-					id := evt.Target().GetAttribute("id") // site id is a string
+					id := evt.CurrentTarget().GetAttribute("id") // site id is a string
 					evt.PreventDefault()
 					r.Navigate("/sitemachines/" + id)
 				})
+			}
+
+			// Add an Action Grid depending on which role the user is logged in as
+			print("user role =", UserRole)
+			switch UserRole {
+			case "Admin", "Site Manager":
+				loadTemplate("admin-actions", "#action-grid", nil)
+			case "Worker":
+				loadTemplate("worker-actions", "#action-grid", nil)
 			}
 		}
 	}()
