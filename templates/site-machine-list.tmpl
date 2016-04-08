@@ -1,0 +1,25 @@
+{{$first := index . 0}}
+<div class="data-container">
+<h3 id="header"><i class="fa fa-cogs fa-lg" style="font-size: 3rem"></i> Machine List for {{$first.SiteName}}</h1>
+<table class="data-table" id="machine-list">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Descr</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody>
+{{range .}}  
+    <tr class="data-row" 
+        key="{{.ID}}">
+      <td>{{.Name}}</td>
+      <td>{{.Descr}}</td>
+      <td>{{.Status}}</td>
+    </tr>
+{{end}}  
+  <tbody>
+  </tbody>
+</table>
+
+</div>

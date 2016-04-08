@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/go-humble/form"
 	"github.com/go-humble/router"
 	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
@@ -283,7 +284,7 @@ func siteList(context *router.Context) {
 
 		data := []shared.Site{}
 		rpcClient.Call("SiteRPC.List", Session.Channel, &data)
-		loadTemplate("sitelist", "main", data)
+		loadTemplate("site-list", "main", data)
 
 		// Add a handler for clicking on a row
 		t := doc.GetElementByID("site-list")
@@ -316,7 +317,7 @@ func siteEdit(context *router.Context) {
 		data := SiteEditData{}
 		rpcClient.Call("SiteRPC.Get", id, &data.Site)
 		rpcClient.Call("SiteRPC.List", Session.Channel, &data.Sites)
-		loadTemplate("siteEdit", "main", data)
+		loadTemplate("site-edit", "main", data)
 
 		// Add handlers for this form
 		doc.QuerySelector("legend").AddEventListener("click", false, func(evt dom.Event) {
@@ -330,7 +331,33 @@ func siteEdit(context *router.Context) {
 		doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
 			evt.PreventDefault()
 			print("save site")
-			siteList(nil)
+			// Parse the form element and get a form.Form object in return.
+			f, err := form.Parse(doc.QuerySelector(".grid-form"))
+			if err != nil {
+				print("form parse error", err.Error())
+				return
+			}
+			if err := f.Bind(&data.Site); err != nil {
+				print("form bind error", err.Error())
+				return
+			}
+			// manually get the textarea
+			notae := doc.GetElementByID("notes").(*dom.HTMLTextAreaElement)
+			print("notae =", notae, notae.TextContent)
+
+			// manually get the selected options for now
+			parentSite := doc.GetElementByID("parentSite").(*dom.HTMLSelectElement).SelectedIndex
+			if parentSite > 0 {
+				data.Site.ParentSite = data.Sites[parentSite-1].ID
+				data.Site.ParentSiteName = &data.Sites[parentSite-1].Name
+			}
+			stockSite := doc.GetElementByID("stockSite").(*dom.HTMLSelectElement).SelectedIndex
+			if stockSite > 0 {
+				data.Site.StockSite = data.Sites[stockSite-1].ID
+				data.Site.StockSiteName = &data.Sites[stockSite-1].Name
+			}
+			print("bound data =", data.Site)
+			// siteList(nil)
 		})
 
 		// Add an Action Grid
@@ -361,8 +388,31 @@ func siteMachineList(context *router.Context) {
 	print("show machine list for site", id)
 
 	go func() {
-		// w := dom.GetWindow()
-		// doc := w.Document()
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		req := shared.MachineReq{
+			Channel: Session.Channel,
+			SiteID:  id,
+		}
+		data := []shared.Machine{}
+
+		rpcClient.Call("SiteRPC.MachineList", &req, &data)
+		loadTemplate("site-machine-list", "main", data)
+
+		// Add a back handler on the header
+		doc.GetElementByID("header").AddEventListener("click", false, func(evt dom.Event) {
+			Session.Router.Navigate(fmt.Sprintf("/site/%d", id))
+		})
+
+		// Add a handler for clicking on a row
+		t := doc.GetElementByID("machine-list")
+		t.AddEventListener("click", false, func(evt dom.Event) {
+			td := evt.Target()
+			tr := td.ParentElement()
+			key := tr.GetAttribute("key")
+			Session.Router.Navigate("/machine/" + key)
+		})
 
 	}()
 }

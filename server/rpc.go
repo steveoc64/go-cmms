@@ -9,26 +9,22 @@ func registerRPC() {
 
 	log.Println("Registering RPC services")
 
-	_r := new(LoginRPC)
-	if err := rpc.Register(_r); err != nil {
+	if err := rpc.Register(new(LoginRPC)); err != nil {
 		log.Fatal(err)
 	}
 	log.Println("» Login")
 
-	_r := new(SiteRPC)
-	if err := rpc.Register(_r); err != nil {
+	if err := rpc.Register(new(SiteRPC)); err != nil {
 		log.Fatal(err)
 	}
 	log.Println("» Site")
 
-	_r := new(MachineRPC)
-	if err := rpc.Register(_r); err != nil {
+	if err := rpc.Register(new(MachineRPC)); err != nil {
 		log.Fatal(err)
 	}
-	log.Println("» Site")
+	log.Println("» Machine")
 
-	_r := new(UserProfileRPC)
-	if err := rpc.Register(_r); err != nil {
+	if err := rpc.Register(new(UserProfileRPC)); err != nil {
 		log.Fatal(err)
 	}
 	log.Println("» UserProfile")

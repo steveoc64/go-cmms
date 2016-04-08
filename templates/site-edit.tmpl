@@ -5,17 +5,17 @@
 
   <form class="grid-form">
     <fieldset>
-      <legend><i class="fa fa-industry fa-lg" style="font-size: 2rem"> Site Details</i></legend>
+      <legend><h3><i class="fa fa-industry fa-lg" style="font-size: 3rem"></i>  Site Details - {{.Site.Name}}</h3></legend>
       <div data-row-span="1">
         <div data-field-span="1">
           <label>Name</label>
-          <input type="text" value="{{.Site.Name}}">
+          <input type="text" name="name" value="{{.Site.Name}}">
         </div>
       </div>
       <div data-row-span="2">
         <div data-field-span="1">
           <label>Parent Site</label>
-          <select>
+          <select name="parentSite" id="parentSite">
             <option value="" title=""></option>
             {{range .Sites}}
               <option value="{{.ID}}" title="{{.Name}}" {{if eq .ID $parentSite}}selected{{end}}>{{.Name}}</option>
@@ -24,7 +24,7 @@
         </div>
         <div data-field-span="1">
           <label>Stock Site</label>
-          <select>
+          <select name="stockSite" id="stockSite">
             <option value="" title=""></option>
             {{range .Sites}}
               <option value="{{.ID}}" title="{{.Name}}" {{if eq .ID $stockSite}}selected{{end}}>{{.Name}}</option>
@@ -35,23 +35,23 @@
       <div data-row-span="1">
         <div data-field-span="1">
           <label>Address</label>
-          <input type="text" value="{{.Site.Address}}">
+          <input type="text" name="address" value="{{.Site.Address}}">
         </div>
       </div>
       <div data-row-span="2">
         <div data-field-span="1">
           <label>Phone</label>
-          <input type="text" value="{{.Site.Phone}}">
+          <input type="text" name="phone" value="{{.Site.Phone}}">
         </div>
         <div data-field-span="1">
           <label>Fax</label>
-          <input type="text" value="{{.Site.Fax}}">
+          <input type="text" name="fax" value="{{.Site.Fax}}">
         </div>
       </div>
       <div data-row-span="1">
         <div data-field-span="1">
           <label>Notes</label>
-          <textarea>{{.Site.Notes}}</textarea>
+          <textarea id="notes" name="notes">{{.Site.Notes}}</textarea>
         </div>
       </div>
     </fieldset>
