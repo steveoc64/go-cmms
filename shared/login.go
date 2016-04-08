@@ -12,15 +12,15 @@ type LoginReply struct {
 	Token  string
 	Role   string
 	Site   string
-	Menu   []UserMenu
+	// Menu   []UserMenu
 	Routes []UserRoute
 }
 
-type UserMenu struct {
-	Icon  string
-	Title string
-	URL   string
-}
+// type UserMenu struct {
+// 	Icon  string
+// 	Title string
+// 	URL   string
+// }
 
 type UserRoute struct {
 	Route string

@@ -14,46 +14,6 @@ type SiteMapData struct {
 	Sites  []shared.Site
 }
 
-// Display a map showing the status of all sites, with buttons to
-// jump to specific sites
-func siteMap(context *router.Context) {
-
-	// Get a list of sites
-	go func() {
-		data := SiteMapData{}
-		err := rpcClient.Call("SiteRPC.UserList", channelID, &data.Sites)
-		if err != nil {
-			print("RPC error", err.Error())
-		} else {
-			// Get the site statuses
-			rpcClient.Call("SiteRPC.StatusReport", channelID, &data.Status)
-
-			w := dom.GetWindow()
-			doc := w.Document()
-			loadTemplate("sitemap", "main", data)
-
-			// Attach listeners for each button
-			for _, v := range data.Sites {
-				mbtn := doc.GetElementByID(fmt.Sprintf("%d", v.ID)).(*dom.HTMLDivElement)
-				mbtn.AddEventListener("click", false, func(evt dom.Event) {
-					id := evt.CurrentTarget().GetAttribute("id") // site id is a string
-					evt.PreventDefault()
-					r.Navigate("/sitemachines/" + id)
-				})
-			}
-
-			// Add an Action Grid depending on which role the user is logged in as
-			print("user role =", UserRole)
-			switch UserRole {
-			case "Admin", "Site Manager":
-				loadTemplate("admin-actions", "#action-grid", nil)
-			case "Worker":
-				loadTemplate("worker-actions", "#action-grid", nil)
-			}
-		}
-	}()
-}
-
 type SiteMachineData struct {
 	MultiSite bool
 	Site      shared.Site
@@ -70,16 +30,66 @@ type RaiseIssueData struct {
 	NonTool   string
 }
 
+// Display a map showing the status of all sites, with buttons to
+// jump to specific sites
+func siteMap(context *router.Context) {
+
+	// Get a list of sites
+	go func() {
+		data := SiteMapData{}
+		err := rpcClient.Call("SiteRPC.UserList", Session.Channel, &data.Sites)
+		if err != nil {
+			print("RPC error", err.Error())
+		} else {
+			// Get the site statuses
+			rpcClient.Call("SiteRPC.StatusReport", Session.Channel, &data.Status)
+
+			w := dom.GetWindow()
+			doc := w.Document()
+			loadTemplate("sitemap", "main", data)
+
+			// Attach listeners for each button
+			for _, v := range data.Sites {
+				mbtn := doc.GetElementByID(fmt.Sprintf("%d", v.ID)).(*dom.HTMLDivElement)
+				mbtn.AddEventListener("click", false, func(evt dom.Event) {
+					id := evt.CurrentTarget().GetAttribute("id") // site id is a string
+					evt.PreventDefault()
+					Session.Router.Navigate("/sitemachines/" + id)
+				})
+			}
+
+			// Add an Action Grid depending on which role the user is logged in as
+			print("user role =", Session.UserRole)
+			switch Session.UserRole {
+			case "Admin", "Site Manager":
+				loadTemplate("admin-actions", "#action-grid", nil)
+			case "Worker":
+				loadTemplate("worker-actions", "#action-grid", nil)
+			}
+
+			// Add a click handler to navigate to the page
+			for _, ai := range doc.QuerySelectorAll(".action__item") {
+				url := ai.(*dom.HTMLDivElement).GetAttribute("url")
+				if url != "" {
+					ai.AddEventListener("click", false, func(evt dom.Event) {
+						url := evt.CurrentTarget().GetAttribute("url")
+						Session.Router.Navigate(url)
+					})
+				}
+			}
+		}
+	}()
+}
+
 // Show all the machines at a Site, for the case where we have > 1 site
 // Param:  site
 func siteMachines(context *router.Context) {
 	idStr := context.Params["site"]
-	// print("in the machineDet function", idStr)
 	id, _ := strconv.Atoi(idStr)
 
 	// Get a list of machines at this site
 	req := shared.MachineReq{
-		Channel: channelID,
+		Channel: Session.Channel,
 		SiteID:  id,
 	}
 	data := SiteMachineData{}
@@ -98,7 +108,7 @@ func siteMachines(context *router.Context) {
 			print("RPC error", err.Error())
 		} else {
 			// Get the site statuses
-			rpcClient.Call("SiteRPC.StatusReport", channelID, &data.Status)
+			rpcClient.Call("SiteRPC.StatusReport", Session.Channel, &data.Status)
 			// print("SiteMachine status report", data.Status)
 
 			loadTemplate("sitemachines", "main", data)
@@ -106,7 +116,7 @@ func siteMachines(context *router.Context) {
 			doc := w.Document()
 			austmap := doc.GetElementByID("austmap")
 			austmap.AddEventListener("click", false, func(evt dom.Event) {
-				r.Navigate("/")
+				Session.Router.Navigate("/")
 			})
 
 			// Attach a menu opener for each machine
@@ -251,19 +261,108 @@ func homeSite(context *router.Context) {
 
 	go func() {
 		data.MultiSite = false
-		rpcClient.Call("SiteRPC.GetHome", channelID, &data.Site)
+		rpcClient.Call("SiteRPC.GetHome", Session.Channel, &data.Site)
 		// print("Site =", data.Site)
 
-		err := rpcClient.Call("SiteRPC.HomeMachineList", channelID, &data.Machines)
+		err := rpcClient.Call("SiteRPC.HomeMachineList", Session.Channel, &data.Machines)
 		if err != nil {
 			print("RPC error", err.Error())
 		} else {
 			loadTemplate("sitemachines", "main", data)
+			dom.GetWindow().ScrollTo(1, 1)
 		}
 	}()
 }
 
 // Show a list of all sites
 func siteList(context *router.Context) {
-	loadTemplate("sitelist", "main", nil)
+
+	go func() {
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		data := []shared.Site{}
+		rpcClient.Call("SiteRPC.List", Session.Channel, &data)
+		loadTemplate("sitelist", "main", data)
+
+		// Add a handler for clicking on a row
+		t := doc.GetElementByID("site-list")
+		t.AddEventListener("click", false, func(evt dom.Event) {
+			td := evt.Target()
+			tr := td.ParentElement()
+			key := tr.GetAttribute("key")
+			Session.Router.Navigate("/site/" + key)
+		})
+	}()
+}
+
+type SiteEditData struct {
+	Site  shared.Site
+	Sites []shared.Site
+}
+
+// Show an edit form for the given site
+func siteEdit(context *router.Context) {
+
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+	go func() {
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		data := SiteEditData{}
+		rpcClient.Call("SiteRPC.Get", id, &data.Site)
+		rpcClient.Call("SiteRPC.List", Session.Channel, &data.Sites)
+		loadTemplate("siteEdit", "main", data)
+
+		// Add handlers for this form
+		doc.QuerySelector("legend").AddEventListener("click", false, func(evt dom.Event) {
+			siteList(nil)
+		})
+		doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
+			evt.PreventDefault()
+			print("cancel edit site")
+			siteList(nil)
+		})
+		doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
+			evt.PreventDefault()
+			print("save site")
+			siteList(nil)
+		})
+
+		// Add an Action Grid
+		loadTemplate("site-actions", "#action-grid", id)
+		for _, ai := range doc.QuerySelectorAll(".action__item") {
+			url := ai.(*dom.HTMLDivElement).GetAttribute("url")
+			if url != "" {
+				ai.AddEventListener("click", false, func(evt dom.Event) {
+					url := evt.CurrentTarget().GetAttribute("url")
+					Session.Router.Navigate(url)
+				})
+			}
+		}
+
+	}()
+
+}
+
+// Show a list of all machines for the given site
+func siteMachineList(context *router.Context) {
+
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	print("show machine list for site", id)
+
+	go func() {
+		// w := dom.GetWindow()
+		// doc := w.Document()
+
+	}()
 }

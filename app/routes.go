@@ -8,12 +8,8 @@ import (
 	"honnef.co/go/js/dom"
 )
 
-var appFn map[string]router.Handler
-
-var r *router.Router
-
 func fixLinks() {
-	r.InterceptLinks()
+	Session.Router.InterceptLinks()
 }
 
 // Load a template and attach it to the specified element in the doc
@@ -40,7 +36,7 @@ func loadTemplate(template string, selector string, data interface{}) error {
 		print(err.Error())
 		return err
 	}
-	r.InterceptLinks()
+	Session.Router.InterceptLinks()
 	return nil
 }
 
@@ -50,50 +46,53 @@ func enableRoutes(Role string) {
 
 	switch Role {
 	case "Admin":
-		appFn = map[string]router.Handler{
-			"sitemap":      siteMap,
-			"sitemachines": siteMachines,
-			"dashboard":    adminDashboard,
-			"sites":        siteList,
-			"machines":     machineList,
-			"events":       eventList,
-			"workorders":   workOrderList,
-			"tools":        toolList,
-			"parts":        partsList,
-			"vendors":      vendorList,
-			"users":        usersList,
-			"reports":      adminReports,
-			"skills":       skillsList,
+		Session.AppFn = map[string]router.Handler{
+			"sitemap":       siteMap,
+			"sitemachines":  siteMachines,
+			"sites":         siteList,
+			"site":          siteEdit,
+			"site-machines": siteMachineList,
+			"tasks":         taskMaint,
+			"stoppages":     stoppagesList,
+			"parts":         partsList,
+			"users":         usersList,
+			"reports":       adminReports,
 		}
 	case "Site Manager":
-		appFn = map[string]router.Handler{
-			"sitemap":      siteMap,
-			"sitemachines": siteMachines,
-			"tasks":        homeSite,
-			"users":        usersList,
-			"events":       eventList,
-			"workorders":   workOrderList,
+		Session.AppFn = map[string]router.Handler{
+			"sitemap":       siteMap,
+			"sitemachines":  siteMachines,
+			"sites":         siteList,
+			"site":          siteEdit,
+			"site-machines": siteMachineList,
+			"tasks":         taskList,
+			"stoppages":     stoppagesList,
+			"parts":         partsList,
+			"users":         usersList,
+			"reports":       adminReports,
 		}
 	case "Worker":
-		appFn = map[string]router.Handler{
+		Session.AppFn = map[string]router.Handler{
 			"sitemap":      siteMap,
 			"sitemachines": siteMachines,
-			"homesite":     homeSite,
+			"tasks":        taskList,
+			"stoppages":    stoppagesList,
+			"parts":        partsList,
+			"reports":      workerReports,
 		}
 	case "Floor":
-		appFn = map[string]router.Handler{
+		Session.AppFn = map[string]router.Handler{
 			"sitemap":      siteMap,
 			"sitemachines": siteMachines,
-			"homesite":     homeSite,
 		}
 	}
 }
 
 func initRouter() {
-	r = router.New()
-	r.ShouldInterceptLinks = true
-	r.HandleFunc("/", defaultRoute)
-	r.Start()
+	Session.Router = router.New()
+	Session.Router.ShouldInterceptLinks = true
+	Session.Router.HandleFunc("/", defaultRoute)
+	Session.Router.Start()
 }
 
 func defaultRoute(context *router.Context) {
@@ -104,18 +103,18 @@ func loadRoutes(Role string, Routes []shared.UserRoute) {
 
 	// print("Loading new routing table")
 	enableRoutes(Role)
-	if r != nil {
-		r.Stop()
+	if Session.Router != nil {
+		Session.Router.Stop()
 	}
-	r = router.New()
-	r.ShouldInterceptLinks = true
+	Session.Router = router.New()
+	Session.Router.ShouldInterceptLinks = true
 
 	for _, v := range Routes {
-		if f, ok := appFn[v.Func]; ok {
+		if f, ok := Session.AppFn[v.Func]; ok {
 			// print("found a function called", v.Func)
 			// print("adding route", v.Route, v.Func)
-			r.HandleFunc(v.Route, f)
+			Session.Router.HandleFunc(v.Route, f)
 		}
 	}
-	r.Start()
+	Session.Router.Start()
 }

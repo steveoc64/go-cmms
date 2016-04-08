@@ -17,7 +17,7 @@ func userProfile() {
 
 		// TODO - get the user profile data from the backend
 		data := shared.UserProfile{}
-		err := rpcClient.Call("UserProfileRPC.Get", channelID, &data)
+		err := rpcClient.Call("UserProfileRPC.Get", Session.Channel, &data)
 		if err != nil {
 			print("RPC error", err.Error())
 			return
@@ -73,7 +73,7 @@ func userProfile() {
 						}
 						d := false
 						req := shared.UserProfileUpdate{
-							Channel: channelID,
+							Channel: Session.Channel,
 							ID:      data.ID,
 							Name:    data.Name,
 							Passwd:  data.Passwd,

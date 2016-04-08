@@ -18,7 +18,6 @@ import (
 
 var ws net.Conn
 var rpcClient *rpc.Client
-var channelID int
 
 func getWSBaseURL() string {
 	document := dom.GetWindow().Document().(dom.HTMLDocument)
@@ -32,6 +31,8 @@ func getWSBaseURL() string {
 }
 
 func websocketInit() net.Conn {
+	Session.Channel = 0
+
 	wsBaseURL := getWSBaseURL()
 	print("init websocket", wsBaseURL)
 	wss, err := websocket.Dial(wsBaseURL)
@@ -55,7 +56,6 @@ func websocketInit() net.Conn {
 	}
 	out := &shared.PingRep{}
 	rpcClient.Call("PingRPC.Ping", in, out)
-	//channelID = 0
 
 	return wss
 }
@@ -138,8 +138,10 @@ func processAsync(method string, body string) {
 
 	switch method {
 	case "Ping":
-		channelID, _ = strconv.Atoi(body)
-		// print("Ping on channel", channelID)
+		if Session.Channel == 0 {
+			print("Channel Set to", body)
+		}
+		Session.Channel, _ = strconv.Atoi(body)
 	default:
 		print("Rx cmd", method, "body:", body)
 	}

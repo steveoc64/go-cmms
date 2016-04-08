@@ -4,19 +4,18 @@ import (
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
-	// "strings"
 )
-
-var UserRole = ""
 
 func Login(username string, passwd string, rem bool) {
 
-	UserRole = ""
+	Session.Username = ""
+	Session.UserRole = ""
+
 	lc := &shared.LoginCredentials{
 		Username:   username,
 		Password:   passwd,
 		RememberMe: rem,
-		Channel:    channelID,
+		Channel:    Session.Channel,
 	}
 	// print("login params", lc)
 
@@ -27,9 +26,10 @@ func Login(username string, passwd string, rem bool) {
 	}
 	if lr.Result == "OK" {
 		hideLoginForm(lc.Username)
-		createMenu(lr.Menu)
+		// createMenu(lr.Menu)
 		loadRoutes(lr.Role, lr.Routes)
-		UserRole = lr.Role
+		Session.Username = lc.Username
+		Session.UserRole = lr.Role
 	} else {
 		print("login failed")
 		dom.GetWindow().Alert("Login Failed")
@@ -40,7 +40,7 @@ func Logout() {
 	showLoginForm()
 	initRouter() // reset all the routes to nothing
 	js.Global.Get("location").Set("hash", "")
-	r.Navigate("/")
+	Session.Router.Navigate("/")
 }
 
 func hideLoginForm(username string) {
@@ -74,7 +74,6 @@ func showLoginForm() {
 	doc.QuerySelector("main").SetInnerHTML("")
 
 	// Activate the login form, with an outlined loginbtn, and get focus on the username
-
 	loginBtn := doc.GetElementByID("l-loginbtn").(*dom.HTMLInputElement)
 	loginBtn.Class().Remove("button-outline")
 
@@ -98,5 +97,5 @@ func showLoginForm() {
 	userBtn := doc.GetElementByID("userbtn").(*dom.HTMLButtonElement)
 	userBtn.Style().Set("display", "none")
 
-	removeMenu()
+	// removeMenu()
 }

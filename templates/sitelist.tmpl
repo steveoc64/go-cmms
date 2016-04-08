@@ -1,3 +1,28 @@
-<div class="container" id="sitelist">
-This is the Site List
+<div class="data-container">
+<h3><i class="fa fa-industry fa-lg" style="font-size: 3rem"></i>  Site List</h1>
+<table class="data-table" id="site-list">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Parent Site</th>
+      <th>Address</th>
+      <th>Phone</th>
+      <th>Fax</th>
+    </tr>
+  </thead>
+  <tbody>
+{{range .}}  
+    <tr class="data-row" 
+        key="{{.ID}}" 
+        parent-site="{{.ParentSite}}">
+      <td>{{.Name}}</td>
+      <td>{{if .ParentSiteName}} {{.ParentSiteName}} {{end}}</td>
+      <td>{{.Address}}</td>
+      <td>{{.Phone}}</td>
+      <td>{{.Fax}}</td>
+    </tr>
+{{end}}  
+  </tbody>
+</table>
+
 </div>
