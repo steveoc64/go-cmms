@@ -12,6 +12,7 @@ type LoginReply struct {
 	Token  string
 	Role   string
 	Site   string
+	ID     int
 	// Menu   []UserMenu
 	Routes []UserRoute
 }

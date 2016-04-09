@@ -325,12 +325,12 @@ func siteEdit(context *router.Context) {
 
 		// Add handlers for this form
 		doc.QuerySelector("legend").AddEventListener("click", false, func(evt dom.Event) {
-			siteList(nil)
+			Session.Router.Navigate("/sites")
 		})
 		doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
 			evt.PreventDefault()
 			print("cancel edit site")
-			siteList(nil)
+			Session.Router.Navigate("/sites")
 		})
 		doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
 			evt.PreventDefault()
@@ -364,10 +364,9 @@ func siteEdit(context *router.Context) {
 			}
 			go func() {
 				retval := 0
-				print("calling SiteRPC.Save")
 				rpcClient.Call("SiteRPC.Save", updateData, &retval)
+				Session.Router.Navigate("/sites")
 			}()
-			siteList(nil)
 		})
 
 		// Add an Action Grid
@@ -384,6 +383,11 @@ func siteEdit(context *router.Context) {
 
 	}()
 
+}
+
+type SiteMachineListData struct {
+	Site     shared.Site
+	Machines []shared.Machine
 }
 
 // Show a list of all machines for the given site
@@ -405,9 +409,10 @@ func siteMachineList(context *router.Context) {
 			Channel: Session.Channel,
 			SiteID:  id,
 		}
-		data := []shared.Machine{}
+		data := SiteMachineData{}
 
-		rpcClient.Call("SiteRPC.MachineList", &req, &data)
+		rpcClient.Call("SiteRPC.Get", id, &data.Site)
+		rpcClient.Call("SiteRPC.MachineList", &req, &data.Machines)
 		loadTemplate("site-machine-list", "main", data)
 
 		// Add a back handler on the header

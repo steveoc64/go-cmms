@@ -1,6 +1,6 @@
 package shared
 
-type UserProfile struct {
+type User struct {
 	ID       int    `db:"id"`
 	Username string `db:"username"`
 	Name     string `db:"name"`
@@ -8,14 +8,19 @@ type UserProfile struct {
 	Email    string `db:"email"`
 	Role     string `db:"role"`
 	SMS      string `db:"sms"`
-	Sites    []Site
+	Sites    []Site `db:"site"`
 }
 
-type UserProfileUpdate struct {
+type UserUpdate struct {
 	Channel int    `db:"channel"`
 	ID      int    `db:"id"`
 	Name    string `db:"name"`
 	Passwd  string `db:"passwd"`
 	Email   string `db:"email"`
 	SMS     string `db:"sms"`
+}
+
+type UserUpdateData struct {
+	Channel int
+	User    *User
 }

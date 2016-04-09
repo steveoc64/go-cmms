@@ -16,30 +16,35 @@ type MachineReq struct {
 }
 
 type Machine struct {
-	ID         int        `db:"id"`
-	SiteId     int        `db:"site_id"`
-	Name       string     `db:"name"`
-	Descr      string     `db:"descr"`
-	Make       string     `db:"make"`
-	Model      string     `db:"model"`
-	Serialnum  string     `db:"serialnum"`
-	IsRunning  bool       `db:"is_running"`
-	Status     string     `db:"status"`
-	Stopped    *time.Time `db:"stopped_at"`
-	Started    *time.Time `db:"started_at"`
-	Alert      *time.Time `db:"alert_at"`
-	Picture    string     `db:"picture"`
-	SiteName   *string    `db:"site_name"`
-	Span       *string    `db:"span"`
-	Notes      string     `db:"notes"`
-	Electrical string     `db:"electrical"`
-	Hydraulic  string     `db:"hydraulic"`
-	Printer    string     `db:"printer"`
-	Console    string     `db:"console"`
-	Rollbed    string     `db:"rollbed"`
-	Uncoiler   string     `db:"uncoiler"`
-	Lube       string     `db:"lube"`
-	Components []Component
+	ID         int         `db:"id"`
+	SiteId     int         `db:"site_id"`
+	Name       string      `db:"name"`
+	Descr      string      `db:"descr"`
+	Make       string      `db:"make"`
+	Model      string      `db:"model"`
+	Serialnum  string      `db:"serialnum"`
+	IsRunning  bool        `db:"is_running"`
+	Status     string      `db:"status"`
+	Stopped    *time.Time  `db:"stopped_at"`
+	Started    *time.Time  `db:"started_at"`
+	Alert      *time.Time  `db:"alert_at"`
+	Picture    string      `db:"picture"`
+	SiteName   *string     `db:"site_name"`
+	Span       *string     `db:"span"`
+	Notes      string      `db:"notes"`
+	Electrical string      `db:"electrical"`
+	Hydraulic  string      `db:"hydraulic"`
+	Printer    string      `db:"printer"`
+	Console    string      `db:"console"`
+	Rollbed    string      `db:"rollbed"`
+	Uncoiler   string      `db:"uncoiler"`
+	Lube       string      `db:"lube"`
+	Components []Component `db:"components"`
+}
+
+type MachineUpdateData struct {
+	Channel int
+	Machine *Machine
 }
 
 func (m *Machine) GetClass(status string) string {

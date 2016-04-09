@@ -1,0 +1,46 @@
+<div class="data-container">
+
+  <form class="grid-form">
+    <fieldset>
+      <legend>
+        <h3>
+          <i class="fa fa-user fa-lg" style="font-size: 3rem"></i>
+          User Details - {{.User.Name}}
+        </h3>
+      </legend>
+      <div data-row-span="2">
+        <div data-field-span="1">
+          <label>Username</label>
+          <input type="text" name="username" value="{{.User.Username}}">
+        </div>
+        <div data-field-span="1">
+          <label>Password</label>
+          <input type="text" name="passwd" value="{{.User.Passwd}}">
+        </div>
+      </div>
+      <div data-row-span="3">
+        <div data-field-span="1">
+          <label>Name</label>
+          <input type="text" name="name" value="{{.User.Name}}">
+        </div>
+        <div data-field-span="1">
+          <label>Email</label>
+          <input type="text" name="email" value="{{.User.Email}}">
+        </div>
+        <div data-field-span="1">
+          <label>Mobile</label>
+          <input type="text" name="sms" value="{{.User.SMS}}">
+        </div>
+      </div>
+    </fieldset>
+    <div class="row">
+      <div class="column">
+        <div class="button-bar">
+          <input type="button" class="button-outline md-close" value="Cancel">
+          <button class="button-primary md-save">Save</button>                        
+        </div>
+      </div>
+    </div>
+  </form>
+
+</div>

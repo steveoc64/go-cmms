@@ -34,3 +34,24 @@ func (m *MachineRPC) Get(machineID int, machine *shared.Machine) error {
 
 	return nil
 }
+
+// Save a Machine
+func (m *MachineRPC) Save(data shared.MachineUpdateData, retval *int) error {
+	start := time.Now()
+
+	// log.Println("here", data)
+	conn := Connections.Get(data.Channel)
+	// log.Println("conn", conn)
+
+	DB.Update("machine").
+		SetWhitelist(data.Machine, "name", "serialnum", "descr", "notes").
+		Where("id = $1", data.Machine.ID).
+		Exec()
+
+	logger(start, "Machine.Save",
+		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
+			data.Channel, data.Machine.ID, conn.UserID, conn.Username, conn.UserRole),
+		data.Machine.Name)
+
+	return nil
+}

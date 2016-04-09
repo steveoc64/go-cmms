@@ -44,7 +44,7 @@ dist/assets.log: assets/index.html assets/img/*  assets/fonts/* assets/css/*
 
 appjs: dist/public/app.js
 
-dist/public/app.js: app/*.go
+dist/public/app.js: app/*.go shared/*.go
 	@mplayer -quiet audio/frontend-compile.ogg 2> /dev/null > /dev/null &
 	@mkdir -p dist/public/js
 	@gosimple app
@@ -60,7 +60,7 @@ remake:
 
 sv: dist/cmms-server 
 
-dist/cmms-server: server/*.go
+dist/cmms-server: server/*.go shared/*.go
 	@mplayer -quiet audio/server-compile.oga 2> /dev/null > /dev/null &
 	@gosimple server
 	cd server && go build -o ../dist/cmms-server

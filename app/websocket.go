@@ -89,8 +89,10 @@ func (c *myClientCodec) ReadResponseHeader(r *rpc.Response) error {
 	c.async = false
 	c.serviceMethod = ""
 	err := c.dec.Decode(r)
-	//	print("rpc header <-", r)
+	// print("rpc header <-", r)
 	if err != nil {
+		print("decode error", err.Error())
+
 		if err != nil && err.Error() == "extra data in buffer" {
 			err = c.dec.Decode(r)
 		}

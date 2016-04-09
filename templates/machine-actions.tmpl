@@ -1,0 +1,23 @@
+<div class="action-grid">
+	<div class="action__item" url="machine/schedules/{.}">
+		<div class="action__title">Maint Schedule</div>
+		<div class="action__icon"><i class="fa fa-wrench fa-lg"></i></div>
+		<div class="action__text">
+			Regular Maintenance Schedule for this machine.
+		</div>
+	</div>
+	<div class="action__item" url="/stoppages">
+		<div class="action__title">Stoppages</div>
+		<div class="action__icon"><i class="fa fa-pause-circle-o fa-lg"></i></div>
+		<div class="action__text">
+			Stoppage events for this machine that are outside of regular scheduled maintenance.			
+		</div>
+	</div>
+	<div class="action__item" url="/machine/reports/{{.}}">
+		<div class="action__title">Reports</div>
+		<div class="action__icon"><i class="fa fa-bar-chart fa-lg"></i></div>
+		<div class="action__text">
+			Reports and history for this machine.
+		</div>
+	</div>
+</div>

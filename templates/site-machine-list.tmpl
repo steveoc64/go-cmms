@@ -1,6 +1,14 @@
-{{$first := index . 0}}
 <div class="data-container">
-<h3 id="header"><i class="fa fa-cogs fa-lg" style="font-size: 3rem"></i> Machine List for {{$first.SiteName}}</h1>
+  <div class="row data-table-header">
+    <h3 id="header">
+      <i class="fa fa-cogs fa-lg" style="font-size: 3rem"></i> 
+      Machine List for {{.Site.Name}}
+    </h3>
+    <div class="column col-center">
+      <i class="data-add-btn fa fa-plus-circle fa-lg"></i>    
+    </div>    
+  </div>
+
 <table class="data-table" id="machine-list">
   <thead>
     <tr>
@@ -10,7 +18,7 @@
     </tr>
   </thead>
   <tbody>
-{{range .}}  
+{{range .Machines}}  
     <tr class="data-row" 
         key="{{.ID}}">
       <td>{{.Name}}</td>

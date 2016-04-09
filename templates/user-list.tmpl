@@ -1,0 +1,35 @@
+<div class="data-container">
+  <div class="row data-table-header">
+    <h3 class="column">
+      <i class="fa fa-user fa-lg" style="font-size: 3rem"></i>
+       User List - All Users
+    </h3>
+    <div class="column col-center">
+      <i class="data-add-btn fa fa-plus-circle fa-lg"></i>    
+    </div>
+  </div>
+<table class="data-table" id="user-list">
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Mobile</th>
+      <th>Role</th>
+    </tr>
+  </thead>
+  <tbody>
+{{range .}}  
+    <tr class="data-row" 
+        key="{{.ID}}">
+      <td>{{.Username}}</td>
+      <td>{{.Name}}</td>
+      <td>{{.Email}}</td>
+      <td>{{.SMS}}</td>
+      <td>{{.Role}}</td>
+    </tr>
+{{end}}  
+  </tbody>
+</table>
+
+</div>

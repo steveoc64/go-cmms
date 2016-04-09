@@ -30,6 +30,7 @@ func Login(username string, passwd string, rem bool) {
 		loadRoutes(lr.Role, lr.Routes)
 		Session.Username = lc.Username
 		Session.UserRole = lr.Role
+		Session.UserID = lr.ID
 	} else {
 		print("login failed")
 		dom.GetWindow().Alert("Login Failed")

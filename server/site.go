@@ -86,7 +86,7 @@ func (s *SiteRPC) UserList(channel int, sites *[]shared.Site) error {
 	return nil
 }
 
-// Get a list of all sites
+// Get a list of all sites, which is mainly used for lookup purposes
 func (s *SiteRPC) List(channel int, sites *[]shared.Site) error {
 	start := time.Now()
 
@@ -102,7 +102,7 @@ func (s *SiteRPC) List(channel int, sites *[]shared.Site) error {
 	logger(start, "Site.List",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d", len(*sites)))
+		fmt.Sprintf("%d Sites", len(*sites)))
 
 	return nil
 }
