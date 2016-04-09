@@ -127,6 +127,27 @@ func (s *SiteRPC) Get(siteID int, site *shared.Site) error {
 	return nil
 }
 
+// Save a site
+func (s *SiteRPC) Save(data shared.SiteUpdateData, retval *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.Update("site").
+		SetWhitelist(data.Site, "name", "address", "phone", "fax", "parent_site", "stock_site", "notes").
+		Where("id = $1", data.Site.ID).
+		Exec()
+
+	// bar := "==============================================\n"
+	// fmt.Sprintf("%s\n%s%#v\n%s", site.Name, bar, site, bar))
+	logger(start, "Site.Save",
+		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
+			data.Channel, data.Site.ID, conn.UserID, conn.Username, conn.UserRole),
+		data.Site.Name)
+
+	return nil
+}
+
 // Get the details for my home site
 func (s *SiteRPC) GetHome(channel int, site *shared.Site) error {
 	start := time.Now()

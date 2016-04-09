@@ -6,6 +6,9 @@ import "github.com/go-humble/router"
 // "honnef.co/go/js/dom"
 
 func machineList(context *router.Context) {
-	print("in the machineList function")
-	loadTemplate("machines", "main", nil)
+	print("TODO machineList")
+}
+
+func machineEdit(context *router.Context) {
+	print("TODD machineEdit")
 }

@@ -287,12 +287,16 @@ func siteList(context *router.Context) {
 		loadTemplate("site-list", "main", data)
 
 		// Add a handler for clicking on a row
-		t := doc.GetElementByID("site-list")
-		t.AddEventListener("click", false, func(evt dom.Event) {
+		doc.GetElementByID("site-list").AddEventListener("click", false, func(evt dom.Event) {
 			td := evt.Target()
 			tr := td.ParentElement()
 			key := tr.GetAttribute("key")
 			Session.Router.Navigate("/site/" + key)
+		})
+
+		// Add a handler for clicking on the add butto
+		doc.QuerySelector(".data-add-btn").AddEventListener("click", false, func(evt dom.Event) {
+			print("add new site")
 		})
 	}()
 }
@@ -330,7 +334,6 @@ func siteEdit(context *router.Context) {
 		})
 		doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
 			evt.PreventDefault()
-			print("save site")
 			// Parse the form element and get a form.Form object in return.
 			f, err := form.Parse(doc.QuerySelector(".grid-form"))
 			if err != nil {
@@ -342,22 +345,29 @@ func siteEdit(context *router.Context) {
 				return
 			}
 			// manually get the textarea
-			notae := doc.GetElementByID("notes").(*dom.HTMLTextAreaElement)
-			print("notae =", notae, notae.TextContent)
+			data.Site.Notes = doc.GetElementByID("notes").(*dom.HTMLTextAreaElement).Value
 
 			// manually get the selected options for now
 			parentSite := doc.GetElementByID("parentSite").(*dom.HTMLSelectElement).SelectedIndex
+			data.Site.ParentSite = 0
 			if parentSite > 0 {
 				data.Site.ParentSite = data.Sites[parentSite-1].ID
-				data.Site.ParentSiteName = &data.Sites[parentSite-1].Name
 			}
+			data.Site.StockSite = 0
 			stockSite := doc.GetElementByID("stockSite").(*dom.HTMLSelectElement).SelectedIndex
 			if stockSite > 0 {
 				data.Site.StockSite = data.Sites[stockSite-1].ID
-				data.Site.StockSiteName = &data.Sites[stockSite-1].Name
 			}
-			print("bound data =", data.Site)
-			// siteList(nil)
+			updateData := &shared.SiteUpdateData{
+				Channel: Session.Channel,
+				Site:    &data.Site,
+			}
+			go func() {
+				retval := 0
+				print("calling SiteRPC.Save")
+				rpcClient.Call("SiteRPC.Save", updateData, &retval)
+			}()
+			siteList(nil)
 		})
 
 		// Add an Action Grid

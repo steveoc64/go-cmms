@@ -5,5 +5,9 @@ import (
 )
 
 func partsList(context *router.Context) {
-	print("in the partsList function")
+	print("TODO partList")
+}
+
+func partEdit(context *router.Context) {
+	print("TODO partEdit")
 }

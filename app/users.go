@@ -93,5 +93,9 @@ func userProfile() {
 
 // Display a list of users
 func usersList(context *router.Context) {
-	print("in the usersList function")
+	print("TODO usersList")
+}
+
+func userEdit(contex *router.Context) {
+	print("TODO userEdit")
 }

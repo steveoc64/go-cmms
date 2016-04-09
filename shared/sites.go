@@ -16,6 +16,11 @@ type Site struct {
 	Y              int     `db:"y"`
 }
 
+type SiteUpdateData struct {
+	Channel int
+	Site    *Site
+}
+
 type SiteStatusReport struct {
 	Edinburgh string
 	Minto     string
