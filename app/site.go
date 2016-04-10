@@ -303,6 +303,7 @@ func siteList(context *router.Context) {
 
 type SiteEditData struct {
 	Site  shared.Site
+	Title string
 	Sites []shared.Site
 }
 
@@ -321,16 +322,25 @@ func siteEdit(context *router.Context) {
 		data := SiteEditData{}
 		rpcClient.Call("SiteRPC.Get", id, &data.Site)
 		rpcClient.Call("SiteRPC.List", Session.Channel, &data.Sites)
+		data.Title = "Site Details - " + data.Site.Name
 		loadTemplate("site-edit", "main", data)
+		doc.QuerySelector("#focusme").(*dom.HTMLInputElement).Focus()
 
 		// Add handlers for this form
-		doc.QuerySelector("legend").AddEventListener("click", false, func(evt dom.Event) {
+		doc.QuerySelector("#legend").AddEventListener("click", false, func(evt dom.Event) {
 			Session.Router.Navigate("/sites")
 		})
 		doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
 			evt.PreventDefault()
 			print("cancel edit site")
 			Session.Router.Navigate("/sites")
+		})
+		// Allow ESC to close dialog
+		doc.QuerySelector(".grid-form").AddEventListener("keyup", false, func(evt dom.Event) {
+			if evt.(*dom.KeyboardEvent).KeyCode == 27 {
+				evt.PreventDefault()
+				Session.Router.Navigate("/sites")
+			}
 		})
 		doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
 			evt.PreventDefault()

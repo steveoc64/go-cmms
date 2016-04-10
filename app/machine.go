@@ -19,6 +19,7 @@ func machineList(context *router.Context) {
 
 type MachineEditData struct {
 	Machine shared.Machine
+	Title   string
 }
 
 func machineEdit(context *router.Context) {
@@ -34,17 +35,25 @@ func machineEdit(context *router.Context) {
 
 		data := MachineEditData{}
 		rpcClient.Call("MachineRPC.Get", id, &data.Machine)
+		data.Title = fmt.Sprintf("Machine Details - %s - %s", data.Machine.Name, *data.Machine.SiteName)
 		loadTemplate("machine-edit", "main", data)
+		doc.QuerySelector("#focusme").(*dom.HTMLInputElement).Focus()
 
 		siteMachineList := fmt.Sprintf("/site/machine/%d", data.Machine.SiteId)
-
 		// Add handlers for this form
-		doc.QuerySelector("legend").AddEventListener("click", false, func(evt dom.Event) {
+		doc.QuerySelector("#legend").AddEventListener("click", false, func(evt dom.Event) {
 			Session.Router.Navigate(siteMachineList)
 		})
 		doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
 			evt.PreventDefault()
 			Session.Router.Navigate(siteMachineList)
+		})
+		// Allow ESC to close dialog
+		doc.QuerySelector(".grid-form").AddEventListener("keyup", false, func(evt dom.Event) {
+			if evt.(*dom.KeyboardEvent).KeyCode == 27 {
+				evt.PreventDefault()
+				Session.Router.Navigate(siteMachineList)
+			}
 		})
 		doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
 			evt.PreventDefault()

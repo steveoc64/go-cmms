@@ -2,16 +2,22 @@
 
   <form class="grid-form">
     <fieldset>
-      <legend>
-        <h3>
+      <div class="row data-table-header">
+        <h3 class="column column-80" id="legend">
           <i class="fa fa-user fa-lg" style="font-size: 3rem"></i>
-          User Details - {{.User.Name}}
+           {{.Title}}
         </h3>
-      </legend>
+        {{if .User.ID}}
+        <div class="column col-center">
+          <i class="data-del-btn fa fa-minus-circle fa-lg"></i>    
+        </div>
+        {{end}}
+      </div>
+
       <div data-row-span="2">
         <div data-field-span="1">
           <label>Username</label>
-          <input type="text" name="username" value="{{.User.Username}}">
+          <input id="focusme" type="text" name="username" value="{{.User.Username}}">
         </div>
         <div data-field-span="1">
           <label>Password</label>

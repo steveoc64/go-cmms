@@ -5,16 +5,21 @@
 
   <form class="grid-form">
     <fieldset>
-      <legend>
-        <h3>
+      <div class="row data-table-header">
+        <h3 class="column column-80" id="legend">
           <i class="fa fa-industry fa-lg" style="font-size: 3rem"></i>
-          Site Details - {{.Site.Name}}
+           {{.Title}}
         </h3>
-      </legend>
+        {{if .Site.ID}}
+        <div class="column col-center">
+          <i class="data-del-btn fa fa-minus-circle fa-lg"></i>    
+        </div>
+        {{end}}
+      </div>
       <div data-row-span="1">
         <div data-field-span="1">
           <label>Name</label>
-          <input type="text" name="name" value="{{.Site.Name}}">
+          <input type="text" name="name" value="{{.Site.Name}}" id="focusme">
         </div>
       </div>
       <div data-row-span="2">

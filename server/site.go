@@ -138,8 +138,6 @@ func (s *SiteRPC) Save(data shared.SiteUpdateData, retval *int) error {
 		Where("id = $1", data.Site.ID).
 		Exec()
 
-	// bar := "==============================================\n"
-	// fmt.Sprintf("%s\n%s%#v\n%s", site.Name, bar, site, bar))
 	logger(start, "Site.Save",
 		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
 			data.Channel, data.Site.ID, conn.UserID, conn.Username, conn.UserRole),

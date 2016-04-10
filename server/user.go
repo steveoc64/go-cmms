@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/steveoc64/go-cmms/shared"
@@ -45,9 +44,7 @@ func (u *UserRPC) List(channel int, profs *[]shared.User) error {
 func (u *UserRPC) Me(channel int, prof *shared.User) error {
 	start := time.Now()
 
-	log.Println("get user from channel", channel)
 	conn := Connections.Get(channel)
-	log.Println("connection =", conn)
 
 	DB.SQL(UserGetQuery, conn.UserID).QueryStruct(prof)
 
@@ -93,24 +90,45 @@ func (u *UserRPC) Set(req *shared.UserUpdate, done *bool) error {
 	return nil
 }
 
-// Set the user profile from the popdown list at the top
-func (u *UserRPC) Save(req *shared.UserUpdateData, done *bool) error {
+// Full update of user record, including username
+func (u *UserRPC) Save(req *shared.UserUpdate, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(req.Channel)
 
 	DB.Update("users").
-		SetWhitelist(req.User, "username", "name", "passwd", "email", "sms").
-		Where("id = $1", req.User.ID).
+		SetWhitelist(req, "username", "name", "passwd", "email", "sms").
+		Where("id = $1", req.ID).
 		Exec()
 
 	logger(start, "User.Save",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			req.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d %s %s %s %s",
-			req.User.ID, req.User.Email, req.User.SMS, req.User.Name, req.User.Passwd))
+			req.ID, req.Username, req.Email, req.SMS, req.Name, req.Passwd))
 
-	// *done = true
+	*done = true
+
+	return nil
+}
+
+// Add a new user record
+func (u *UserRPC) Insert(req *shared.UserUpdate, id *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(req.Channel)
+
+	DB.InsertInto("users").
+		Whitelist("username", "name", "passwd", "email", "sms").
+		Record(req).
+		Returning("id").
+		QueryScalar(id)
+
+	logger(start, "User.Insert",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			req.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d %s %s %s %s %s",
+			id, req.Username, req.Email, req.SMS, req.Name, req.Passwd))
 
 	return nil
 }

@@ -12,15 +12,11 @@ type User struct {
 }
 
 type UserUpdate struct {
-	Channel int    `db:"channel"`
-	ID      int    `db:"id"`
-	Name    string `db:"name"`
-	Passwd  string `db:"passwd"`
-	Email   string `db:"email"`
-	SMS     string `db:"sms"`
-}
-
-type UserUpdateData struct {
-	Channel int
-	User    *User
+	Channel  int    `db:"channel"`
+	ID       int    `db:"id"`
+	Username string `db:"username"`
+	Name     string `db:"name"`
+	Passwd   string `db:"passwd"`
+	Email    string `db:"email"`
+	SMS      string `db:"sms"`
 }

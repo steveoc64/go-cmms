@@ -31,7 +31,15 @@ select-mg
 textarea
 	padding-bottom: .6rem
 	padding-top: .6rem
-	min-height: 11rem
+	min-height: 12rem
+
+	@media (max-height: 800px)
+		min-height: 4rem
+		&:active,&:focus,&:hover
+			min-height: 12rem
+
+	@media (max-height: 1024px)
+		min-height: 14rem
 
 label,
 legend

@@ -2,16 +2,22 @@
 
   <form class="grid-form">
     <fieldset>
-      <legend>
-        <h3>
+      <div class="row data-table-header">
+        <h3 class="column column-80" id="legend">
           <i class="fa fa-cogs fa-lg" style="font-size: 3rem"></i>
-          Machine Details - {{.Machine.Name}} - {{.Machine.SiteName}}
+           {{.Title}}
         </h3>
-      </legend>
+        {{if .Machine.ID}}
+        <div class="column col-center">
+          <i class="data-del-btn fa fa-minus-circle fa-lg"></i>    
+        </div>
+        {{end}}
+      </div>
+
       <div data-row-span="3">
         <div data-field-span="1">
           <label>Name</label>
-          <input type="text" name="name" value="{{.Machine.Name}}">
+          <input type="text" name="name" value="{{.Machine.Name}}" id="focusme">
         </div>
         <div data-field-span="1">
           <label>Serial #</label>

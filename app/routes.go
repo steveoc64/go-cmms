@@ -60,6 +60,7 @@ func enableRoutes(Role string) {
 			"part-edit":     partEdit,
 			"users":         usersList,
 			"user-edit":     userEdit,
+			"user-new":      userNew,
 			"reports":       adminReports,
 		}
 	case "Worker":
