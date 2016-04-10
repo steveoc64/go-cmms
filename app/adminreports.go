@@ -5,5 +5,5 @@ import (
 )
 
 func adminReports(context *router.Context) {
-	print("in the adminReports function")
+	print("TODO - adminReports")
 }

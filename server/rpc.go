@@ -28,4 +28,14 @@ func registerRPC() {
 		log.Fatal(err)
 	}
 	log.Println("» User")
+
+	if err := rpc.Register(new(PartRPC)); err != nil {
+		log.Fatal(err)
+	}
+	log.Println("» Part")
+
+	if err := rpc.Register(new(TaskRPC)); err != nil {
+		log.Fatal(err)
+	}
+	log.Println("» Task")
 }

@@ -198,6 +198,7 @@ func siteMachines(context *router.Context) {
 										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
 									})
 									doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
+										evt.PreventDefault()
 										print("TODO - save the event details")
 										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
 									})
@@ -240,6 +241,7 @@ func siteMachines(context *router.Context) {
 										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
 									})
 									doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
+										evt.PreventDefault()
 										print("TODO - save the event details")
 										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
 									})
@@ -426,7 +428,7 @@ func siteMachineList(context *router.Context) {
 		loadTemplate("site-machine-list", "main", data)
 
 		// Add a back handler on the header
-		doc.GetElementByID("header").AddEventListener("click", false, func(evt dom.Event) {
+		doc.QuerySelector("#legend").AddEventListener("click", false, func(evt dom.Event) {
 			Session.Router.Navigate(fmt.Sprintf("/site/%d", id))
 		})
 
@@ -440,4 +442,8 @@ func siteMachineList(context *router.Context) {
 		})
 
 	}()
+}
+
+func siteReports(context *router.Context) {
+	print("TODO - siteReports")
 }

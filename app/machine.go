@@ -97,3 +97,11 @@ func machineEdit(context *router.Context) {
 	}()
 
 }
+
+func machineReports(context *router.Context) {
+	print("TODO - machineReports")
+}
+
+func machineStoppageList(context *router.Context) {
+	print("TODO - machineStoppageList")
+}

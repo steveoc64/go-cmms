@@ -5,5 +5,5 @@ import (
 )
 
 func vendorList(context *router.Context) {
-	print("in the vendorList function")
+	print("TODO - vendorList")
 }

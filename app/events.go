@@ -5,7 +5,7 @@ import (
 )
 
 func eventList(context *router.Context) {
-	print("in the eventList function")
+	print("TODO - eventList")
 }
 
 func workOrderList(context *router.Context) {

@@ -1,0 +1,38 @@
+<div class="data-container">
+  <div class="row data-table-header">
+    <h3 class="column column-90">
+      <i class="fa fa-puzzle-piece fa-lg" style="font-size: 3rem"></i>
+       Parts List - All Parts
+    </h3>
+    <div class="column col-center">
+      <i class="data-add-btn fa fa-plus-circle fa-lg"></i>    
+    </div>
+  </div>
+
+  <table class="data-table" id="part-list">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Stock Code</th>
+        <th>Reorder Lvl/Qty</th>
+        <th>Qty</th>
+        <th>Latest Price</th>
+      </tr>
+    </thead>
+    <tbody>
+  {{range .}}  
+      <tr class="data-row" 
+          key="{{.ID}}">
+        <td>{{.Name}}</td>
+        <td>{{.Descr}}</td>
+        <td>{{.StockCode}}</td>
+        <td>{{.ReorderStocklevel}} / {{.ReorderQty}}</td>
+        <td>{{.QtyType}}</td>
+        <td class="money">{{printf "$%12.2f" .LatestPrice}}</td>
+      </tr>
+  {{end}}  
+    </tbody>
+  </table>
+
+</div>

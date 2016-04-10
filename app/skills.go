@@ -5,5 +5,5 @@ import (
 )
 
 func skillsList(context *router.Context) {
-	print("in the skillsList function")
+	print("TODO - skillsList")
 }

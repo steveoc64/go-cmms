@@ -1,0 +1,88 @@
+<div class="data-container">
+  <div class="row data-table-header">
+    <h3 class="column column-90" id="legend">
+      <i class="fa fa-server fa-lg" style="font-size: 3rem"></i>
+       SchedMaint - {{.Machine.Name}} - {{.Machine.SiteName}}
+    </h3>
+    <div class="column col-center">
+      <i class="data-add-btn fa fa-plus-circle fa-lg"></i>    
+    </div>
+  </div>
+  <table class="data-table" id="machine-sched-list">
+    <thead>
+      <tr>
+        <th>Tool / Component</th>
+        <th>Descr</th>
+        <th>Frequency</th>
+        <th>Week</th>
+        <th>$ Labour</th>
+        <th>$ Materials</th>
+      </tr>
+    </thead>
+    <tbody>
+  {{range .Tasks}}  
+      <tr class="data-row" 
+          key="{{.ID}}">
+        <td>{{.ToolID}} {{.Component}}</td>
+        <td>{{.Descr}}</td>
+        <td>{{.Freq}}</td>
+        <td>{{.Week}}</td>
+        <td>{{.LabourCost}}</td>
+        <td>{{.MaterialCost}}</td>
+      </tr>
+  {{end}}  
+    </tbody>
+  </table>
+
+  <!-- Entry form -->
+
+<div id="popup-form" class="md-modal md-effect-1">
+  <form class="grid-form md-content">
+    <h5>Add Schedule</h3>
+    <fieldset>
+      <div data-row-span="2">
+        <div data-field-span="1">
+          <label>Frequency</label>
+          <input type="text" name="freq" value="{{.EditTask.Freq}}">
+        </div>
+        <div data-field-span="1">
+          <label>Week</label>
+          <input type="text" name="week" value="{{.EditTask.Week}}">
+        </div>
+      </div>
+      <div data-row-span="1">
+        <div data-field-span="1">
+          <label>Tool / Component</label>
+          <input type="text" name="name" value="{{.EditTask.Component}}">
+        </div>
+      </div>
+      <div data-row-span="1">
+        <div data-field-span="1">
+          <label>Description</label>
+          <textarea id="descr" name="descr">{{.EditTask.Descr}}</textarea>
+        </div>
+      </div>
+      <div data-row-span="2">
+        <div data-field-span="1">
+          <label>Labour Cost</label>
+          <input type="text" name="labourcost" value="{{.EditTask.LabourCost}}">
+        </div>
+        <div data-field-span="1">
+          <label>Material Cost</label>
+          <input type="text" name="materialcost" value="{{.EditTask.MaterialCost}}">
+        </div>
+      </div>
+    </fieldset>
+    <div class="row">
+      <div class="column">
+        <div class="button-bar">
+          <input type="button" class="button-outline md-close" value="Cancel">
+          <button class="button-primary md-save">Add New</button>
+        </div>
+      </div>
+    </div>
+  </form>    
+</div>
+<div class="md-overlay"></div>
+
+</div>
