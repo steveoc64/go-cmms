@@ -86,6 +86,7 @@ func enableRoutes(Role string) {
 }
 
 func initRouter() {
+	print("initRouter")
 	Session.Router = router.New()
 	Session.Router.ShouldInterceptLinks = true
 	Session.Router.HandleFunc("/", defaultRoute)
@@ -93,18 +94,18 @@ func initRouter() {
 }
 
 func defaultRoute(context *router.Context) {
-	// print("default route")
+	print("default route")
 }
 
 func loadRoutes(Role string, Routes []shared.UserRoute) {
 
 	// print("Loading new routing table")
-	enableRoutes(Role)
 	if Session.Router != nil {
 		Session.Router.Stop()
 	}
 	Session.Router = router.New()
 	Session.Router.ShouldInterceptLinks = true
+	enableRoutes(Role)
 
 	for _, v := range Routes {
 		if f, ok := Session.AppFn[v.Func]; ok {

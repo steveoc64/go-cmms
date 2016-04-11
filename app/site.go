@@ -35,6 +35,8 @@ type RaiseIssueData struct {
 // jump to specific sites
 func siteMap(context *router.Context) {
 
+	print("in siteMap", Session)
+
 	// Get a list of sites
 	go func() {
 		data := SiteMapData{}

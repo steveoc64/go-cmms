@@ -17,5 +17,6 @@ func main() {
 
 	initRouter()
 	websocketInit()
+	initLoginForm()
 	showLoginForm()
 }
