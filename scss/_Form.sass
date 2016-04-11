@@ -33,12 +33,18 @@ textarea
 	padding-top: .6rem
 	min-height: 12rem
 
-	@media (max-height: 800px)
+	// if they insist on using an iphone
+	@media (max-height: 740px)
+		min-height: 2rem
+		max-height: 8rem
+		height: 2rem
+
+	@media (min-height: 741px) and (max-height: 800px)
 		min-height: 4rem
 		&:active,&:focus,&:hover
 			min-height: 12rem
 
-	@media (max-height: 1024px)
+	@media (min-height: 801px) 
 		min-height: 14rem
 
 label,

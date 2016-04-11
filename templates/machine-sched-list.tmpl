@@ -14,7 +14,6 @@
         <th>Tool / Component</th>
         <th>Descr</th>
         <th>Frequency</th>
-        <th>Week</th>
         <th>$ Labour</th>
         <th>$ Materials</th>
       </tr>
@@ -25,8 +24,7 @@
           key="{{.ID}}">
         <td>{{.ToolID}} {{.Component}}</td>
         <td>{{.Descr}}</td>
-        <td>{{.Freq}}</td>
-        <td>{{.Week}}</td>
+        <td>{{.ShowFrequency}}</td>
         <td>{{.LabourCost}}</td>
         <td>{{.MaterialCost}}</td>
       </tr>
@@ -38,28 +36,73 @@
 
 <div id="popup-form" class="md-modal md-effect-1">
   <form class="grid-form md-content">
-    <h5>Add Schedule</h3>
+    <h5>Add Scheduled Maintenance for {{.Machine.Name}} - {{.Machine.SiteName}}</h3>
     <fieldset>
       <div data-row-span="2">
         <div data-field-span="1">
-          <label>Frequency</label>
-          <input type="text" name="freq" value="{{.EditTask.Freq}}">
+          <!-- <label>Frequency</label> -->
+          <select name="freq" id="freq">
+            <option value="M" title="Monthly" selected>Monthly</option>
+            <option value="Y" title="Yearly">Yearly</option>
+            <option value="D" title="Every N Days">Every N Days</option>
+            <option value="1" title="One Off">One Off</option>
+            <option value="C" title="Job Count">Job Count</option>
+          </select>
         </div>
         <div data-field-span="1">
-          <label>Week</label>
-          <input type="text" name="week" value="{{.EditTask.Week}}">
+          <div class="task-option task-show" id="freq-0">
+            <label>Week of the Month</label>
+            <label><input type="radio" name="week" value="1" checked="checked"> 1st Week</label>
+            <label><input type="radio" name="week" value="2"> 2nd Week</label>
+            <label><input type="radio" name="week" value="3"> 3rd Week</label>
+            <label><input type="radio" name="week" value="4"> 4th Week</label>
+          </div>
+          <div class="task-option" id="freq-1">
+            <label>Day of the Year</label>
+            <input type="date" name="startdate">
+          </div>
+          <div class="task-option" id="freq-2">
+            <label>Number of Days</label>
+            <input type="number" name="days">
+          </div>
+          <div class="task-option" id="freq-3">
+            <label>One Off Date</label>
+            <input type="date" name="oneoffdate">
+          </div>
+          <div class="task-option" id="freq-4">
+            <label>Job Count</label>
+            <input type="number" name="count">
+          </div>
         </div>
       </div>
       <div data-row-span="1">
         <div data-field-span="1">
           <label>Tool / Component</label>
-          <input type="text" name="name" value="{{.EditTask.Component}}">
+          <select name="component">
+            <optgroup>
+              <option tt="A" value="All">General Machine Maintenance</option>
+            </optgroup>
+            <optgroup label="Specific Tool">
+            {{range .Machine.Components}}
+              <option tt="T" value="{{.ID}}">{{.Name}}</option>
+            {{end}}
+            </optgroup>
+            <optgroup label="Other Components">
+              <option tt="C" value="RollBed">Roll Bed</option>
+              <option tt="C" value="Uncoiler">Uncoiler</option>
+              <option tt="C" value="Electrical">Electrical</option>
+              <option tt="C" value="Hydraulic">Hydraulic</option>
+              <option tt="C" value="Lube">Lube</option>
+              <option tt="C" value="Printer">Printer</option>
+              <option tt="C" value="Console">Console</option>
+            </optgroup>
+          </select>
         </div>
       </div>
       <div data-row-span="1">
         <div data-field-span="1">
-          <label>Description</label>
-          <textarea id="descr" name="descr">{{.EditTask.Descr}}</textarea>
+          <label>Task Description</label>
+          <textarea class="task-notes" id="descr" name="descr">{{.EditTask.Descr}}</textarea>
         </div>
       </div>
       <div data-row-span="2">
@@ -74,12 +117,8 @@
       </div>
     </fieldset>
     <div class="row">
-      <div class="column">
-        <div class="button-bar">
-          <input type="button" class="button-outline md-close" value="Cancel">
-          <button class="button-primary md-save">Add New</button>
-        </div>
-      </div>
+      <input type="button" class="button-outline md-close column" value="Cancel">
+      <button class="button-primary md-save column">Add New</button>
     </div>
   </form>    
 </div>

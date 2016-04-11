@@ -28,6 +28,13 @@ func (m *MachineRPC) Get(machineID int, machine *shared.Machine) error {
 		log.Println(err.Error())
 	}
 
+	// fetch all components
+	err = DB.Select("*").
+		From("component").
+		Where("machine_id = $1", machineID).
+		OrderBy("position,zindex,lower(name)").
+		QueryStructs(&machine.Components)
+
 	logger(start, "Machine.Get",
 		fmt.Sprintf("Machine %d", machineID),
 		machine.Name)
