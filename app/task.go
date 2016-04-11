@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/go-humble/form"
 	"github.com/go-humble/router"
@@ -41,7 +42,7 @@ func machineSchedList(context *router.Context) {
 
 		data := MachineSchedListData{}
 		rpcClient.Call("MachineRPC.Get", id, &data.Machine)
-		rpcClient.Call("TaskRPC.MachineList", id, &data.Tasks)
+		rpcClient.Call("TaskRPC.ListMachineSched", id, &data.Tasks)
 		loadTemplate("machine-sched-list", "main", data)
 
 		// Add a handler for clicking on a row
@@ -116,6 +117,14 @@ func machineSchedList(context *router.Context) {
 			doc.QuerySelector(".data-add-btn").(*dom.BasicHTMLElement).Style().Set("display", "inline")
 			print("add the new item")
 
+			// fill in the ID fields and init prior to binding
+			data.EditTask.Task.MachineID = id
+			data.EditTask.Task.ToolID = 0
+			data.EditTask.Task.Component = ""
+			data.EditTask.Task.Week = 0
+			data.EditTask.Task.Count = 0
+			data.EditTask.Task.Days = 0
+
 			// Parse the form element and get a form.Form object in return.
 			f, err := form.Parse(doc.QuerySelector(".grid-form"))
 			if err != nil {
@@ -127,11 +136,6 @@ func machineSchedList(context *router.Context) {
 				// return
 			}
 
-			// fill in the ID fields
-			data.EditTask.Task.MachineID = id
-			data.EditTask.Task.ToolID = 0
-			data.EditTask.Task.Component = ""
-
 			// manually get the textarea
 			data.EditTask.Task.Descr = doc.GetElementByID("descr").(*dom.HTMLTextAreaElement).Value
 
@@ -139,7 +143,10 @@ func machineSchedList(context *router.Context) {
 			freq := doc.GetElementByID("freq").(*dom.HTMLSelectElement)
 			switch freq.SelectedIndex {
 			case 0:
-				data.EditTask.Task.Freq = "Weekly"
+				data.EditTask.Task.Freq = "Monthly"
+				data.EditTask.Task.StartDate = time.Unix(0, 0)
+				data.EditTask.Task.OneOffDate = time.Unix(0, 0)
+
 				for i, v := range doc.QuerySelectorAll("[name=week]") {
 					week := v.(*dom.HTMLInputElement)
 					if week.Checked {
@@ -150,27 +157,63 @@ func machineSchedList(context *router.Context) {
 				}
 			case 1:
 				data.EditTask.Task.Freq = "Yearly"
+				data.EditTask.Task.OneOffDate = time.Unix(0, 0)
 				// print("yearly and startdate =", data.EditTask.StartDate)
 			case 2:
 				data.EditTask.Task.Freq = "Every N Days"
+				data.EditTask.Task.StartDate = time.Unix(0, 0)
+				data.EditTask.Task.OneOffDate = time.Unix(0, 0)
 				// print("every N days =", data.EditTask.Days)
 			case 3:
 				data.EditTask.Task.Freq = "One Off"
+				data.EditTask.Task.StartDate = time.Unix(0, 0)
 				// print("once off at =", data.EditTask.OneOffDate)
 			case 4:
 				data.EditTask.Task.Freq = "Job Count"
+				data.EditTask.Task.StartDate = time.Unix(0, 0)
+				data.EditTask.Task.OneOffDate = time.Unix(0, 0)
 				// print("every N jobs =", data.EditTask.Count)
 			}
 
 			// manually get the selected component
-			comp := doc.GetElementByID("component").(*dom.HTMLSelectElement)
-			print("comp = ", comp)
+			comp := doc.GetElementByID("component").(*dom.HTMLSelectElement).SelectedIndex
+			if comp == 0 {
+				data.EditTask.Task.CompType = "A"
+			} else {
+				// If the selected item # is <= number of tools, then its a tool
+				if comp <= len(data.Machine.Components) {
+					data.EditTask.Task.CompType = "T"
+					data.EditTask.Task.ToolID = data.Machine.Components[comp-1].ID
+				} else {
+					// else it is one of the standard items
+					data.EditTask.Task.CompType = "C"
+					switch comp - len(data.Machine.Components) {
+					case 1:
+						data.EditTask.Task.Component = "RollBed"
+					case 2:
+						data.EditTask.Task.Component = "Uncoiler"
+					case 3:
+						data.EditTask.Task.Component = "Electrical"
+					case 4:
+						data.EditTask.Task.Component = "Hydraulic"
+					case 5:
+						data.EditTask.Task.Component = "Lube"
+					case 6:
+						data.EditTask.Task.Component = "Printer"
+					case 7:
+						data.EditTask.Task.Component = "Console"
+					}
+				}
+
+			}
 
 			go func() {
 				data.EditTask.Channel = Session.Channel
 				print("edit task =", data.EditTask)
-				// retval := 0
-				// rpcClient.Call("TaskRPC.Save", &data.EditTask, &retval)
+				retval := 0
+				rpcClient.Call("TaskRPC.Save", &data.EditTask, &retval)
+				// refresh and redraw the whole page
+				machineSchedList(context)
 			}()
 
 		})
