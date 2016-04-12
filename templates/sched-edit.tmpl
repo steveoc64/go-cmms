@@ -1,0 +1,138 @@
+<div class="data-container">
+  <form class="grid-form md-content">
+    <h5 id="legend">Scheduled Task for {{.Machine.Name}} - {{.Machine.SiteName}}</h3>
+    <fieldset>
+      <div data-row-span="2">
+        <div data-field-span="1">
+          <!-- <label>Frequency</label> -->
+          <select name="freq" id="freq">
+            <option value="M" title="Monthly"
+              {{if eq .Task.Freq "Monthly"}}selected{{end}}>Monthly
+            </option>
+            <option value="Y" title="Yearly" 
+              {{if eq .Task.Freq "Yearly"}}selected{{end}}>Yearly
+            </option>
+            <option value="D" title="Every N Days"
+              {{if eq .Task.Freq "Every N Days"}}selected{{end}}>Every N Days
+            </option>
+            <option value="1" title="One Off" 
+              {{if eq .Task.Freq "One Off"}}selected{{end}}>One Off
+            </option>
+            <option value="C" title="Job Count" 
+              {{if eq .Task.Freq "Job Count"}}selected{{end}}>Job Count
+            </option>
+          </select>
+        </div>
+        <div data-field-span="1">
+          <div class="task-option" id="freq-0">
+            <label>Week of the Month</label>
+            <label><input type="radio" name="week" value="1" 
+              {{if eq .Task.Week 1}}checked="checked"{{end}}>
+              1st Week
+            </label>
+            <label><input type="radio" name="week" value="2" 
+              {{if eq .Task.Week 2}}checked="checked"{{end}}>
+              2nd Week
+            </label>
+            <label><input type="radio" name="week" value="3" 
+              {{if eq .Task.Week 3}}checked="checked"{{end}}>
+              3rd Week
+            </label>
+            <label><input type="radio" name="week" value="4" 
+              {{if eq .Task.Week 4}}checked="checked"{{end}}>
+              4th Week
+            </label>
+          </div>
+          <div class="task-option" id="freq-1">
+            <label>Day of the Year</label>
+            <input type="date" name="startdate" value="{{.Task.StartDate}}">
+          </div>
+          <div class="task-option" id="freq-2">
+            <label>Number of Days</label>
+            <input type="number" name="days" value="{{.Task.Days}}">
+          </div>
+          <div class="task-option" id="freq-3">
+            <label>One Off Date</label>
+            <input type="date" name="oneoffdate" value="{{.Task.StartDate}}">
+          </div>
+          <div class="task-option" id="freq-4">
+            <label>Job Count</label>
+            <input type="number" name="count" value="{{.Task.Days}}">
+          </div>
+        </div>
+      </div>
+      <div data-row-span="1">
+        <div data-field-span="1">
+          <label>Tool / Component</label>
+          <select name="component" id="component">
+            <optgroup>
+              <option tt="A" value="All"
+                {{if eq .Task.CompType "A"}}selected{{end}}>
+                General Machine Maintenance                
+              </option>
+            </optgroup>
+            <optgroup label="Specific Tool">
+            {{$toolID := .Task.ToolID}}
+            {{range .Machine.Components}}
+              <option tt="T" value="{{.ID}}"
+                {{if eq $toolID .ID}}selected{{end}}>
+                {{.Name}}
+              </option>
+            {{end}}
+            </optgroup>
+            <optgroup label="Other Components">
+              <option tt="C" value="RollBed"
+                {{if eq .Task.Component "RollBed"}}selected{{end}}>
+                Roll Bed
+              </option>
+              <option tt="C" value="Uncoiler"
+                {{if eq .Task.Component "Uncoiler"}}selected{{end}}>
+                Uncoiler
+              </option>
+              <option tt="C" value="Electrical"
+                {{if eq .Task.Component "Electrical"}}selected{{end}}>
+                Electrical
+              </option>
+              <option tt="C" value="Hydraulic"
+                {{if eq .Task.Component "Hydraulic"}}selected{{end}}>
+                Hydraulic
+              </option>
+              <option tt="C" value="Lube"
+                {{if eq .Task.Component "Lube"}}selected{{end}}>
+                Lube
+              </option>
+              <option tt="C" value="Printer"
+                {{if eq .Task.Component "Printer"}}selected{{end}}>
+                Printer
+              </option>
+              <option tt="C" value="Console"
+                {{if eq .Task.Component "Console"}}selected{{end}}>
+                Console
+              </option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+      <div data-row-span="1">
+        <div data-field-span="1">
+          <label>Task Description</label>
+          <textarea class="task-notes" id="descr" name="descr">{{.Task.Descr}}</textarea>
+        </div>
+      </div>
+      <div data-row-span="2">
+        <div data-field-span="1">
+          <label>Labour Cost</label>
+          <input type="text" name="labourcost" value="{{.Task.LabourCost}}">
+        </div>
+        <div data-field-span="1">
+          <label>Material Cost</label>
+          <input type="text" name="materialcost" value="{{.Task.MaterialCost}}">
+        </div>
+      </div>
+    </fieldset>
+    <div class="row">
+      <input type="button" class="button-outline md-close column" value="Cancel">
+      <button class="button-primary md-save column">Add New</button>
+    </div>
+  </form>    
+</div>

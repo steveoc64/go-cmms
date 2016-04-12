@@ -50,7 +50,8 @@ func machineSchedList(context *router.Context) {
 			td := evt.Target()
 			tr := td.ParentElement()
 			key := tr.GetAttribute("key")
-			print("TODO - copy selected element into data.EditTask, then display the modal", key)
+			// print("TODO - copy selected element into data.EditTask, then display the modal", key)
+			Session.Router.Navigate("/sched/" + key)
 		})
 
 		// Add a handler for clicking on the add button
@@ -222,6 +223,82 @@ func machineSchedList(context *router.Context) {
 			Session.Router.Navigate(siteMachineEdit)
 		})
 	}()
+}
+
+type SchedEditData struct {
+	Channel int
+	Machine shared.Machine
+	Task    shared.SchedTask
+}
+
+func schedEdit(context *router.Context) {
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		data := SchedEditData{}
+		data.Channel = Session.Channel
+		print("getting sched task", id)
+		rpcClient.Call("TaskRPC.GetSched", id, &data.Task)
+		rpcClient.Call("MachineRPC.Get", data.Task.MachineID, &data.Machine)
+		loadTemplate("sched-edit", "main", data)
+		// doc.QuerySelector("#focusme").(*dom.HTMLInputElement).Focus()
+		print("passed through data", data.Task.Freq, data.Task.StartDate)
+
+		machineSched := fmt.Sprintf("/machine/schedules/%d", data.Machine.ID)
+
+		// Back to the list
+		doc.QuerySelector("#legend").AddEventListener("click", false, func(evt dom.Event) {
+			Session.Router.Navigate(machineSched)
+		})
+
+		// now setup which parts of the form are visible
+		switch data.Task.Freq {
+		case "Monthly":
+			doc.GetElementByID("freq-0").Class().Add("task-show")
+		case "Yearly":
+			doc.GetElementByID("freq-1").Class().Add("task-show")
+		case "Every N Days":
+			doc.GetElementByID("freq-2").Class().Add("task-show")
+		case "One Off":
+			doc.GetElementByID("freq-3").Class().Add("task-show")
+		case "Job Count":
+			doc.GetElementByID("freq-4").Class().Add("task-show")
+		}
+
+		// On a change of Frequency, change which sub-edit is visible
+		doc.QuerySelector("#freq").AddEventListener("change", false, func(evt dom.Event) {
+			f := doc.QuerySelector("#freq").(*dom.HTMLSelectElement).SelectedIndex
+
+			// Hide all
+			doc.QuerySelector("#freq-0").Class().Remove("task-show")
+			doc.QuerySelector("#freq-1").Class().Remove("task-show")
+			doc.QuerySelector("#freq-2").Class().Remove("task-show")
+			doc.QuerySelector("#freq-3").Class().Remove("task-show")
+			doc.QuerySelector("#freq-4").Class().Remove("task-show")
+
+			switch f {
+			case 0:
+				doc.QuerySelector("#freq-0").Class().Add("task-show")
+			case 1:
+				doc.QuerySelector("#freq-1").Class().Add("task-show")
+			case 2:
+				doc.QuerySelector("#freq-2").Class().Add("task-show")
+			case 3:
+				doc.QuerySelector("#freq-3").Class().Add("task-show")
+			case 4:
+				doc.QuerySelector("#freq-4").Class().Add("task-show")
+			}
+		})
+
+	}()
+
 }
 
 ///

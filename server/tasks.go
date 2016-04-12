@@ -28,6 +28,22 @@ func (t *TaskRPC) ListMachineSched(machineID int, tasks *[]shared.SchedTask) err
 	return nil
 }
 
+func (t *TaskRPC) GetSched(id int, task *shared.SchedTask) error {
+	start := time.Now()
+
+	err := DB.SQL(`select * from sched_task where id=$1`, id).QueryStruct(task)
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	logger(start, "Task.GetSched",
+		fmt.Sprintf("id %d", id),
+		fmt.Sprintf("%s %s", task.Freq, task.Descr))
+
+	return nil
+}
+
 func (t *TaskRPC) Save(req *shared.SchedTaskEditData, id *int) error {
 	start := time.Now()
 
