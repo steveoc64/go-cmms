@@ -81,7 +81,7 @@ func (m *MachineRPC) Insert(data shared.MachineUpdateData, id *int) error {
 
 	logger(start, "Machine.Insert",
 		fmt.Sprintf("Channel %d, Machine %d, User %d %s %s",
-			data.Channel, id, conn.UserID, conn.Username, conn.UserRole),
+			data.Channel, *id, conn.UserID, conn.Username, conn.UserRole),
 		data.Machine.Name)
 
 	return nil

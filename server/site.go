@@ -148,6 +148,51 @@ func (s *SiteRPC) Update(data shared.SiteUpdateData, retval *bool) error {
 	return nil
 }
 
+// Add a site
+func (s *SiteRPC) Insert(data shared.SiteUpdateData, id *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	*id = 0
+	DB.InsertInto("site").
+		Columns("name", "address", "phone", "fax",
+			"parent_site", "stock_site", "notes", "alerts_to", "tasks_to").
+		Record(data.Site).
+		Returning("id").
+		QueryScalar(id)
+
+	logger(start, "Site.Insert",
+		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
+			data.Channel, *id, conn.UserID, conn.Username, conn.UserRole),
+		data.Site.Name)
+
+	return nil
+}
+
+// Delete a site
+func (s *SiteRPC) Delete(data shared.SiteUpdateData, ok *bool) error {
+	start := time.Now()
+
+	// log.Println("here", data)
+	conn := Connections.Get(data.Channel)
+	// log.Println("conn", conn)
+
+	*ok = false
+	id := data.Site.ID
+	DB.DeleteFrom("site").
+		Where("id=$1", id).
+		Exec()
+
+	logger(start, "Site.Delete",
+		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
+			data.Channel, id, conn.UserID, conn.Username, conn.UserRole),
+		data.Site.Name)
+
+	*ok = true
+	return nil
+}
+
 // Get the details for my home site
 func (s *SiteRPC) GetHome(channel int, site *shared.Site) error {
 	start := time.Now()

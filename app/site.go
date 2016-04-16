@@ -149,6 +149,79 @@ type SiteEditData struct {
 	Sites []shared.Site
 }
 
+// Show an add form for the given site
+func siteAdd(context *router.Context) {
+
+	go func() {
+		site := shared.Site{}
+		sites := []shared.Site{}
+		users := []shared.User{}
+
+		rpcClient.Call("SiteRPC.List", Session.Channel, &sites)
+		rpcClient.Call("UserRPC.List", Session.Channel, &users)
+
+		BackURL := "/sites"
+		title := "Add New Site"
+		form := ff.EditForm{}
+		form.New("fa-industry", title)
+
+		// Layout the fields
+
+		form.Row(1).
+			Add(1, "Name", "text", "Name", `id="focusme"`)
+
+		form.Row(2).
+			Add(1, "Parent Site", "select", "ParentSite", "").
+			Add(1, "Stock Site", "select", "StockSite", "")
+
+		form.SetSelectOptions("ParentSite", sites, "ID", "Name", 0, site.ParentSite)
+		form.SetSelectOptions("StockSite", sites, "ID", "Name", 0, site.StockSite)
+
+		form.Row(1).
+			Add(1, "Address", "text", "Address", "")
+
+		form.Row(2).
+			Add(1, "Phone", "text", "Phone", "").
+			Add(1, "Fax", "text", "Fax", "")
+
+		form.Row(2).
+			Add(1, "Stoppage Alerts To", "select", "AlertsTo", "").
+			Add(1, "Scheduled Tasks To", "select", "TasksTo", "")
+
+		form.SetSelectOptions("AlertsTo", users, "ID", "Name", 0, site.AlertsTo)
+		form.SetSelectOptions("TasksTo", users, "ID", "Name", 0, site.TasksTo)
+
+		form.Row(1).
+			Add(1, "Notes", "textarea", "Notes", "")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(BackURL)
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&site)
+			data := shared.SiteUpdateData{
+				Channel: Session.Channel,
+				Site:    &site,
+			}
+			go func() {
+				newID := 0
+				rpcClient.Call("SiteRPC.Insert", data, &newID)
+				print("added site", newID)
+				Session.Router.Navigate(BackURL)
+			}()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &site)
+
+	}()
+
+}
+
 // Show an edit form for the given site
 func siteEdit(context *router.Context) {
 	id, err := strconv.Atoi(context.Params["id"])
