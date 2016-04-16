@@ -1,0 +1,35 @@
+<div class="data-container">
+  <div class="row data-table-header">
+    <h3 class="column column-90" id="legend">
+      <i class="fa {{.Icon}} fa-lg" style="font-size: 3rem"></i> 
+      {{.Title}}
+    </h3>
+    <div class="column col-center">
+      <i class="data-add-btn fa fa-plus-circle fa-lg"></i>    
+    </div>    
+  </div>
+
+<table class="data-table" id="list-form">
+  <thead>
+    <tr>
+      {{range .Cols}}
+      <th>{{.Heading}}</th>
+      {{end}}
+    </tr>
+  </thead>
+  <tbody>
+{{$cols := .Cols}}
+{{range .Data}}  
+    <tr class="data-row" 
+        key="{{.ID}}">
+      {{$row := .}}
+      {{range $cols}}
+      <td>column data {{.Model}}</td>
+      {{end}}
+    </tr>
+{{end}}  
+  <tbody>
+  </tbody>
+</table>
+
+</div>
