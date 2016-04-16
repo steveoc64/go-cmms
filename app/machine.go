@@ -73,7 +73,9 @@ func machineEdit(context *router.Context) {
 
 	go func() {
 		machine := shared.Machine{}
+		users := shared.User{}
 		rpcClient.Call("MachineRPC.Get", id, &machine)
+		rpcClient.Call("UserRPC.List", Session.Channel, &users)
 
 		BackURL := fmt.Sprintf("/site/machine/%d", machine.SiteId)
 		title := fmt.Sprintf("Machine Details - %s - %s", machine.Name, *machine.SiteName)
@@ -89,6 +91,13 @@ func machineEdit(context *router.Context) {
 
 		form.Row(1).
 			Add(1, "Descrpition", "text", "Descr", "")
+
+		form.Row(2).
+			Add(1, "Stoppage Alerts To", "select", "AlertsTo", "").
+			Add(1, "Scheduled Tasks To", "select", "TasksTo", "")
+
+		form.SetSelectOptions("AlertsTo", users, "ID", "Name", 0, machine.AlertsTo)
+		form.SetSelectOptions("TasksTo", users, "ID", "Name", 0, machine.TasksTo)
 
 		form.Row(1).
 			Add(1, "Notes", "textarea", "Notes", "")

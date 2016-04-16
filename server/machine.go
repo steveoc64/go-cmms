@@ -51,7 +51,7 @@ func (m *MachineRPC) Update(data shared.MachineUpdateData, ok *bool) error {
 	// log.Println("conn", conn)
 
 	DB.Update("machine").
-		SetWhitelist(data.Machine, "name", "serialnum", "descr", "notes").
+		SetWhitelist(data.Machine, "name", "serialnum", "descr", "notes", "alerts_to", "tasks_to").
 		Where("id = $1", data.Machine.ID).
 		Exec()
 
@@ -74,7 +74,7 @@ func (m *MachineRPC) Insert(data shared.MachineUpdateData, id *int) error {
 
 	*id = 0
 	DB.InsertInto("machine").
-		Columns("name", "serialnum", "descr", "notes", "site_id").
+		Columns("name", "serialnum", "descr", "notes", "site_id", "alerts_to", "tasks_to").
 		Record(data.Machine).
 		Returning("id").
 		QueryScalar(id)

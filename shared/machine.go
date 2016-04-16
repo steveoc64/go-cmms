@@ -39,6 +39,8 @@ type Machine struct {
 	Rollbed    string      `db:"rollbed"`
 	Uncoiler   string      `db:"uncoiler"`
 	Lube       string      `db:"lube"`
+	AlertsTo   int         `db:"alerts_to"`
+	TasksTo    int         `db:"tasks_to"`
 	Components []Component `db:"components"`
 }
 
