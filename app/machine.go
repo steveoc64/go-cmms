@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/go-humble/form"
 	"github.com/go-humble/router"
+	ff "github.com/steveoc64/formulate"
 	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
 )
@@ -17,11 +17,6 @@ func machineList(context *router.Context) {
 	print("TODO machineList")
 }
 
-type MachineEditData struct {
-	Machine shared.Machine
-	Title   string
-}
-
 func machineEdit(context *router.Context) {
 	id, err := strconv.Atoi(context.Params["id"])
 	if err != nil {
@@ -30,69 +25,133 @@ func machineEdit(context *router.Context) {
 	}
 
 	go func() {
-		w := dom.GetWindow()
-		doc := w.Document()
+		machine := shared.Machine{}
+		rpcClient.Call("MachineRPC.Get", id, &machine)
 
-		data := MachineEditData{}
-		rpcClient.Call("MachineRPC.Get", id, &data.Machine)
-		data.Title = fmt.Sprintf("Machine Details - %s - %s", data.Machine.Name, *data.Machine.SiteName)
-		loadTemplate("machine-edit", "main", data)
-		doc.QuerySelector("#focusme").(*dom.HTMLInputElement).Focus()
+		BackURL := fmt.Sprintf("/site/machine/%d", machine.SiteId)
+		title := fmt.Sprintf("Machine Details - %s - %s", machine.Name, *machine.SiteName)
+		form := ff.EditForm{}
+		form.New("fa-cogs", title)
 
-		siteMachineList := fmt.Sprintf("/site/machine/%d", data.Machine.SiteId)
-		// Add handlers for this form
-		doc.QuerySelector("#legend").AddEventListener("click", false, func(evt dom.Event) {
-			Session.Router.Navigate(siteMachineList)
-		})
-		doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
+		// Layout the fields
+
+		form.Row(3).
+			Add(1, "Name", "text", "Name", `id="focusme"`).
+			Add(1, "Serial #", "text", "Serialnum", "").
+			Add(1, "Status", "text", "Status", "disabled")
+
+		form.Row(1).
+			Add(1, "Descrpition", "text", "Descr", "")
+
+		form.Row(1).
+			Add(1, "Notes", "textarea", "Notes", "")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(siteMachineList)
+			Session.Router.Navigate(BackURL)
 		})
-		// Allow ESC to close dialog
-		doc.QuerySelector(".grid-form").AddEventListener("keyup", false, func(evt dom.Event) {
-			if evt.(*dom.KeyboardEvent).KeyCode == 27 {
-				evt.PreventDefault()
-				Session.Router.Navigate(siteMachineList)
-			}
-		})
-		doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
-			evt.PreventDefault()
-			// Parse the form element and get a form.Form object in return.
-			f, err := form.Parse(doc.QuerySelector(".grid-form"))
-			if err != nil {
-				print("form parse error", err.Error())
-				return
-			}
-			if err := f.Bind(&data.Machine); err != nil {
-				print("form bind error", err.Error())
-				return
-			}
-			// manually get the textarea
-			data.Machine.Notes = doc.GetElementByID("notes").(*dom.HTMLTextAreaElement).Value
 
-			updateData := &shared.MachineUpdateData{
-				Channel: Session.Channel,
-				Machine: &data.Machine,
-			}
+		form.DeleteEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			machine.ID = id
 			go func() {
-				retval := 0
-				print("calling MachineRPC.Save")
-				rpcClient.Call("MachineRPC.Save", updateData, &retval)
+				data := shared.MachineUpdateData{
+					Channel: Session.Channel,
+					Machine: &machine,
+				}
+				done := false
+				rpcClient.Call("MachineRPC.Delete", data, &done)
+				Session.Router.Navigate(BackURL)
 			}()
-			Session.Router.Navigate(siteMachineList)
 		})
 
-		// Add an Action Grid
-		loadTemplate("machine-actions", "#action-grid", id)
-		for _, ai := range doc.QuerySelectorAll(".action__item") {
-			url := ai.(*dom.HTMLDivElement).GetAttribute("url")
-			if url != "" {
-				ai.AddEventListener("click", false, func(evt dom.Event) {
-					url := evt.CurrentTarget().GetAttribute("url")
-					Session.Router.Navigate(url)
-				})
-			}
-		}
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&machine)
+			go func() {
+				data := shared.MachineUpdateData{
+					Channel: Session.Channel,
+					Machine: &machine,
+				}
+				done := false
+				rpcClient.Call("MachineRPC.Update", data, &done)
+				Session.Router.Navigate(BackURL)
+			}()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &machine)
+
+		// And attach actions
+		form.ActionGrid("machine-actions", "#action-grid", machine.ID, func(url string) {
+			print("calling action", url)
+			Session.Router.Navigate(url)
+		})
+
+	}()
+
+}
+
+func siteMachineAdd(context *router.Context) {
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		machine := shared.Machine{}
+		site := shared.Site{}
+		rpcClient.Call("SiteRPC.Get", id, &site)
+		BackURL := fmt.Sprintf("/site/machine/%d", site.ID)
+		title := fmt.Sprintf("Add Machine for Site - %s", site.Name)
+		form := ff.EditForm{}
+		form.New("fa-cogs", title)
+
+		// Layout the fields
+
+		form.Row(3).
+			Add(1, "Name", "text", "Name", `id="focusme"`).
+			Add(1, "Serial #", "text", "Serialnum", "").
+			Add(1, "Status", "text", "Status", "disabled")
+
+		form.Row(1).
+			Add(1, "Descrpition", "text", "Descr", "")
+
+		form.Row(1).
+			Add(1, "Notes", "textarea", "Notes", "")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(BackURL)
+		})
+
+		form.DeleteEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			print("Delete this record")
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&machine)
+			machine.SiteId = site.ID
+			machine.Status = "Running"
+			go func() {
+				data := shared.MachineUpdateData{
+					Channel: Session.Channel,
+					Machine: &machine,
+				}
+				newID := 0
+				rpcClient.Call("MachineRPC.Insert", data, &newID)
+				print("added machine ID", newID)
+				Session.Router.Navigate(BackURL)
+			}()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &machine)
 
 	}()
 
@@ -104,4 +163,56 @@ func machineReports(context *router.Context) {
 
 func machineStoppageList(context *router.Context) {
 	print("TODO - machineStoppageList")
+}
+
+type SiteMachineListData struct {
+	Site     shared.Site
+	Machines []shared.Machine
+}
+
+// Show a list of all machines for the given site
+func siteMachineList(context *router.Context) {
+
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		req := shared.MachineReq{
+			Channel: Session.Channel,
+			SiteID:  id,
+		}
+		data := SiteMachineData{}
+
+		rpcClient.Call("SiteRPC.Get", id, &data.Site)
+		rpcClient.Call("SiteRPC.MachineList", &req, &data.Machines)
+
+		form := ff.ListForm{}
+		form.New("fa-cogs", "Machine List for - "+data.Site.Name, &data.Machines)
+
+		// Define the layout
+		form.Column("Name", "Name")
+		form.Column("Description", "Descr")
+		form.Column("Status", "Status")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(fmt.Sprintf("/site/%d", id))
+		})
+
+		form.NewRowEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(fmt.Sprintf("/site/machine/add/%d", id))
+		})
+
+		form.RowEvent(func(key string) {
+			Session.Router.Navigate("/machine/" + key)
+		})
+
+		form.Render("site-machine-list", "main", data)
+
+	}()
 }

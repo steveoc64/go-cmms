@@ -297,6 +297,13 @@ func schedEdit(context *router.Context) {
 			}
 		})
 
+		// Handler for submitting the edit form
+		doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
+			evt.PreventDefault()
+			print("update the scheduled task")
+			Session.Router.Navigate(machineSched)
+		})
+
 	}()
 
 }

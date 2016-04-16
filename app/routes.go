@@ -52,6 +52,7 @@ func enableRoutes(Role string) {
 			"sites":                 siteList,
 			"site-edit":             siteEdit,
 			"site-machines":         siteMachineList,
+			"site-machine-add":      siteMachineAdd,
 			"site-users":            siteUserList,
 			"site-tasks":            siteTasks,
 			"site-reports":          siteReports,

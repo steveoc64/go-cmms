@@ -84,6 +84,151 @@ func siteMap(context *router.Context) {
 	}()
 }
 
+// Show all the machines at a Site, for the case where we have only 1 site
+func homeSite(context *router.Context) {
+
+	// Get a list of machines at this site
+	data := SiteMachineData{}
+
+	go func() {
+		data.MultiSite = false
+		rpcClient.Call("SiteRPC.GetHome", Session.Channel, &data.Site)
+		// print("Site =", data.Site)
+
+		err := rpcClient.Call("SiteRPC.HomeMachineList", Session.Channel, &data.Machines)
+		if err != nil {
+			print("RPC error", err.Error())
+		} else {
+			loadTemplate("sitemachines", "main", data)
+			dom.GetWindow().ScrollTo(1, 1)
+		}
+	}()
+}
+
+// Show a list of all sites
+func siteList(context *router.Context) {
+
+	go func() {
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		data := []shared.Site{}
+		rpcClient.Call("SiteRPC.List", Session.Channel, &data)
+		loadTemplate("site-list", "main", data)
+
+		// Add a handler for clicking on a row
+		doc.GetElementByID("site-list").AddEventListener("click", false, func(evt dom.Event) {
+			td := evt.Target()
+			tr := td.ParentElement()
+			key := tr.GetAttribute("key")
+			Session.Router.Navigate("/site/" + key)
+		})
+
+		// Add a handler for clicking on the add butto
+		doc.QuerySelector(".data-add-btn").AddEventListener("click", false, func(evt dom.Event) {
+			print("add new site")
+		})
+	}()
+}
+
+type SiteEditData struct {
+	Site  shared.Site
+	Title string
+	Sites []shared.Site
+}
+
+// Show an edit form for the given site
+func siteEdit(context *router.Context) {
+
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+	go func() {
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		data := SiteEditData{}
+		rpcClient.Call("SiteRPC.Get", id, &data.Site)
+		rpcClient.Call("SiteRPC.List", Session.Channel, &data.Sites)
+		data.Title = "Site Details - " + data.Site.Name
+		loadTemplate("site-edit", "main", data)
+		doc.QuerySelector("#focusme").(*dom.HTMLInputElement).Focus()
+
+		// Add handlers for this form
+		doc.QuerySelector("#legend").AddEventListener("click", false, func(evt dom.Event) {
+			Session.Router.Navigate("/sites")
+		})
+		doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
+			evt.PreventDefault()
+			print("cancel edit site")
+			Session.Router.Navigate("/sites")
+		})
+		// Allow ESC to close dialog
+		doc.QuerySelector(".grid-form").AddEventListener("keyup", false, func(evt dom.Event) {
+			if evt.(*dom.KeyboardEvent).KeyCode == 27 {
+				evt.PreventDefault()
+				Session.Router.Navigate("/sites")
+			}
+		})
+		doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
+			evt.PreventDefault()
+			// Parse the form element and get a form.Form object in return.
+			f, err := form.Parse(doc.QuerySelector(".grid-form"))
+			if err != nil {
+				print("form parse error", err.Error())
+				return
+			}
+			if err := f.Bind(&data.Site); err != nil {
+				print("form bind error", err.Error())
+				return
+			}
+			// manually get the textarea
+			data.Site.Notes = doc.GetElementByID("notes").(*dom.HTMLTextAreaElement).Value
+
+			// manually get the selected options for now
+			parentSite := doc.GetElementByID("parentSite").(*dom.HTMLSelectElement).SelectedIndex
+			data.Site.ParentSite = 0
+			if parentSite > 0 {
+				data.Site.ParentSite = data.Sites[parentSite-1].ID
+			}
+			data.Site.StockSite = 0
+			stockSite := doc.GetElementByID("stockSite").(*dom.HTMLSelectElement).SelectedIndex
+			if stockSite > 0 {
+				data.Site.StockSite = data.Sites[stockSite-1].ID
+			}
+			updateData := &shared.SiteUpdateData{
+				Channel: Session.Channel,
+				Site:    &data.Site,
+			}
+			go func() {
+				retval := 0
+				rpcClient.Call("SiteRPC.Save", updateData, &retval)
+				Session.Router.Navigate("/sites")
+			}()
+		})
+
+		// Add an Action Grid
+		loadTemplate("site-actions", "#action-grid", id)
+		for _, ai := range doc.QuerySelectorAll(".action__item") {
+			url := ai.(*dom.HTMLDivElement).GetAttribute("url")
+			if url != "" {
+				ai.AddEventListener("click", false, func(evt dom.Event) {
+					url := evt.CurrentTarget().GetAttribute("url")
+					Session.Router.Navigate(url)
+				})
+			}
+		}
+
+	}()
+
+}
+
+func siteReports(context *router.Context) {
+	print("TODO - siteReports")
+}
+
 // Show all the machines at a Site, for the case where we have > 1 site
 // Param:  site
 func siteMachines(context *router.Context) {
@@ -256,196 +401,4 @@ func siteMachines(context *router.Context) {
 			} // range
 		} // else
 	}()
-}
-
-// Show all the machines at a Site, for the case where we have only 1 site
-func homeSite(context *router.Context) {
-
-	// Get a list of machines at this site
-	data := SiteMachineData{}
-
-	go func() {
-		data.MultiSite = false
-		rpcClient.Call("SiteRPC.GetHome", Session.Channel, &data.Site)
-		// print("Site =", data.Site)
-
-		err := rpcClient.Call("SiteRPC.HomeMachineList", Session.Channel, &data.Machines)
-		if err != nil {
-			print("RPC error", err.Error())
-		} else {
-			loadTemplate("sitemachines", "main", data)
-			dom.GetWindow().ScrollTo(1, 1)
-		}
-	}()
-}
-
-// Show a list of all sites
-func siteList(context *router.Context) {
-
-	go func() {
-		w := dom.GetWindow()
-		doc := w.Document()
-
-		data := []shared.Site{}
-		rpcClient.Call("SiteRPC.List", Session.Channel, &data)
-		loadTemplate("site-list", "main", data)
-
-		// Add a handler for clicking on a row
-		doc.GetElementByID("site-list").AddEventListener("click", false, func(evt dom.Event) {
-			td := evt.Target()
-			tr := td.ParentElement()
-			key := tr.GetAttribute("key")
-			Session.Router.Navigate("/site/" + key)
-		})
-
-		// Add a handler for clicking on the add butto
-		doc.QuerySelector(".data-add-btn").AddEventListener("click", false, func(evt dom.Event) {
-			print("add new site")
-		})
-	}()
-}
-
-type SiteEditData struct {
-	Site  shared.Site
-	Title string
-	Sites []shared.Site
-}
-
-// Show an edit form for the given site
-func siteEdit(context *router.Context) {
-
-	id, err := strconv.Atoi(context.Params["id"])
-	if err != nil {
-		print(err.Error())
-		return
-	}
-	go func() {
-		w := dom.GetWindow()
-		doc := w.Document()
-
-		data := SiteEditData{}
-		rpcClient.Call("SiteRPC.Get", id, &data.Site)
-		rpcClient.Call("SiteRPC.List", Session.Channel, &data.Sites)
-		data.Title = "Site Details - " + data.Site.Name
-		loadTemplate("site-edit", "main", data)
-		doc.QuerySelector("#focusme").(*dom.HTMLInputElement).Focus()
-
-		// Add handlers for this form
-		doc.QuerySelector("#legend").AddEventListener("click", false, func(evt dom.Event) {
-			Session.Router.Navigate("/sites")
-		})
-		doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
-			evt.PreventDefault()
-			print("cancel edit site")
-			Session.Router.Navigate("/sites")
-		})
-		// Allow ESC to close dialog
-		doc.QuerySelector(".grid-form").AddEventListener("keyup", false, func(evt dom.Event) {
-			if evt.(*dom.KeyboardEvent).KeyCode == 27 {
-				evt.PreventDefault()
-				Session.Router.Navigate("/sites")
-			}
-		})
-		doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
-			evt.PreventDefault()
-			// Parse the form element and get a form.Form object in return.
-			f, err := form.Parse(doc.QuerySelector(".grid-form"))
-			if err != nil {
-				print("form parse error", err.Error())
-				return
-			}
-			if err := f.Bind(&data.Site); err != nil {
-				print("form bind error", err.Error())
-				return
-			}
-			// manually get the textarea
-			data.Site.Notes = doc.GetElementByID("notes").(*dom.HTMLTextAreaElement).Value
-
-			// manually get the selected options for now
-			parentSite := doc.GetElementByID("parentSite").(*dom.HTMLSelectElement).SelectedIndex
-			data.Site.ParentSite = 0
-			if parentSite > 0 {
-				data.Site.ParentSite = data.Sites[parentSite-1].ID
-			}
-			data.Site.StockSite = 0
-			stockSite := doc.GetElementByID("stockSite").(*dom.HTMLSelectElement).SelectedIndex
-			if stockSite > 0 {
-				data.Site.StockSite = data.Sites[stockSite-1].ID
-			}
-			updateData := &shared.SiteUpdateData{
-				Channel: Session.Channel,
-				Site:    &data.Site,
-			}
-			go func() {
-				retval := 0
-				rpcClient.Call("SiteRPC.Save", updateData, &retval)
-				Session.Router.Navigate("/sites")
-			}()
-		})
-
-		// Add an Action Grid
-		loadTemplate("site-actions", "#action-grid", id)
-		for _, ai := range doc.QuerySelectorAll(".action__item") {
-			url := ai.(*dom.HTMLDivElement).GetAttribute("url")
-			if url != "" {
-				ai.AddEventListener("click", false, func(evt dom.Event) {
-					url := evt.CurrentTarget().GetAttribute("url")
-					Session.Router.Navigate(url)
-				})
-			}
-		}
-
-	}()
-
-}
-
-type SiteMachineListData struct {
-	Site     shared.Site
-	Machines []shared.Machine
-}
-
-// Show a list of all machines for the given site
-func siteMachineList(context *router.Context) {
-
-	id, err := strconv.Atoi(context.Params["id"])
-	if err != nil {
-		print(err.Error())
-		return
-	}
-
-	print("show machine list for site", id)
-
-	go func() {
-		w := dom.GetWindow()
-		doc := w.Document()
-
-		req := shared.MachineReq{
-			Channel: Session.Channel,
-			SiteID:  id,
-		}
-		data := SiteMachineData{}
-
-		rpcClient.Call("SiteRPC.Get", id, &data.Site)
-		rpcClient.Call("SiteRPC.MachineList", &req, &data.Machines)
-		loadTemplate("site-machine-list", "main", data)
-
-		// Add a back handler on the header
-		doc.QuerySelector("#legend").AddEventListener("click", false, func(evt dom.Event) {
-			Session.Router.Navigate(fmt.Sprintf("/site/%d", id))
-		})
-
-		// Add a handler for clicking on a row
-		t := doc.GetElementByID("machine-list")
-		t.AddEventListener("click", false, func(evt dom.Event) {
-			td := evt.Target()
-			tr := td.ParentElement()
-			key := tr.GetAttribute("key")
-			Session.Router.Navigate("/machine/" + key)
-		})
-
-	}()
-}
-
-func siteReports(context *router.Context) {
-	print("TODO - siteReports")
 }
