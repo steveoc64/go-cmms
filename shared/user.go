@@ -11,6 +11,11 @@ type User struct {
 	Sites    []Site `db:"site"`
 }
 
+type UserUpdateData struct {
+	Channel int
+	User    *User
+}
+
 type UserUpdate struct {
 	Channel  int    `db:"channel"`
 	ID       int    `db:"id"`

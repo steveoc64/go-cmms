@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/go-humble/router"
-	ff "github.com/steveoc64/formulate"
+	"github.com/steveoc64/formulate"
 	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
 )
@@ -112,7 +112,7 @@ func siteList(context *router.Context) {
 		sites := []shared.Site{}
 		rpcClient.Call("SiteRPC.List", Session.Channel, &sites)
 
-		form := ff.ListForm{}
+		form := formulate.ListForm{}
 		form.New("fa-industry", "Site List - All Sites")
 
 		// Define the layout
@@ -162,7 +162,7 @@ func siteAdd(context *router.Context) {
 
 		BackURL := "/sites"
 		title := "Add New Site"
-		form := ff.EditForm{}
+		form := formulate.EditForm{}
 		form.New("fa-industry", title)
 
 		// Layout the fields
@@ -241,7 +241,7 @@ func siteEdit(context *router.Context) {
 
 		BackURL := "/sites"
 		title := fmt.Sprintf("Site Details - %s", site.Name)
-		form := ff.EditForm{}
+		form := formulate.EditForm{}
 		form.New("fa-industry", title)
 
 		// Layout the fields

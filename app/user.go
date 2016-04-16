@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-humble/form"
 	"github.com/go-humble/router"
+	"github.com/steveoc64/formulate"
 	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
 )
@@ -102,38 +103,49 @@ func userProfile() {
 	}()
 }
 
+func siteUserList(context *router.Context) {
+	print("TODO - siteUserList")
+}
+
 // Display a list of users
-func usersList(context *router.Context) {
+func userList(context *router.Context) {
 
 	go func() {
-		w := dom.GetWindow()
-		doc := w.Document()
+		users := []shared.User{}
+		rpcClient.Call("UserRPC.List", Session.Channel, &users)
 
-		data := []shared.User{}
-		rpcClient.Call("UserRPC.List", Session.Channel, &data)
-		loadTemplate("user-list", "main", data)
+		form := formulate.ListForm{}
+		form.New("fa-user", "Users List - All Users")
 
-		// Add a handler for clicking on a row
-		doc.GetElementByID("user-list").AddEventListener("click", false, func(evt dom.Event) {
-			td := evt.Target()
-			tr := td.ParentElement()
-			key := tr.GetAttribute("key")
+		// Define the layout
+		form.Column("Username", "Username")
+		form.Column("Name", "Name")
+		form.Column("Email", "Email")
+		form.Column("Mobile", "SMS")
+		form.Column("Role", "Role")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate("/")
+		})
+
+		form.NewRowEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate("/user/add")
+		})
+
+		form.RowEvent(func(key string) {
 			Session.Router.Navigate("/user/" + key)
 		})
 
-		// Add a handler for clicking on the add button
-		doc.QuerySelector(".data-add-btn").AddEventListener("click", false, func(evt dom.Event) {
-			Session.Router.Navigate("/user/new")
-		})
+		form.Render("user-list", "main", users)
+
 	}()
+
 }
 
-type UserEditData struct {
-	User  shared.User
-	Title string
-	Sites []shared.Site
-}
-
+// Edit an existing user
 func userEdit(context *router.Context) {
 
 	id, err := strconv.Atoi(context.Params["id"])
@@ -143,127 +155,96 @@ func userEdit(context *router.Context) {
 	}
 
 	go func() {
-		w := dom.GetWindow()
-		doc := w.Document()
+		user := shared.User{}
+		rpcClient.Call("UserRPC.Get", id, &user)
 
-		data := UserEditData{}
-		rpcClient.Call("UserRPC.Get", id, &data.User)
-		rpcClient.Call("SiteRPC.List", Session.Channel, &data.Sites)
-		data.Title = "User Details - " + data.User.Name
-		loadTemplate("user-edit", "main", data)
-		doc.QuerySelector("#focusme").(*dom.HTMLInputElement).Focus()
+		BackURL := "/users"
+		form := formulate.EditForm{}
+		form.New("fa-user", "User Details - "+user.Name)
 
-		// Add handlers for this form
-		doc.QuerySelector("#legend").AddEventListener("click", false, func(evt dom.Event) {
-			Session.Router.Navigate("/users")
-		})
-		doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
+		// Layout the fields
+
+		form.Row(2).
+			Add(1, "Username", "text", "Username", `id="focusme"`).
+			Add(1, "Password", "text", "Passwd", `id="focusme"`)
+
+		form.Row(3).
+			Add(1, "Name", "text", "Name", "").
+			Add(1, "Email", "text", "Email", "").
+			Add(1, "Mobile", "text", "SMS", "")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate("/users")
+			Session.Router.Navigate(BackURL)
 		})
-		// Allow ESC to close dialog
-		doc.QuerySelector(".grid-form").AddEventListener("keyup", false, func(evt dom.Event) {
-			if evt.(*dom.KeyboardEvent).KeyCode == 27 {
-				evt.PreventDefault()
-				Session.Router.Navigate("/users")
-			}
-		})
-		doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
-			// go func() {
+
+		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			// Parse the form element and get a form.Form object in return.
-			f, err := form.Parse(doc.QuerySelector(".grid-form"))
-			if err != nil {
-				print("form parse error", err.Error())
-				return
+			form.Bind(&user)
+			data := shared.UserUpdateData{
+				Channel: Session.Channel,
+				User:    &user,
 			}
-			if err := f.Bind(&data.User); err != nil {
-				print("form bind error", err.Error())
-				return
-			}
-
-			req := shared.UserUpdate{
-				Channel:  Session.Channel,
-				ID:       id,
-				Username: data.User.Username,
-				Name:     data.User.Name,
-				Passwd:   data.User.Passwd,
-				Email:    data.User.Email,
-				SMS:      data.User.SMS,
-			}
-
-			d := false
 			go func() {
-				rpcClient.Call("UserRPC.Save", &req, &d)
+				done = false
+				rpcClient.Call("UserRPC.Update", data, &done)
+				Session.Router.Navigate(BackURL)
 			}()
-			Session.Router.Navigate("/users")
-			// }()
-
 		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &user)
 
 	}()
 
 }
 
-func siteUserList(context *router.Context) {
-	print("TODO - siteUserList")
-}
+// Add form for a new user
+func userAdd(context *router.Context) {
 
-func userNew(context *router.Context) {
+	go func() {
+		user := shared.User{}
 
-	w := dom.GetWindow()
-	doc := w.Document()
+		BackURL := "/users"
+		form := formulate.EditForm{}
+		form.New("fa-user", "Add New User")
 
-	data := UserEditData{}
-	// rpcClient.Call("SiteRPC.List", Session.Channel, &data.Sites)
-	data.Title = "Add New User"
-	loadTemplate("user-edit", "main", data)
-	doc.QuerySelector("#focusme").(*dom.HTMLInputElement).Focus()
+		// Layout the fields
 
-	// Add handlers for this form
-	doc.QuerySelector("#legend").AddEventListener("click", false, func(evt dom.Event) {
-		Session.Router.Navigate("/users")
-	})
-	doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
-		evt.PreventDefault()
-		Session.Router.Navigate("/users")
-	})
-	doc.QuerySelector(".grid-form").AddEventListener("keyup", false, func(evt dom.Event) {
-		if evt.(*dom.KeyboardEvent).KeyCode == 27 {
-			Session.Router.Navigate("/users")
-		}
-	})
-	doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
-		// go func() {
-		evt.PreventDefault()
-		// Parse the form element and get a form.Form object in return.
-		f, err := form.Parse(doc.QuerySelector(".grid-form"))
-		if err != nil {
-			print("form parse error", err.Error())
-			return
-		}
-		if err := f.Bind(&data.User); err != nil {
-			print("form bind error", err.Error())
-			return
-		}
+		form.Row(2).
+			Add(1, "Username", "text", "Username", `id="focusme"`).
+			Add(1, "Password", "text", "Passwd", `id="focusme"`)
 
-		req := shared.UserUpdate{
-			Channel:  Session.Channel,
-			ID:       0,
-			Username: data.User.Username,
-			Name:     data.User.Name,
-			Passwd:   data.User.Passwd,
-			Email:    data.User.Email,
-			SMS:      data.User.SMS,
-		}
+		form.Row(3).
+			Add(1, "Name", "text", "Name", "").
+			Add(1, "Email", "text", "Email", "").
+			Add(1, "Mobile", "text", "SMS", "")
 
-		d := 0
-		go func() {
-			rpcClient.Call("UserRPC.Insert", &req, &d)
-			print("new record = ", d)
-		}()
-		Session.Router.Navigate("/users")
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(BackURL)
+		})
 
-	})
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&user)
+			data := shared.UserUpdateData{
+				Channel: Session.Channel,
+				User:    &user,
+			}
+			go func() {
+				newID := 0
+				rpcClient.Call("UserRPC.Insert", data, &newID)
+				print("added user", newID)
+				Session.Router.Navigate(BackURL)
+			}()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &user)
+
+	}()
 
 }

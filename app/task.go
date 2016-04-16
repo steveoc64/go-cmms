@@ -309,6 +309,6 @@ func schedEdit(context *router.Context) {
 }
 
 ///
-func siteTasks(context *router.Context) {
-	print("TODO - siteTasks")
+func siteTaskList(context *router.Context) {
+	print("TODO - siteTaskList")
 }

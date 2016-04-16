@@ -2,6 +2,6 @@ package main
 
 import "github.com/go-humble/router"
 
-func stoppagesList(context *router.Context) {
-	print("TODO - stoppagesList")
+func stoppageList(context *router.Context) {
+	print("TODO - stoppageList")
 }

@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/go-humble/router"
-	ff "github.com/steveoc64/formulate"
+	"github.com/steveoc64/formulate"
 )
 
 type GlobalSessionData struct {
@@ -19,7 +19,7 @@ var Session GlobalSessionData
 func main() {
 
 	initRouter()
-	ff.Templates(GetTemplate)
+	formulate.Templates(GetTemplate)
 	websocketInit()
 	initLoginForm()
 	showLoginForm()

@@ -91,21 +91,21 @@ func (u *UserRPC) Set(req *shared.UserUpdate, done *bool) error {
 }
 
 // Full update of user record, including username
-func (u *UserRPC) Save(req *shared.UserUpdate, done *bool) error {
+func (u *UserRPC) Update(data *shared.UserUpdateData, done *bool) error {
 	start := time.Now()
 
-	conn := Connections.Get(req.Channel)
+	conn := Connections.Get(data.Channel)
 
 	DB.Update("users").
-		SetWhitelist(req, "username", "name", "passwd", "email", "sms").
-		Where("id = $1", req.ID).
+		SetWhitelist(data, "username", "name", "passwd", "email", "sms").
+		Where("id = $1", data.User.ID).
 		Exec()
 
 	logger(start, "User.Save",
 		fmt.Sprintf("Channel %d, User %d %s %s",
-			req.Channel, conn.UserID, conn.Username, conn.UserRole),
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d %s %s %s %s",
-			req.ID, req.Username, req.Email, req.SMS, req.Name, req.Passwd))
+			data.User.ID, data.User.Username, data.User.Email, data.User.SMS, data.User.Name, data.User.Passwd))
 
 	*done = true
 
@@ -113,22 +113,22 @@ func (u *UserRPC) Save(req *shared.UserUpdate, done *bool) error {
 }
 
 // Add a new user record
-func (u *UserRPC) Insert(req *shared.UserUpdate, id *int) error {
+func (u *UserRPC) Insert(data *shared.UserUpdateData, id *int) error {
 	start := time.Now()
 
-	conn := Connections.Get(req.Channel)
+	conn := Connections.Get(data.Channel)
 
 	DB.InsertInto("users").
 		Whitelist("username", "name", "passwd", "email", "sms").
-		Record(req).
+		Record(data.User).
 		Returning("id").
 		QueryScalar(id)
 
 	logger(start, "User.Insert",
 		fmt.Sprintf("Channel %d, User %d %s %s",
-			req.Channel, conn.UserID, conn.Username, conn.UserRole),
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d %s %s %s %s %s",
-			id, req.Username, req.Email, req.SMS, req.Name, req.Passwd))
+			*id, data.User.Username, data.User.Email, data.User.SMS, data.User.Name, data.User.Passwd))
 
 	return nil
 }

@@ -7,7 +7,7 @@ import (
 )
 
 // Show a list of all parts
-func partsList(context *router.Context) {
+func partList(context *router.Context) {
 
 	go func() {
 		w := dom.GetWindow()
@@ -34,4 +34,8 @@ func partsList(context *router.Context) {
 
 func partEdit(context *router.Context) {
 	print("TODO partEdit")
+}
+
+func partAdd(context *router.Context) {
+	print("TODO partAdd")
 }

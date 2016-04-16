@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/go-humble/router"
-	ff "github.com/steveoc64/formulate"
+	"github.com/steveoc64/formulate"
 	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
 )
@@ -35,7 +35,7 @@ func siteMachineList(context *router.Context) {
 		rpcClient.Call("SiteRPC.Get", id, &site)
 		rpcClient.Call("SiteRPC.MachineList", &req, &machines)
 
-		form := ff.ListForm{}
+		form := formulate.ListForm{}
 		form.New("fa-cogs", "Machine List for - "+site.Name)
 
 		// Define the layout
@@ -79,7 +79,7 @@ func machineEdit(context *router.Context) {
 
 		BackURL := fmt.Sprintf("/site/machine/%d", machine.SiteId)
 		title := fmt.Sprintf("Machine Details - %s - %s", machine.Name, *machine.SiteName)
-		form := ff.EditForm{}
+		form := formulate.EditForm{}
 		form.New("fa-cogs", title)
 
 		// Layout the fields
@@ -161,7 +161,7 @@ func siteMachineAdd(context *router.Context) {
 		rpcClient.Call("SiteRPC.Get", id, &site)
 		BackURL := fmt.Sprintf("/site/machine/%d", site.ID)
 		title := fmt.Sprintf("Add Machine for Site - %s", site.Name)
-		form := ff.EditForm{}
+		form := formulate.EditForm{}
 		form.New("fa-cogs", title)
 
 		// Layout the fields
