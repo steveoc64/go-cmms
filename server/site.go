@@ -128,21 +128,23 @@ func (s *SiteRPC) Get(siteID int, site *shared.Site) error {
 }
 
 // Save a site
-func (s *SiteRPC) Save(data shared.SiteUpdateData, retval *int) error {
+func (s *SiteRPC) Update(data shared.SiteUpdateData, retval *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
 
 	DB.Update("site").
-		SetWhitelist(data.Site, "name", "address", "phone", "fax", "parent_site", "stock_site", "notes").
+		SetWhitelist(data.Site, "name", "address", "phone", "fax",
+			"parent_site", "stock_site", "notes", "alerts_to", "tasks_to").
 		Where("id = $1", data.Site.ID).
 		Exec()
 
-	logger(start, "Site.Save",
+	logger(start, "Site.Update",
 		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
 			data.Channel, data.Site.ID, conn.UserID, conn.Username, conn.UserRole),
 		data.Site.Name)
 
+	*retval = true
 	return nil
 }
 

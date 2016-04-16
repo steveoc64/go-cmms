@@ -13,8 +13,55 @@ import (
 // "github.com/steveoc64/go-cmms/shared"
 // "honnef.co/go/js/dom"
 
-func machineList(context *router.Context) {
-	print("TODO machineList")
+// Show a list of all machines for the given site
+func siteMachineList(context *router.Context) {
+
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		req := shared.MachineReq{
+			Channel: Session.Channel,
+			SiteID:  id,
+		}
+		// data := SiteMachineData{}
+
+		site := shared.Site{}
+		machines := []shared.Machine{}
+
+		rpcClient.Call("SiteRPC.Get", id, &site)
+		rpcClient.Call("SiteRPC.MachineList", &req, &machines)
+
+		form := ff.ListForm{}
+		form.New("fa-cogs", "Machine List for - "+site.Name)
+
+		// Define the layout
+		form.Column("Name", "Name")
+		form.Column("Description", "Descr")
+		form.Column("Status", "Status")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(fmt.Sprintf("/site/%d", id))
+		})
+
+		form.NewRowEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(fmt.Sprintf("/site/machine/add/%d", id))
+		})
+
+		form.RowEvent(func(key string) {
+			Session.Router.Navigate("/machine/" + key)
+		})
+
+		form.Render("site-machine-list", "main", machines)
+		// form.Render("site-machine-list", "main", data)
+
+	}()
 }
 
 func machineEdit(context *router.Context) {
@@ -85,7 +132,6 @@ func machineEdit(context *router.Context) {
 
 		// And attach actions
 		form.ActionGrid("machine-actions", "#action-grid", machine.ID, func(url string) {
-			print("calling action", url)
 			Session.Router.Navigate(url)
 		})
 
@@ -128,11 +174,6 @@ func siteMachineAdd(context *router.Context) {
 			Session.Router.Navigate(BackURL)
 		})
 
-		form.DeleteEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			print("Delete this record")
-		})
-
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&machine)
@@ -168,51 +209,4 @@ func machineStoppageList(context *router.Context) {
 type SiteMachineListData struct {
 	Site     shared.Site
 	Machines []shared.Machine
-}
-
-// Show a list of all machines for the given site
-func siteMachineList(context *router.Context) {
-
-	id, err := strconv.Atoi(context.Params["id"])
-	if err != nil {
-		print(err.Error())
-		return
-	}
-
-	go func() {
-		req := shared.MachineReq{
-			Channel: Session.Channel,
-			SiteID:  id,
-		}
-		data := SiteMachineData{}
-
-		rpcClient.Call("SiteRPC.Get", id, &data.Site)
-		rpcClient.Call("SiteRPC.MachineList", &req, &data.Machines)
-
-		form := ff.ListForm{}
-		form.New("fa-cogs", "Machine List for - "+data.Site.Name, &data.Machines)
-
-		// Define the layout
-		form.Column("Name", "Name")
-		form.Column("Description", "Descr")
-		form.Column("Status", "Status")
-
-		// Add event handlers
-		form.CancelEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			Session.Router.Navigate(fmt.Sprintf("/site/%d", id))
-		})
-
-		form.NewRowEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			Session.Router.Navigate(fmt.Sprintf("/site/machine/add/%d", id))
-		})
-
-		form.RowEvent(func(key string) {
-			Session.Router.Navigate("/machine/" + key)
-		})
-
-		form.Render("site-machine-list", "main", data)
-
-	}()
 }

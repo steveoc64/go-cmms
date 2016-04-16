@@ -31,6 +31,13 @@
           {{if eq .Type "textarea"}}
             <textarea name="{{.Model}}" {{.Extras}}>{{.Value}}</textarea>
           {{end}}
+          {{if eq .Type "select"}}
+            <select name="{{.Model}}" {{.Extras}}>
+              {{range .Options}}
+                <option value="{{.Key}}" {{if .Selected}}selected{{end}}>{{.Display}}</option>
+              {{end}}
+            </select>
+          {{end}}
         </div>
         {{end}}
       </div>

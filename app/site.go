@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/go-humble/form"
 	"github.com/go-humble/router"
+	ff "github.com/steveoc64/formulate"
 	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
 )
@@ -109,25 +109,37 @@ func homeSite(context *router.Context) {
 func siteList(context *router.Context) {
 
 	go func() {
-		w := dom.GetWindow()
-		doc := w.Document()
+		sites := []shared.Site{}
+		rpcClient.Call("SiteRPC.List", Session.Channel, &sites)
 
-		data := []shared.Site{}
-		rpcClient.Call("SiteRPC.List", Session.Channel, &data)
-		loadTemplate("site-list", "main", data)
+		form := ff.ListForm{}
+		form.New("fa-industry", "Site List - All Sites")
 
-		// Add a handler for clicking on a row
-		doc.GetElementByID("site-list").AddEventListener("click", false, func(evt dom.Event) {
-			td := evt.Target()
-			tr := td.ParentElement()
-			key := tr.GetAttribute("key")
+		// Define the layout
+		form.Column("Name", "Name")
+		form.Column("Parent Site", "ParentSiteName")
+		form.Column("Address", "Address")
+		form.Column("Phone", "Phone")
+		form.Column("Fax", "Fax")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate("/")
+		})
+
+		form.NewRowEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate("/site/add")
+		})
+
+		form.RowEvent(func(key string) {
 			Session.Router.Navigate("/site/" + key)
 		})
 
-		// Add a handler for clicking on the add butto
-		doc.QuerySelector(".data-add-btn").AddEventListener("click", false, func(evt dom.Event) {
-			print("add new site")
-		})
+		form.Render("site-list", "main", sites)
+		// form.Render("site-list", "main", data)
+
 	}()
 }
 
@@ -139,87 +151,96 @@ type SiteEditData struct {
 
 // Show an edit form for the given site
 func siteEdit(context *router.Context) {
-
 	id, err := strconv.Atoi(context.Params["id"])
 	if err != nil {
 		print(err.Error())
 		return
 	}
+
 	go func() {
-		w := dom.GetWindow()
-		doc := w.Document()
+		site := shared.Site{}
+		sites := []shared.Site{}
+		users := []shared.User{}
 
-		data := SiteEditData{}
-		rpcClient.Call("SiteRPC.Get", id, &data.Site)
-		rpcClient.Call("SiteRPC.List", Session.Channel, &data.Sites)
-		data.Title = "Site Details - " + data.Site.Name
-		loadTemplate("site-edit", "main", data)
-		doc.QuerySelector("#focusme").(*dom.HTMLInputElement).Focus()
+		rpcClient.Call("SiteRPC.Get", id, &site)
+		rpcClient.Call("SiteRPC.List", Session.Channel, &sites)
+		rpcClient.Call("UserRPC.List", Session.Channel, &users)
 
-		// Add handlers for this form
-		doc.QuerySelector("#legend").AddEventListener("click", false, func(evt dom.Event) {
-			Session.Router.Navigate("/sites")
-		})
-		doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
+		BackURL := "/sites"
+		title := fmt.Sprintf("Site Details - %s", site.Name)
+		form := ff.EditForm{}
+		form.New("fa-industry", title)
+
+		// Layout the fields
+
+		form.Row(1).
+			Add(1, "Name", "text", "Name", `id="focusme"`)
+
+		form.Row(2).
+			Add(1, "Parent Site", "select", "ParentSite", "").
+			Add(1, "Stock Site", "select", "StockSite", "")
+
+		form.SetSelectOptions("ParentSite", sites, "ID", "Name", 0, site.ParentSite)
+		form.SetSelectOptions("StockSite", sites, "ID", "Name", 0, site.StockSite)
+
+		form.Row(1).
+			Add(1, "Address", "text", "Address", "")
+
+		form.Row(2).
+			Add(1, "Phone", "text", "Phone", "").
+			Add(1, "Fax", "text", "Fax", "")
+
+		form.Row(2).
+			Add(1, "Stoppage Alerts To", "select", "AlertsTo", "").
+			Add(1, "Scheduled Tasks To", "select", "TasksTo", "")
+
+		form.SetSelectOptions("AlertsTo", users, "ID", "Name", 0, site.AlertsTo)
+		form.SetSelectOptions("TasksTo", users, "ID", "Name", 0, site.TasksTo)
+
+		form.Row(1).
+			Add(1, "Notes", "textarea", "Notes", "")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			print("cancel edit site")
-			Session.Router.Navigate("/sites")
+			Session.Router.Navigate(BackURL)
 		})
-		// Allow ESC to close dialog
-		doc.QuerySelector(".grid-form").AddEventListener("keyup", false, func(evt dom.Event) {
-			if evt.(*dom.KeyboardEvent).KeyCode == 27 {
-				evt.PreventDefault()
-				Session.Router.Navigate("/sites")
-			}
-		})
-		doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
-			evt.PreventDefault()
-			// Parse the form element and get a form.Form object in return.
-			f, err := form.Parse(doc.QuerySelector(".grid-form"))
-			if err != nil {
-				print("form parse error", err.Error())
-				return
-			}
-			if err := f.Bind(&data.Site); err != nil {
-				print("form bind error", err.Error())
-				return
-			}
-			// manually get the textarea
-			data.Site.Notes = doc.GetElementByID("notes").(*dom.HTMLTextAreaElement).Value
 
-			// manually get the selected options for now
-			parentSite := doc.GetElementByID("parentSite").(*dom.HTMLSelectElement).SelectedIndex
-			data.Site.ParentSite = 0
-			if parentSite > 0 {
-				data.Site.ParentSite = data.Sites[parentSite-1].ID
-			}
-			data.Site.StockSite = 0
-			stockSite := doc.GetElementByID("stockSite").(*dom.HTMLSelectElement).SelectedIndex
-			if stockSite > 0 {
-				data.Site.StockSite = data.Sites[stockSite-1].ID
-			}
-			updateData := &shared.SiteUpdateData{
-				Channel: Session.Channel,
-				Site:    &data.Site,
-			}
+		form.DeleteEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			site.ID = id
 			go func() {
-				retval := 0
-				rpcClient.Call("SiteRPC.Save", updateData, &retval)
-				Session.Router.Navigate("/sites")
+				data := shared.SiteUpdateData{
+					Channel: Session.Channel,
+					Site:    &site,
+				}
+				done := false
+				rpcClient.Call("SiteRPC.Delete", data, &done)
+				Session.Router.Navigate(BackURL)
 			}()
 		})
 
-		// Add an Action Grid
-		loadTemplate("site-actions", "#action-grid", id)
-		for _, ai := range doc.QuerySelectorAll(".action__item") {
-			url := ai.(*dom.HTMLDivElement).GetAttribute("url")
-			if url != "" {
-				ai.AddEventListener("click", false, func(evt dom.Event) {
-					url := evt.CurrentTarget().GetAttribute("url")
-					Session.Router.Navigate(url)
-				})
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&site)
+			data := shared.SiteUpdateData{
+				Channel: Session.Channel,
+				Site:    &site,
 			}
-		}
+			go func() {
+				done := false
+				rpcClient.Call("SiteRPC.Update", data, &done)
+				Session.Router.Navigate(BackURL)
+			}()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &site)
+
+		// And attach actions
+		form.ActionGrid("site-actions", "#action-grid", site.ID, func(url string) {
+			Session.Router.Navigate(url)
+		})
 
 	}()
 

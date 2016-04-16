@@ -14,6 +14,17 @@ type Site struct {
 	Notes          string  `db:"notes"`
 	X              int     `db:"x"`
 	Y              int     `db:"y"`
+	AlertsTo       int     `db:"alerts_to"`
+	TasksTo        int     `db:"tasks_to"`
+}
+
+func (s *Site) GetKey() int {
+	return s.ID
+}
+
+func (s *Site) GetDisplay() string {
+	return s.Name
+
 }
 
 type SiteUpdateData struct {
