@@ -73,7 +73,7 @@ func machineEdit(context *router.Context) {
 
 	go func() {
 		machine := shared.Machine{}
-		users := shared.User{}
+		users := []shared.User{}
 		rpcClient.Call("MachineRPC.Get", id, &machine)
 		rpcClient.Call("UserRPC.List", Session.Channel, &users)
 
