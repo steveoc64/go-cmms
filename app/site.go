@@ -35,7 +35,7 @@ type RaiseIssueData struct {
 // jump to specific sites
 func siteMap(context *router.Context) {
 
-	print("in siteMap", Session)
+	// print("in siteMap", Session)
 
 	// Get a list of sites
 	go func() {
@@ -62,7 +62,7 @@ func siteMap(context *router.Context) {
 			}
 
 			// Add an Action Grid depending on which role the user is logged in as
-			print("user role =", Session.UserRole)
+			// print("user role =", Session.UserRole)
 			switch Session.UserRole {
 			case "Admin", "Site Manager":
 				loadTemplate("admin-actions", "#action-grid", nil)

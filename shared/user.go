@@ -25,3 +25,29 @@ type UserUpdate struct {
 	Email    string `db:"email"`
 	SMS      string `db:"sms"`
 }
+
+type UserSite struct {
+	SiteID   int    `db:"site_id"`
+	SiteName string `db:"site_name"`
+	Count    int    `db:"count"`
+}
+
+type SiteUser struct {
+	UserID   int    `db:"user_id"`
+	Username string `db:"username"`
+	Count    int    `db:"count"`
+}
+
+type UserSiteRequest struct {
+	Channel int
+	User    *User
+	Site    *Site
+}
+
+type UserSiteSetRequest struct {
+	Channel int
+	UserID  int
+	SiteID  int
+	Role    string
+	IsSet   bool
+}

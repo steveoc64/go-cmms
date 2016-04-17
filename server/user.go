@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/steveoc64/go-cmms/shared"
@@ -97,7 +98,7 @@ func (u *UserRPC) Update(data *shared.UserUpdateData, done *bool) error {
 	conn := Connections.Get(data.Channel)
 
 	DB.Update("users").
-		SetWhitelist(data, "username", "name", "passwd", "email", "sms").
+		SetWhitelist(data.User, "username", "name", "passwd", "email", "sms").
 		Where("id = $1", data.User.ID).
 		Exec()
 
@@ -130,5 +131,108 @@ func (u *UserRPC) Insert(data *shared.UserUpdateData, id *int) error {
 		fmt.Sprintf("%d %s %s %s %s %s",
 			*id, data.User.Username, data.User.Email, data.User.SMS, data.User.Name, data.User.Passwd))
 
+	return nil
+}
+
+// Delete a user
+func (u *UserRPC) Delete(data *shared.UserUpdateData, ok *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	*ok = false
+	id := data.User.ID
+	DB.DeleteFrom("users").
+		Where("id=$1", id).
+		Exec()
+
+	logger(start, "User.Delete",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d %s %s %s %s %s",
+			id, data.User.Username, data.User.Email, data.User.SMS, data.User.Name, data.User.Passwd))
+
+	return nil
+}
+
+// Get an array of Sites for this user
+func (u *UserRPC) GetSites(data shared.UserSiteRequest, userSites *[]shared.UserSite) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`select 
+		s.id as site_id,s.name as site_name,count(u.*)
+		from site s
+		left join user_site u
+			on u.site_id=s.id
+			and u.user_id=$1
+		group by s.id
+		order by s.name`, data.User.ID).QueryStructs(userSites)
+
+	logger(start, "User.GetSites",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("User %d - %d Sites",
+			data.User.ID, len(*userSites)))
+
+	return nil
+}
+
+// Get an array of Users for this site
+func (u *UserRPC) GetSiteUsers(data shared.UserSiteRequest, siteUsers *[]shared.SiteUser) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`select 
+		u.id as user_id,u.username as username,count(s.*)
+		from users u
+		left join user_site s
+			on s.user_id=u.id
+			and s.site_id=$1
+		group by u.id
+		order by u.username`, data.Site.ID).QueryStructs(siteUsers)
+
+	logger(start, "User.GetSiteUsers",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("Site %d - %d Users",
+			data.Site.ID, len(*siteUsers)))
+
+	return nil
+}
+
+// Set the user site relationship
+func (u *UserRPC) SetSite(data shared.UserSiteSetRequest, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	// delete any existing relationship
+	DB.DeleteFrom("user_site").
+		Where("user_id=$1 and site_id=$2", data.UserID, data.SiteID).
+		Exec()
+
+	if data.IsSet {
+		// if the role is undefined, then read it from the user
+		if data.Role == "" {
+			DB.SQL(`select role from users where id=$1`, data.UserID).QueryScalar(&data.Role)
+			log.Println("fetched user role", data.Role)
+		}
+
+		DB.SQL(`insert into 
+			user_site (user_id,site_id,role)
+			values    ($1, $2, $3)`, data.UserID, data.SiteID, data.Role).
+			Exec()
+	}
+
+	logger(start, "User.SetSite",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("User %d Site %d Role %s %t",
+			data.UserID, data.SiteID, data.Role, data.IsSet))
+
+	*done = true
 	return nil
 }

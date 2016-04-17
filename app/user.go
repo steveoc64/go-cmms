@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/go-humble/form"
@@ -103,8 +104,88 @@ func userProfile() {
 	}()
 }
 
+//
 func siteUserList(context *router.Context) {
-	print("TODO - siteUserList")
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+
+		site := shared.Site{}
+		rpcClient.Call("SiteRPC.Get", id, &site)
+
+		BackURL := fmt.Sprintf("/site/%d", id)
+		form := formulate.EditForm{}
+		form.New("fa-user", "User Access for Site - "+site.Name)
+
+		// Layout the fields
+
+		form.Row(1).
+			Add(1, "Users", "div", "Users", "")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(BackURL)
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(BackURL)
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &site)
+
+		// And load in a the sites array
+		// Need a data set that is a slice of :
+		// - Site ID
+		// - Site Name
+		// - Bool, whether the user has access to this site
+		// On toggling a site, send an RPC to the backend to toggle the state
+		siteUsers := []shared.SiteUser{}
+		req := shared.UserSiteRequest{
+			Channel: Session.Channel,
+			User:    nil,
+			Site:    &site,
+		}
+		rpcClient.Call("UserRPC.GetSiteUsers", req, &siteUsers)
+		loadTemplate("site-users-array", "[name=Users]", siteUsers)
+
+		// add a click handler for the sites array
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		if el := doc.QuerySelector("[name=Users]"); el != nil {
+
+			el.AddEventListener("click", false, func(evt dom.Event) {
+				clickedOn := evt.Target()
+				switch clickedOn.TagName() {
+				case "INPUT":
+					ie := clickedOn.(*dom.HTMLInputElement)
+					key, _ := strconv.Atoi(ie.GetAttribute("key"))
+					data := shared.UserSiteSetRequest{
+						Channel: Session.Channel,
+						SiteID:  site.ID,
+						UserID:  key,
+						Role:    "",
+						IsSet:   ie.Checked,
+					}
+
+					go func() {
+						done := false
+						rpcClient.Call("UserRPC.SetSite", data, &done)
+					}()
+				}
+
+			})
+		}
+
+	}()
+
 }
 
 // Display a list of users
@@ -145,6 +226,11 @@ func userList(context *router.Context) {
 
 }
 
+type Roles struct {
+	ID   int
+	Name string
+}
+
 // Edit an existing user
 func userEdit(context *router.Context) {
 
@@ -152,6 +238,15 @@ func userEdit(context *router.Context) {
 	if err != nil {
 		print(err.Error())
 		return
+	}
+
+	roles := []Roles{
+		{1, "Admin"},
+		{2, "Site Manager"},
+		{3, "Worker"},
+		{4, "Service Contractor"},
+		{5, "Floor"},
+		{6, "Public"},
 	}
 
 	go func() {
@@ -162,21 +257,48 @@ func userEdit(context *router.Context) {
 		form := formulate.EditForm{}
 		form.New("fa-user", "User Details - "+user.Name)
 
+		currentRole := 0
+		for _, r := range roles {
+			if r.Name == user.Role {
+				currentRole = r.ID
+				break
+			}
+		}
 		// Layout the fields
 
 		form.Row(2).
 			Add(1, "Username", "text", "Username", `id="focusme"`).
-			Add(1, "Password", "text", "Passwd", `id="focusme"`)
+			Add(1, "Password", "text", "Passwd", "")
 
 		form.Row(3).
 			Add(1, "Name", "text", "Name", "").
 			Add(1, "Email", "text", "Email", "").
 			Add(1, "Mobile", "text", "SMS", "")
 
+		form.Row(3).
+			Add(1, "Role", "select", "Role", "")
+		form.SetSelectOptions("Role", roles, "ID", "Name", 1, currentRole)
+
+		form.Row(1).
+			Add(1, "Sites to Access", "div", "Sites", "")
+
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			Session.Router.Navigate(BackURL)
+		})
+
+		form.DeleteEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			go func() {
+				data := shared.UserUpdateData{
+					Channel: Session.Channel,
+					User:    &user,
+				}
+				done := false
+				rpcClient.Call("UserRPC.Delete", data, &done)
+				Session.Router.Navigate(BackURL)
+			}()
 		})
 
 		form.SaveEvent(func(evt dom.Event) {
@@ -187,7 +309,7 @@ func userEdit(context *router.Context) {
 				User:    &user,
 			}
 			go func() {
-				done = false
+				done := false
 				rpcClient.Call("UserRPC.Update", data, &done)
 				Session.Router.Navigate(BackURL)
 			}()
@@ -195,6 +317,50 @@ func userEdit(context *router.Context) {
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &user)
+
+		// And load in a the sites array
+		// Need a data set that is a slice of :
+		// - Site ID
+		// - Site Name
+		// - Bool, whether the user has access to this site
+		// On toggling a site, send an RPC to the backend to toggle the state
+		userSites := []shared.UserSite{}
+		req := shared.UserSiteRequest{
+			Channel: Session.Channel,
+			User:    &user,
+		}
+		rpcClient.Call("UserRPC.GetSites", req, &userSites)
+		loadTemplate("user-sites-array", "[name=Sites]", userSites)
+
+		// add a click handler for the sites array
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		if el := doc.QuerySelector("[name=Sites]"); el != nil {
+
+			el.AddEventListener("click", false, func(evt dom.Event) {
+				clickedOn := evt.Target()
+				switch clickedOn.TagName() {
+				case "INPUT":
+					ie := clickedOn.(*dom.HTMLInputElement)
+					key, _ := strconv.Atoi(ie.GetAttribute("key"))
+					data := shared.UserSiteSetRequest{
+						Channel: Session.Channel,
+						UserID:  user.ID,
+						SiteID:  key,
+						Role:    user.Role,
+						IsSet:   ie.Checked,
+					}
+
+					go func() {
+						done := false
+						rpcClient.Call("UserRPC.SetSite", data, &done)
+					}()
+				}
+
+			})
+
+		}
 
 	}()
 

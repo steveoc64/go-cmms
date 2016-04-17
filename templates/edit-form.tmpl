@@ -19,20 +19,23 @@
         {{range .Fields}}
         <div data-field-span="{{.Span}}">
           <label>{{.Label}}</label>
+          {{if eq .Type "div"}}
+            <div name="{{.Model}}" {{if .Extras}}{{.Extras}}{{end}}>Div Placeholder for {{.Model}}</div>
+          {{end}}
           {{if eq .Type "text"}}
-            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{.Extras}}>
+            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Extras}}{{.Extras}}{{end}}>
           {{end}}
           {{if eq .Type "date"}}
-            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{.Extras}}>
+            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Extras}}{{.Extras}}{{end}}>
           {{end}}
           {{if eq .Type "number"}}
-            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{.Extras}}>
+            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Extras}}{{.Extras}}{{end}}>
           {{end}}
           {{if eq .Type "textarea"}}
-            <textarea name="{{.Model}}" {{.Extras}}>{{.Value}}</textarea>
+            <textarea name="{{.Model}}" {{if .Extras}}{{.Extras}}{{end}}>{{.Value}}</textarea>
           {{end}}
           {{if eq .Type "select"}}
-            <select name="{{.Model}}" {{.Extras}}>
+            <select name="{{.Model}}" {{if .Extras}}{{.Extras}}{{end}}>
               {{range .Options}}
                 <option value="{{.Key}}" {{if .Selected}}selected{{end}}>{{.Display}}</option>
               {{end}}
