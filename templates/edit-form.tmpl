@@ -17,29 +17,91 @@
       {{range .Rows}}
       <div data-row-span="{{.Span}}">
         {{range .Fields}}
+        {{$fieldModel := .Model}}
         <div data-field-span="{{.Span}}">
           <label>{{.Label}}</label>
           {{if eq .Type "div"}}
-            <div name="{{.Model}}" {{if .Extras}}{{.Extras}}{{end}}>Div Placeholder for {{.Model}}</div>
+            <div name="{{.Model}}" class="{{.Class}}">Div Placeholder for {{.Model}}</div>
+          {{end}}
+          {{if eq .Type "swapper"}}
+            {{$swapper := .Swapper}}
+            {{range .Swapper.Panels}}
+            <div class="swapper-option" name="{{$swapper.Name}}-{{.Name}}">
+              {{range .Rows}}
+              <div data-row-span="{{.Span}}">
+                {{range .Fields}}
+                  <label>{{.Label}}</label>
+                  {{if eq .Type "text"}}
+                    <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}">
+                  {{end}}              
+                  {{if eq .Type "date"}}
+                    <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}">
+                  {{end}}
+                  {{if eq .Type "number"}}
+                    <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" step="{{.Step}}">
+                  {{end}}
+                  {{if eq .Type "textarea"}}
+                    <textarea name="{{.Model}}">{{.Value}}</textarea>
+                  {{end}}
+                  {{if eq .Type "select"}}
+                    <select name="{{.Model}}">
+                      {{range .Options}}
+                        <option value="{{.Key}}" {{if .Selected}}selected{{end}}>{{.Display}}</option>
+                      {{end}}
+                    </select>
+                  {{end}}
+                  {{if eq .Type "radio"}}
+                    {{$model := .Model}}
+                    <div name="radio-{{$model}}">
+                    {{range .Options}}
+                    <label><input type="radio" name="{{$model}}" value="{{.Key}}" {{if .Selected}}checked="checked"{{end}}> {{.Display}}</label>
+                    {{end}}
+                    </div>
+                  {{end}}                  
+                {{end}}
+              </div>
+              {{end}}
+            </div>
+            {{end}}
           {{end}}
           {{if eq .Type "text"}}
-            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Extras}}{{.Extras}}{{end}}>
+            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Focusme}}id="#focusme"{{end}}>
           {{end}}
           {{if eq .Type "date"}}
-            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Extras}}{{.Extras}}{{end}}>
+            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}">
           {{end}}
           {{if eq .Type "number"}}
-            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Extras}}{{.Extras}}{{end}}>
+            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" step="{{.Step}}">
           {{end}}
           {{if eq .Type "textarea"}}
-            <textarea name="{{.Model}}" {{if .Extras}}{{.Extras}}{{end}}>{{.Value}}</textarea>
+            <textarea name="{{.Model}}">{{.Value}}</textarea>
           {{end}}
           {{if eq .Type "select"}}
-            <select name="{{.Model}}" {{if .Extras}}{{.Extras}}{{end}}>
+            <select name="{{.Model}}">
               {{range .Options}}
                 <option value="{{.Key}}" {{if .Selected}}selected{{end}}>{{.Display}}</option>
               {{end}}
             </select>
+          {{end}}
+          {{if eq .Type "groupselect"}}
+            {{$sel := .Selected}}
+            <select name="{{.Model}}">
+              {{range .Group}}
+              <optgroup {{if .Title}}label="{{.Title}}"{{end}}>
+                {{range .Options}}
+                <option value="{{.ID}}" {{if eq .ID $sel}}selected{{end}}>{{.Name}}</option>
+                {{end}}
+              </optgroup>
+              {{end}}
+            </select>
+          {{end}}
+          {{if eq .Type "radio"}}
+            <div name="radio-{{$fieldModel}}">
+            <label></label>
+            {{range .Options}}
+            <label><input type="radio" name="{{$fieldModel}}" value="{{.Key}}" {{if .Selected}}checked="checked"{{end}}> {{.Display}}</label>
+            {{end}}
+            </div>
           {{end}}
         </div>
         {{end}}

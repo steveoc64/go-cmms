@@ -59,6 +59,7 @@ func enableRoutes(Role string) {
 			"site-reports":          siteReports,
 			"machine-edit":          machineEdit,
 			"machine-sched-list":    machineSchedList,
+			"machine-sched-add":     machineSchedAdd,
 			"machine-reports":       machineReports,
 			"machine-stoppage-list": machineStoppageList,
 			"sched-edit":            schedEdit,

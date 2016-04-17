@@ -10,7 +10,7 @@ import (
 
 type TaskRPC struct{}
 
-// Get all the parts
+// Get all the tasks for the given machine
 func (t *TaskRPC) ListMachineSched(machineID int, tasks *[]shared.SchedTask) error {
 	start := time.Now()
 
@@ -44,32 +44,25 @@ func (t *TaskRPC) GetSched(id int, task *shared.SchedTask) error {
 	return nil
 }
 
-func (t *TaskRPC) Save(req *shared.SchedTaskEditData, id *int) error {
+func (t *TaskRPC) Insert(data *shared.SchedTaskUpdateData, id *int) error {
 	start := time.Now()
 
-	conn := Connections.Get(req.Channel)
-
-	// do some data conversions
-	switch req.Task.Freq {
-	case "One Off":
-		req.Task.StartDate = req.Task.OneOffDate
-	case "Job Count":
-		req.Task.Days = req.Task.Count
-	}
+	conn := Connections.Get(data.Channel)
 
 	DB.InsertInto("sched_task").
 		Whitelist("machine_id", "comp_type", "tool_id",
 			"component", "descr", "startdate", "freq", "days", "week",
 			"labour_cost", "material_cost").
-		Record(req.Task).
+		Record(data.SchedTask).
 		Returning("id").
 		QueryScalar(id)
 
 	logger(start, "Task.Insert",
 		fmt.Sprintf("Channel %d, User %d %s %s",
-			req.Channel, conn.UserID, conn.Username, conn.UserRole),
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d %d %s %d %s %s",
-			*id, req.Task.MachineID, req.Task.CompType, req.Task.ToolID, req.Task.Component, req.Task.Descr))
+			*id, data.SchedTask.MachineID, data.SchedTask.CompType,
+			data.SchedTask.ToolID, data.SchedTask.Component, data.SchedTask.Descr))
 
 	return nil
 }

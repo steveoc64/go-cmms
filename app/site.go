@@ -166,33 +166,26 @@ func siteAdd(context *router.Context) {
 		form.New("fa-industry", title)
 
 		// Layout the fields
-
 		form.Row(1).
-			Add(1, "Name", "text", "Name", `id="focusme"`)
+			AddInput(1, "Name", "Name")
 
 		form.Row(2).
-			Add(1, "Parent Site", "select", "ParentSite", "").
-			Add(1, "Stock Site", "select", "StockSite", "")
-
-		form.SetSelectOptions("ParentSite", sites, "ID", "Name", 0, site.ParentSite)
-		form.SetSelectOptions("StockSite", sites, "ID", "Name", 0, site.StockSite)
+			AddSelect(1, "Parent Site", "ParentSite", sites, "ID", "Name", 0, site.ParentSite).
+			AddSelect(1, "Stock Site", "StockSite", sites, "ID", "Name", 0, site.StockSite)
 
 		form.Row(1).
-			Add(1, "Address", "text", "Address", "")
+			AddInput(1, "Address", "Address")
 
 		form.Row(2).
-			Add(1, "Phone", "text", "Phone", "").
-			Add(1, "Fax", "text", "Fax", "")
+			AddInput(1, "Phone", "Phone").
+			AddInput(1, "Fax", "Fax")
 
 		form.Row(2).
-			Add(1, "Stoppage Alerts To", "select", "AlertsTo", "").
-			Add(1, "Scheduled Tasks To", "select", "TasksTo", "")
-
-		form.SetSelectOptions("AlertsTo", users, "ID", "Name", 0, site.AlertsTo)
-		form.SetSelectOptions("TasksTo", users, "ID", "Name", 0, site.TasksTo)
+			AddSelect(1, "Stoppage Alerts To", "AlertsTo", users, "ID", "Name", 0, site.AlertsTo).
+			AddSelect(1, "Scheduled Tasks To", "TasksTo", users, "ID", "Name", 0, site.TasksTo)
 
 		form.Row(1).
-			Add(1, "Notes", "textarea", "Notes", "")
+			AddTextarea(1, "Notes", "Notes")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -245,33 +238,26 @@ func siteEdit(context *router.Context) {
 		form.New("fa-industry", title)
 
 		// Layout the fields
-
 		form.Row(1).
-			Add(1, "Name", "text", "Name", `id="focusme"`)
+			AddInput(1, "Name", "Name")
 
 		form.Row(2).
-			Add(1, "Parent Site", "select", "ParentSite", "").
-			Add(1, "Stock Site", "select", "StockSite", "")
-
-		form.SetSelectOptions("ParentSite", sites, "ID", "Name", 0, site.ParentSite)
-		form.SetSelectOptions("StockSite", sites, "ID", "Name", 0, site.StockSite)
+			AddSelect(1, "Parent Site", "ParentSite", sites, "ID", "Name", 0, site.ParentSite).
+			AddSelect(1, "Stock Site", "StockSite", sites, "ID", "Name", 0, site.StockSite)
 
 		form.Row(1).
-			Add(1, "Address", "text", "Address", "")
+			AddInput(1, "Address", "Address")
 
 		form.Row(2).
-			Add(1, "Phone", "text", "Phone", "").
-			Add(1, "Fax", "text", "Fax", "")
+			AddInput(1, "Phone", "Phone").
+			AddInput(1, "Fax", "Fax")
 
 		form.Row(2).
-			Add(1, "Stoppage Alerts To", "select", "AlertsTo", "").
-			Add(1, "Scheduled Tasks To", "select", "TasksTo", "")
-
-		form.SetSelectOptions("AlertsTo", users, "ID", "Name", 0, site.AlertsTo)
-		form.SetSelectOptions("TasksTo", users, "ID", "Name", 0, site.TasksTo)
+			AddSelect(1, "Stoppage Alerts To", "AlertsTo", users, "ID", "Name", 0, site.AlertsTo).
+			AddSelect(1, "Scheduled Tasks To", "TasksTo", users, "ID", "Name", 0, site.TasksTo)
 
 		form.Row(1).
-			Add(1, "Notes", "textarea", "Notes", "")
+			AddTextarea(1, "Notes", "Notes")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {

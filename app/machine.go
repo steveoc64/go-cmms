@@ -85,19 +85,16 @@ func machineEdit(context *router.Context) {
 		// Layout the fields
 
 		form.Row(3).
-			Add(1, "Name", "text", "Name", `id="focusme"`).
-			Add(1, "Serial #", "text", "Serialnum", "").
+			AddInput(1, "Name", "Name").
+			AddInput(1, "Serial #", "Serialnum").
 			Add(1, "Status", "text", "Status", "disabled")
 
 		form.Row(1).
-			Add(1, "Descrpition", "text", "Descr", "")
+			AddInput(1, "Descrpition", "Descr")
 
 		form.Row(2).
-			Add(1, "Stoppage Alerts To", "select", "AlertsTo", "").
-			Add(1, "Scheduled Tasks To", "select", "TasksTo", "")
-
-		form.SetSelectOptions("AlertsTo", users, "ID", "Name", 0, machine.AlertsTo)
-		form.SetSelectOptions("TasksTo", users, "ID", "Name", 0, machine.TasksTo)
+			AddSelect(1, "Stoppage Alerts To", "AlertsTo", users, "ID", "Name", 0, machine.AlertsTo).
+			AddSelect(1, "Scheduled Tasks To", "TasksTo", users, "ID", "Name", 0, machine.TasksTo)
 
 		form.Row(1).
 			Add(1, "Notes", "textarea", "Notes", "")

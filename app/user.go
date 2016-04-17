@@ -369,6 +369,15 @@ func userEdit(context *router.Context) {
 // Add form for a new user
 func userAdd(context *router.Context) {
 
+	roles := []Roles{
+		{1, "Admin"},
+		{2, "Site Manager"},
+		{3, "Worker"},
+		{4, "Service Contractor"},
+		{5, "Floor"},
+		{6, "Public"},
+	}
+
 	go func() {
 		user := shared.User{}
 
@@ -386,6 +395,10 @@ func userAdd(context *router.Context) {
 			Add(1, "Name", "text", "Name", "").
 			Add(1, "Email", "text", "Email", "").
 			Add(1, "Mobile", "text", "SMS", "")
+
+		form.Row(3).
+			Add(1, "Role", "select", "Role", "")
+		form.SetSelectOptions("Role", roles, "ID", "Name", 1, 0)
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
