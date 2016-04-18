@@ -51,8 +51,8 @@ func (t *TaskRPC) Insert(data *shared.SchedTaskUpdateData, id *int) error {
 
 	DB.InsertInto("sched_task").
 		Whitelist("machine_id", "comp_type", "tool_id",
-			"component", "descr", "startdate", "freq", "days", "week",
-			"labour_cost", "material_cost").
+			"component", "descr", "startdate", "freq", "days", "week", "count",
+			"labour_cost", "material_cost", "duration_days").
 		Record(data.SchedTask).
 		Returning("id").
 		QueryScalar(id)

@@ -10,6 +10,12 @@ import (
 	"honnef.co/go/js/dom"
 )
 
+// Add in a pile of constants for lists and things
+const (
+	rfc3339DateLayout          = "2006-01-02"
+	rfc3339DatetimeLocalLayout = "2006-01-02T15:04:05.999999999"
+)
+
 func taskMaint(context *router.Context) {
 	print("TODO - taskmaint")
 }
@@ -18,11 +24,10 @@ func taskList(context *router.Context) {
 	print("TODO - taskList")
 }
 
-// type MachineSchedListData struct {
-// 	Machine  shared.Machine
-// 	EditTask shared.SchedTaskEditData
-// 	Tasks    []shared.SchedTask
-// }
+type MachineSchedListData struct {
+	Machine shared.Machine
+	Tasks   []shared.SchedTask
+}
 
 // Show a list of all Scheduled Maint items for this machine
 func machineSchedList(context *router.Context) {
@@ -46,10 +51,11 @@ func machineSchedList(context *router.Context) {
 
 		// Define the layout
 		form.Column("Tool / Component", "Component")
-		form.Column("Description", "Descr")
 		form.Column("Frequency", "ShowFrequency")
+		form.Column("Description", "Descr")
 		form.Column("$ Labour", "LabourCost")
 		form.Column("$ Materials", "MaterialCost")
+		form.Column("Duration", "DurationDays")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -66,6 +72,12 @@ func machineSchedList(context *router.Context) {
 			print("TODO - edit sched")
 		})
 
+		// form.Render("machine-sched-list", "main", tasks)
+		// customData := MachineSchedListData{
+		// 	Machine: machine,
+		// 	Tasks:   tasks,
+		// }
+		// form.RenderCustom("machine-sched-list-custom", "main", customData)
 		form.Render("machine-sched-list", "main", tasks)
 
 		// // Add a handler for clicking on a row
@@ -347,16 +359,40 @@ func machineSchedAdd(context *router.Context) {
 			evt.PreventDefault()
 			form.Bind(&task)
 			task.MachineID = machine.ID
-			print("bind =", task)
+
+			// interpret the Component from the grouped options
+			comp, _ := strconv.Atoi(task.Component)
+			print("comp = ", comp)
+			if comp == 0 {
+				task.CompType = "A"
+				task.Component = compGen[0].Name
+			} else if comp < len(machine.Components) {
+				task.CompType = "T"
+				task.ToolID = machine.Components[comp-1].ID
+				task.Component = compTools[comp-1].Name
+			} else {
+				task.CompType = "C"
+				offset := comp - len(machine.Components)
+				task.Component = compOther[offset-1].Name
+			}
+
+			// convert the selected freq into a meaningful string
+			targetFreq, _ := strconv.Atoi(task.Freq)
+			for _, f := range freqs {
+				if f.ID == targetFreq {
+					task.Freq = f.Name
+				}
+			}
+
 			go func() {
-				// data := shared.SchedTaskUpdateData{
-				// 	Channel:   Session.Channel,
-				// 	SchedTask: &task,
-				// }
-				// newID := 0
-				// rpcClient.Call("TaskRPC.Insert", data, &newID)
-				// print("added task ID", newID)
-				// Session.Router.Navigate(BackURL)
+				data := shared.SchedTaskUpdateData{
+					Channel:   Session.Channel,
+					SchedTask: &task,
+				}
+				newID := 0
+				rpcClient.Call("TaskRPC.Insert", data, &newID)
+				print("added task ID", newID)
+				Session.Router.Navigate(BackURL)
 			}()
 		})
 
