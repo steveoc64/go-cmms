@@ -42,7 +42,7 @@ func (t *SchedTask) ShowFrequency() string {
 	case "Every N Days":
 		return fmt.Sprintf("Every %d Days", *t.Days)
 	case "One Off":
-		return fmt.Sprintf("Once at - %s", t.StartDate.Format("Mon, Jan 2 2006"))
+		return fmt.Sprintf("Once at - %s", t.OneOffDate.Format("Mon, Jan 2 2006"))
 	case "Job Count":
 		return fmt.Sprintf("Job Count > %d", *t.Count)
 	}
