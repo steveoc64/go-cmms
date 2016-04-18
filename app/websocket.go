@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 	// "github.com/gopherjs/gopherjs/js"
 	"bufio"
 	"encoding/gob"
@@ -114,7 +115,18 @@ func (c *myClientCodec) ReadResponseHeader(r *rpc.Response) error {
 
 func autoReload() {
 
-	print("TODO - something interesting to force an auto reload")
+	print("Connection has expired !!")
+	print("Logging out in ... 3")
+
+	go func() {
+		time.Sleep(time.Second)
+		print(".. 2")
+		time.Sleep(time.Second)
+		print(". 1")
+		time.Sleep(time.Second)
+		print("!! BYE !!")
+		Logout()
+	}()
 }
 
 func (c *myClientCodec) ReadResponseBody(body interface{}) error {

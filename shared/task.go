@@ -65,3 +65,52 @@ func (t *SchedTask) ShowComponent(m Machine) string {
 	}
 	return fmt.Sprintf("%s:%d:%s", t.CompType, t.ToolID, t.Component)
 }
+
+type Task struct {
+	ID                int        `db:"id"`
+	MachineID         int        `db:"machine_id"`
+	MachineName       string     `db:"machine_name"`
+	SiteID            int        `db:"site_id"`
+	SiteName          string     `db:"site_name"`
+	SchedID           int        `db:"sched_id"`
+	CompType          string     `db:"comp_type"`
+	ToolID            int        `db:"tool_id"`
+	Component         string     `db:"component"`
+	Descr             string     `db:"descr"`
+	CreatedDate       time.Time  `db:"created_date"`
+	StartDate         *time.Time `db:"startdate"`
+	Log               string     `db:"log"`
+	DueDate           *time.Time `db:"due_date"`
+	EscalateDate      *time.Time `db:"escalate_date"`
+	AssignedBy        *int       `db:"assigned_by"`
+	AssignedTo        *int       `db:"assigned_to"`
+	Username          *string    `db:"username"`
+	AssignedDate      *time.Time `db:"assigned_date"`
+	CompletedDate     *time.Time `db:"completed_date"`
+	HasIssue          bool       `db:"has_issue"`
+	IssueResolvedDate *time.Time `db:"issue_resolved_date"`
+	LabourEst         float64    `db:"labour_est"`
+	MaterialEst       float64    `db:"material_est"`
+	LabourCost        float64    `db:"labour_cost"`
+	MaterialCost      float64    `db:"material_cost"`
+	OtherCostDesc     *[]string  `db:"other_cost_desc"`
+	OtherCost         *[]float64 `db:"other_cost"`
+}
+
+const (
+	dateDisplayFormat = "Mon, Jan 2 2006"
+)
+
+func (t *Task) GetStartDate() string {
+	if t.StartDate == nil {
+		return ""
+	}
+	return t.StartDate.Format(dateDisplayFormat)
+}
+
+func (t *Task) GetDueDate() string {
+	if t.DueDate == nil {
+		return ""
+	}
+	return t.DueDate.Format(dateDisplayFormat)
+}

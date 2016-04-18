@@ -64,6 +64,7 @@ func enableRoutes(Role string) {
 			"machine-stoppage-list": machineStoppageList,
 			"sched-edit":            schedEdit,
 			"task-list":             taskList,
+			"task-edit":             taskEdit,
 			"stoppage-list":         stoppageList,
 			"part-list":             partList,
 			"part-edit":             partEdit,

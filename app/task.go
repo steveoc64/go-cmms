@@ -20,8 +20,43 @@ func taskMaint(context *router.Context) {
 	print("TODO - taskmaint")
 }
 
+func taskEdit(context *router.Context) {
+	print("TODO - taskEdit")
+}
+
+// Show a list of all tasks
 func taskList(context *router.Context) {
-	print("TODO - taskList")
+
+	go func() {
+		tasks := []shared.Task{}
+		rpcClient.Call("TaskRPC.List", Session.Channel, &tasks)
+
+		form := formulate.ListForm{}
+		form.New("fa-server", "Task List - All Active Tasks")
+
+		// Define the layout
+		form.Column("User", "Username")
+		form.Column("Date", "GetStartDate")
+		form.Column("Due", "GetDueDate")
+		form.Column("Site", "SiteName")
+		form.Column("Machine", "MachineName")
+		form.Column("Component", "Component")
+		form.Column("Description", "Descr")
+		form.Column("Completed", "CompletedDate")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate("/")
+		})
+
+		form.RowEvent(func(key string) {
+			Session.Router.Navigate("/task/" + key)
+		})
+
+		form.Render("task-list", "main", tasks)
+
+	}()
 }
 
 type MachineSchedListData struct {
@@ -519,5 +554,41 @@ func machineSchedAdd(context *router.Context) {
 }
 
 func siteTaskList(context *router.Context) {
-	print("TODO - siteTaskList")
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		site := shared.Site{}
+		tasks := []shared.Task{}
+		rpcClient.Call("SiteRPC.Get", id, &site)
+		rpcClient.Call("TaskRPC.SiteList", id, &tasks)
+
+		form := formulate.ListForm{}
+		form.New("fa-server", "Active Tasks for "+site.Name)
+
+		// Define the layout
+		form.Column("User", "Username")
+		form.Column("Date", "GetStartDate")
+		form.Column("Due", "GetDueDate")
+		form.Column("Machine", "MachineName")
+		form.Column("Component", "Component")
+		form.Column("Description", "Descr")
+		form.Column("Completed", "CompletedDate")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate("/")
+		})
+
+		form.RowEvent(func(key string) {
+			Session.Router.Navigate("/task/" + key)
+		})
+
+		form.Render("site-task-list", "main", tasks)
+
+	}()
 }
