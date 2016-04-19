@@ -115,3 +115,21 @@ func (t *Task) GetDueDate() string {
 	}
 	return t.DueDate.Format(dateDisplayFormat)
 }
+
+func (t *Task) DurationDays() string {
+	d := t.DueDate.Sub(*t.StartDate)
+	days := d / (time.Hour * 24)
+	if days == 1 {
+		return "1 Day"
+	}
+	return fmt.Sprintf("%d Days", days)
+}
+
+func (t *Task) DurationHrs() string {
+	d := t.DueDate.Sub(*t.StartDate)
+	hrs := d / (time.Hour)
+	if hrs == 1 {
+		return "1 Hour"
+	}
+	return fmt.Sprintf("%d Hours", hrs)
+}

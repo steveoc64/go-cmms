@@ -35,13 +35,17 @@ func taskList(context *router.Context) {
 		form.New("fa-server", "Task List - All Active Tasks")
 
 		// Define the layout
-		form.Column("User", "Username")
+		switch Session.UserRole {
+		case "Admin", "Site Manager":
+			form.Column("User", "Username")
+		}
 		form.Column("Date", "GetStartDate")
-		form.Column("Due", "GetDueDate")
+		// form.Column("Due", "GetDueDate")
 		form.Column("Site", "SiteName")
 		form.Column("Machine", "MachineName")
 		form.Column("Component", "Component")
 		form.Column("Description", "Descr")
+		form.Column("Duration", "DurationDays")
 		form.Column("Completed", "CompletedDate")
 
 		// Add event handlers
@@ -570,12 +574,19 @@ func siteTaskList(context *router.Context) {
 		form.New("fa-server", "Active Tasks for "+site.Name)
 
 		// Define the layout
-		form.Column("User", "Username")
+
+		switch Session.UserRole {
+		case "Admin", "Site Manager":
+			form.Column("User", "Username")
+		}
+
 		form.Column("Date", "GetStartDate")
-		form.Column("Due", "GetDueDate")
+		// form.Column("Due", "GetDueDate")
+		// form.Column("Site", "SiteName")
 		form.Column("Machine", "MachineName")
 		form.Column("Component", "Component")
 		form.Column("Description", "Descr")
+		form.Column("Duration", "DurationDays")
 		form.Column("Completed", "CompletedDate")
 
 		// Add event handlers

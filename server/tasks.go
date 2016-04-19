@@ -63,6 +63,9 @@ func (t *TaskRPC) UpdateSched(data *shared.SchedTaskUpdateData, ok *bool) error 
 			}
 		}
 	}
+	if data.SchedTask.DurationDays < 1 {
+		data.SchedTask.DurationDays = 1
+	}
 
 	conn := Connections.Get(data.Channel)
 
@@ -123,6 +126,9 @@ func (t *TaskRPC) InsertSched(data *shared.SchedTaskUpdateData, id *int) error {
 			}
 		}
 	}
+	if data.SchedTask.DurationDays < 1 {
+		data.SchedTask.DurationDays = 1
+	}
 
 	DB.InsertInto("sched_task").
 		Whitelist("machine_id", "comp_type", "tool_id",
@@ -150,19 +156,62 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 
 	conn := Connections.Get(channel)
 
-	// Read the sites that this user has access to
-	err := DB.SQL(`select 
+	switch conn.UserRole {
+	case "Worker":
+		// Limit the tasks to only our own tasks
+		err := DB.SQL(`select 
+		t.*,m.name as machine_name,s.name as site_name,u.username as username
+		from task t 
+			left join machine m on m.id=t.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=t.assigned_to
+		where t.assigned_to=$1
+		order by t.startdate`, conn.UserID).
+			QueryStructs(tasks)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	case "Site Manager":
+		// Limit the tasks to just the sites that we are in control of
+		sites := []int{}
+
+		DB.SQL(`select site_id from user_site where user_id=$1`, conn.UserID).QuerySlice(&sites)
+
+		err := DB.SQL(`select 
+		t.*,m.name as machine_name,s.name as site_name,u.username as username
+		from task t 
+			left join machine m on m.id=t.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=t.assigned_to
+		where m.site_id in $1
+		order by t.startdate`, sites).
+			QueryStructs(tasks)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	case "Admin":
+		err := DB.SQL(`select 
 		t.*,m.name as machine_name,s.name as site_name,u.username as username
 		from task t 
 			left join machine m on m.id=t.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
 		order by t.startdate`).
-		QueryStructs(tasks)
-
-	if err != nil {
-		log.Println(err.Error())
+			QueryStructs(tasks)
+		if err != nil {
+			log.Println(err.Error())
+		}
 	}
+
+	// // Read the sites that this user has access to
+	// err := DB.SQL(`select
+	// 	t.*,m.name as machine_name,s.name as site_name,u.username as username
+	// 	from task t
+	// 		left join machine m on m.id=t.machine_id
+	// 		left join site s on s.id=m.site_id
+	// 		left join users u on u.id=t.assigned_to
+	// 	order by t.startdate`).
+	// 	QueryStructs(tasks)
 
 	logger(start, "Task.List",
 		fmt.Sprintf("Channel %d, User %d %s %s",
