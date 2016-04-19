@@ -212,6 +212,18 @@ func (t *TaskRPC) Generate(runDate time.Time, count *int) error {
 
 var GenerateMutex sync.Mutex
 
+func autoGenerate() {
+
+	log.Printf("... Running task scheduler")
+	go func() {
+		newTasks := 0
+		for {
+			schedTaskScan(time.Now(), &newTasks)
+			time.Sleep(1 * time.Hour)
+		}
+	}()
+}
+
 func schedTaskScan(runDate time.Time, count *int) error {
 
 	GenerateMutex.Lock()

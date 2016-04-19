@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
@@ -75,9 +74,8 @@ func main() {
 	Connections = new(ConnectionsList)
 	registerRPC()
 
-	// On startup, generate a batch of tasks
-	newTasks := 0
-	schedTaskScan(time.Now(), &newTasks)
+	// On startup, generate a batch of tasks, and continue scanning on the hour
+	autoGenerate()
 
 	e.Get("/ws", standard.WrapHandler(websocket.Handler(webSocket)))
 
