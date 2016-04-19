@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
@@ -73,6 +74,11 @@ func main() {
 	// Add the all important Websocket handler
 	Connections = new(ConnectionsList)
 	registerRPC()
+
+	// On startup, generate a batch of tasks
+	newTasks := 0
+	schedTaskScan(time.Now(), &newTasks)
+
 	e.Get("/ws", standard.WrapHandler(websocket.Handler(webSocket)))
 
 	// e.WebSocket("/ws", webSocket)

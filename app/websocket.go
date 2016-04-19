@@ -120,11 +120,11 @@ func autoReload() {
 
 	go func() {
 		time.Sleep(time.Second)
-		print(".. 2")
+		print("................ 2")
 		time.Sleep(time.Second)
-		print(". 1")
+		print("........... 1")
 		time.Sleep(time.Second)
-		print("!! BYE !!")
+		print(" !! BYE !!")
 		Logout()
 	}()
 }

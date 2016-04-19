@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/steveoc64/go-cmms/shared"
@@ -20,7 +21,7 @@ func (t *TaskRPC) ListMachineSched(machineID int, tasks *[]shared.SchedTask) err
 	start := time.Now()
 
 	// Read the sites that this user has access to
-	err := DB.SQL(`select * from sched_task where machine_id=$1`, machineID).QueryStructs(tasks)
+	err := DB.SQL(`select * from sched_task where machine_id=$1 order by id`, machineID).QueryStructs(tasks)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -52,6 +53,17 @@ func (t *TaskRPC) GetSched(id int, task *shared.SchedTask) error {
 func (t *TaskRPC) UpdateSched(data *shared.SchedTaskUpdateData, ok *bool) error {
 	start := time.Now()
 
+	if data.SchedTask.Freq == "Every N Days" {
+		if data.SchedTask.Days == nil {
+			i := 1
+			data.SchedTask.Days = &i
+		} else {
+			if *data.SchedTask.Days < 1 {
+				*data.SchedTask.Days = 1
+			}
+		}
+	}
+
 	conn := Connections.Get(data.Channel)
 
 	DB.Update("sched_task").
@@ -70,6 +82,9 @@ func (t *TaskRPC) UpdateSched(data *shared.SchedTaskUpdateData, ok *bool) error 
 			data.SchedTask.ToolID, data.SchedTask.Component, data.SchedTask.Descr))
 
 	*ok = true
+
+	newTasks := 0
+	schedTaskScan(time.Now(), &newTasks)
 	return nil
 }
 
@@ -98,6 +113,17 @@ func (t *TaskRPC) InsertSched(data *shared.SchedTaskUpdateData, id *int) error {
 
 	conn := Connections.Get(data.Channel)
 
+	if data.SchedTask.Freq == "Every N Days" {
+		if data.SchedTask.Days == nil {
+			i := 1
+			data.SchedTask.Days = &i
+		} else {
+			if *data.SchedTask.Days < 1 {
+				*data.SchedTask.Days = 1
+			}
+		}
+	}
+
 	DB.InsertInto("sched_task").
 		Whitelist("machine_id", "comp_type", "tool_id",
 			"component", "descr", "startdate", "oneoffdate", "freq", "days", "week", "count",
@@ -112,6 +138,9 @@ func (t *TaskRPC) InsertSched(data *shared.SchedTaskUpdateData, id *int) error {
 		fmt.Sprintf("%d %d %s %d %s %s",
 			*id, data.SchedTask.MachineID, data.SchedTask.CompType,
 			data.SchedTask.ToolID, data.SchedTask.Component, data.SchedTask.Descr))
+
+	newTasks := 0
+	schedTaskScan(time.Now(), &newTasks)
 
 	return nil
 }
@@ -178,6 +207,16 @@ func (t *TaskRPC) SiteList(id int, tasks *[]shared.Task) error {
 }
 
 func (t *TaskRPC) Generate(runDate time.Time, count *int) error {
+	return schedTaskScan(runDate, count)
+}
+
+var GenerateMutex sync.Mutex
+
+func schedTaskScan(runDate time.Time, count *int) error {
+
+	GenerateMutex.Lock()
+	defer GenerateMutex.Unlock()
+
 	start := time.Now()
 
 	numTasks := 0
@@ -185,20 +224,18 @@ func (t *TaskRPC) Generate(runDate time.Time, count *int) error {
 	month := runDate.Month()
 	year := runDate.Year()
 
+	today := time.Now()
 	nextWeek := runDate.AddDate(0, 0, 7)
 	tommorow := runDate.AddDate(0, 0, 1)
 	priorWeek := runDate.AddDate(0, 0, -7)
 
 	log.Printf("»»» SchedTask Generate run for %s", runDate.Format(rfc3339DateLayout))
-	log.Printf(".. Next Week = %s", nextWeek.Format(rfc3339DateLayout))
-	log.Printf(".. Prior Week = %s", priorWeek.Format(rfc3339DateLayout))
 
 	// work out which week of the month we are in
 	firstOfTheMonth := time.Date(year, month, 1, 0, 0, 0, 0, time.Local)
 	firstday := firstOfTheMonth.Weekday()
 	firstWeek := firstOfTheMonth
 
-	log.Printf(".. first of the month falls on a %s", firstday)
 	dd := (int)(firstday)
 	switch dd {
 	case 0:
@@ -214,10 +251,14 @@ func (t *TaskRPC) Generate(runDate time.Time, count *int) error {
 	fourthWeek := firstWeek.AddDate(0, 0, 21)
 	fifthWeek := firstWeek.AddDate(0, 0, 28)
 
+	log.Printf(".. first of the month falls on a %s", firstday)
 	log.Printf(".. 1st Week is %s", firstWeek.Format(rfc3339DateLayout))
 	log.Printf(".. 2nd Week is %s", secondWeek.Format(rfc3339DateLayout))
 	log.Printf(".. 3rd Week is %s", thirdWeek.Format(rfc3339DateLayout))
 	log.Printf(".. 4th Week is %s", fourthWeek.Format(rfc3339DateLayout))
+	log.Printf(".. Next Week = %s", nextWeek.Format(rfc3339DateLayout))
+	log.Printf(".. Prior Week = %s", priorWeek.Format(rfc3339DateLayout))
+	log.Printf(".. Tomorrow = %s", tommorow.Format(rfc3339DateLayout))
 
 	// Go through each scheduled task in turn
 	scheds := []shared.SchedTask{}
@@ -226,13 +267,20 @@ func (t *TaskRPC) Generate(runDate time.Time, count *int) error {
 	DB.SQL(`select * from sched_task order by id`).QueryStructs(&scheds)
 
 	for _, st := range scheds {
-		// log.Printf("consider the case of task %d with freq %s", st.ID, st.Freq)
+		doit := true
+
+		// if st.LastGenerated == nil {
+		// 	log.Printf("--------- Processing Sched Task %d with freq %s never generated yet", st.ID, st.Freq)
+		// } else {
+		// 	log.Printf("--------- Processing Sched Task %d with freq %s, last gen on %s", st.ID, st.Freq, st.LastGenerated.Format(rfc3339DateLayout))
+		// }
+
 		switch st.Freq {
 		case "Monthly":
 			dueDate := firstWeek
 			lastDate := secondWeek
 			if st.Week == nil {
-				log.Printf("Error - Monthly Task %d has null week", st.ID)
+				// log.Printf("Error - Monthly Task %d has null week", st.ID)
 				break
 			}
 			switch *st.Week {
@@ -250,37 +298,52 @@ func (t *TaskRPC) Generate(runDate time.Time, count *int) error {
 				lastDate = fifthWeek
 			}
 
-			if dueDate.After(priorWeek) && dueDate.Before(tommorow) {
-				log.Printf("Task %d On Week %d Next Due on %s last date %s",
-					st.ID, *st.Week,
-					dueDate.Format(rfc3339DateLayout),
-					lastDate.Format(rfc3339DateLayout))
-				// Generate a new Task record
-				genTask(st, &newTask, dueDate, lastDate)
-				numTasks++
+			// now that we knov the duedate, check that we havent already generated this task
+			if st.LastGenerated != nil {
+				if st.LastGenerated.Format(rfc3339DateLayout) == dueDate.Format(rfc3339DateLayout) {
+					// log.Printf("Task %d has already been generated for %s", st.ID, dueDate.Format(rfc3339DateLayout))
+					doit = false
+				}
+			}
 
-			} else {
-				log.Printf("Task %d On Week %d Next Due on %s last date %s (not due yet)",
-					st.ID, *st.Week,
-					dueDate.Format(rfc3339DateLayout),
-					lastDate.Format(rfc3339DateLayout))
+			if doit {
+				if dueDate.After(priorWeek) && dueDate.Before(tommorow) {
+
+					log.Printf("»»» Task %d On Week %d Next Due on %s last date %s",
+						st.ID, *st.Week,
+						dueDate.Format(rfc3339DateLayout),
+						lastDate.Format(rfc3339DateLayout))
+
+					// Generate a new Task record
+					genTask(st, &newTask, dueDate, lastDate)
+					numTasks++
+				}
 			}
 		case "Yearly":
 			// If the one off date is within the window
 			if st.StartDate == nil {
 				log.Printf("Error - Task %d is yearly but has a null startdate", st.ID)
 			} else {
-				if st.StartDate.After(priorWeek) && st.StartDate.Before(nextWeek) {
-					log.Printf("Task %d Yearly date %s is in the window %s - %s",
-						st.ID,
-						st.StartDate.Format(rfc3339DateLayout),
-						priorWeek.Format(rfc3339DateLayout),
-						nextWeek.Format(rfc3339DateLayout))
+				if st.LastGenerated != nil {
 
-					// Generate a new Task record
-					dueDate := *st.StartDate
-					genTask(st, &newTask, dueDate, dueDate.AddDate(0, 0, st.DurationDays))
-					numTasks++
+					if st.LastGenerated.Format(rfc3339DateLayout) == st.StartDate.Format(rfc3339DateLayout) {
+						// log.Printf("Task %d has already been generated for %s", st.ID, st.StartDate.Format(rfc3339DateLayout))
+						doit = false
+					}
+				}
+				if doit {
+					if st.StartDate.After(priorWeek) && st.StartDate.Before(nextWeek) {
+						log.Printf("»»» Task %d Yearly date %s is in the window %s - %s",
+							st.ID,
+							st.StartDate.Format(rfc3339DateLayout),
+							priorWeek.Format(rfc3339DateLayout),
+							nextWeek.Format(rfc3339DateLayout))
+
+						// Generate a new Task record
+						dueDate := *st.StartDate
+						genTask(st, &newTask, today, dueDate.AddDate(0, 0, st.DurationDays))
+						numTasks++
+					}
 				}
 			}
 		case "One Off":
@@ -288,23 +351,69 @@ func (t *TaskRPC) Generate(runDate time.Time, count *int) error {
 			if st.OneOffDate == nil {
 				log.Printf("Error - Task %d is yearly but has a null startdate", st.ID)
 			} else {
-				if st.OneOffDate.After(priorWeek) && st.OneOffDate.Before(nextWeek) {
-					log.Printf("Task %d OneOff date %s is in the window %s - %s",
-						st.ID,
-						st.OneOffDate.Format(rfc3339DateLayout),
-						priorWeek.Format(rfc3339DateLayout),
-						nextWeek.Format(rfc3339DateLayout))
+				if st.LastGenerated != nil {
+					if st.LastGenerated.Format(rfc3339DateLayout) == st.OneOffDate.Format(rfc3339DateLayout) {
+						// log.Printf("Task %d has already been generated for %s", st.ID, st.OneOffDate.Format(rfc3339DateLayout))
+						doit = false
+					}
+				}
+				if doit {
+					if st.OneOffDate.After(priorWeek) && st.OneOffDate.Before(nextWeek) {
+						log.Printf("»»» Task %d OneOff date %s is in the window %s - %s",
+							st.ID,
+							st.OneOffDate.Format(rfc3339DateLayout),
+							priorWeek.Format(rfc3339DateLayout),
+							nextWeek.Format(rfc3339DateLayout))
 
-					// Generate a new Task record
-					dueDate := *st.OneOffDate
-					genTask(st, &newTask, dueDate, dueDate.AddDate(0, 0, st.DurationDays))
-					numTasks++
+						// Generate a new Task record
+						dueDate := *st.OneOffDate
+						genTask(st, &newTask, dueDate, dueDate.AddDate(0, 0, st.DurationDays))
+						numTasks++
+					}
 				}
 			}
 		case "Every N Days":
-			// Get the last one generated
-			// If there is none, then create the first one
-			// Else, calculate the next date, and check if its in the window
+			if st.Days == nil {
+				log.Printf("Error - Task %d on every N days has no days specified", st.ID)
+			} else {
+
+				// Get the last one generated
+				// If there is none, then create the first one
+				if st.LastGenerated == nil {
+					log.Printf("»»» Task %d Every %d days, first entry - start now",
+						st.ID,
+						*st.Days)
+
+					// Generate a new Task record
+					genTask(st, &newTask, today, today.AddDate(0, 0, st.DurationDays))
+					numTasks++
+					st.LastGenerated = &today
+
+				}
+				// Else, calculate the next date, and check if its in the window
+				allDone := false
+				nextDate := st.LastGenerated.AddDate(0, 0, *st.Days)
+
+				for !allDone {
+					if nextDate.After(priorWeek) && nextDate.Before(nextWeek) {
+						log.Printf("»»» Task %d Every %d days, next due at %s is within %s - %s",
+							st.ID,
+							*st.Days,
+							nextDate.Format(rfc3339DateLayout),
+							priorWeek.Format(rfc3339DateLayout),
+							nextWeek.Format(rfc3339DateLayout))
+
+						// Generate a new Task record
+						genTask(st, &newTask, nextDate, nextDate.AddDate(0, 0, st.DurationDays))
+						numTasks++
+
+						// keep looping, looking at the next date
+						nextDate = nextDate.AddDate(0, 0, *st.Days)
+					} else {
+						allDone = true
+					}
+				}
+			}
 		case "Job Count":
 			// Get the last generated job count
 			// If there is none, then create the first one
@@ -327,7 +436,7 @@ type machineLookup struct {
 
 func genTask(st shared.SchedTask, task *shared.Task, startDate time.Time, dueDate time.Time) error {
 
-	log.Printf("»»» Generating Task from Sched %d", st.ID)
+	// log.Printf("»»» Generating Task from Sched %d Freq %s for date %s", st.ID, st.Freq, startDate.Format(rfc3339DateLayout))
 
 	// Calculate the receiving user for this task
 	userIDs := machineLookup{}
@@ -366,6 +475,8 @@ func genTask(st shared.SchedTask, task *shared.Task, startDate time.Time, dueDat
 		Record(task).
 		Returning("id").
 		QueryScalar(&task.ID)
+
+	DB.SQL(`update sched_task set last_generated=$2 where id=$1`, st.ID, startDate).Exec()
 
 	return nil
 }

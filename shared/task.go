@@ -24,6 +24,7 @@ type SchedTask struct {
 	MaterialCost  float64    `db:"material_cost"`
 	OtherCostDesc *[]string  `db:"other_cost_desc"`
 	OtherCost     *[]float64 `db:"other_cost"`
+	LastGenerated *time.Time `db:"last_generated"`
 }
 
 type SchedTaskUpdateData struct {
