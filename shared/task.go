@@ -80,12 +80,15 @@ type Task struct {
 	Descr             string     `db:"descr"`
 	CreatedDate       time.Time  `db:"created_date"`
 	StartDate         *time.Time `db:"startdate"`
+	DisplayStartDate  string     `db:"display_startdate"`
 	Log               string     `db:"log"`
 	DueDate           *time.Time `db:"due_date"`
+	DisplayDueDate    string     `db:"display_duedate"`
 	EscalateDate      *time.Time `db:"escalate_date"`
 	AssignedBy        *int       `db:"assigned_by"`
 	AssignedTo        *int       `db:"assigned_to"`
 	Username          *string    `db:"username"`
+	DisplayUsername   string     `db:"display_username"`
 	AssignedDate      *time.Time `db:"assigned_date"`
 	CompletedDate     *time.Time `db:"completed_date"`
 	HasIssue          bool       `db:"has_issue"`
@@ -96,6 +99,11 @@ type Task struct {
 	MaterialCost      float64    `db:"material_cost"`
 	OtherCostDesc     *[]string  `db:"other_cost_desc"`
 	OtherCost         *[]float64 `db:"other_cost"`
+}
+
+type TaskUpdateData struct {
+	Channel int
+	Task    *Task
 }
 
 const (

@@ -151,6 +151,16 @@ func (t *TaskRPC) InsertSched(data *shared.SchedTaskUpdateData, id *int) error {
 	return nil
 }
 
+func (t *TaskRPC) Update(data shared.TaskUpdateData, done *bool) error {
+	log.Printf("TODO TaskRPC.Update")
+	return nil
+}
+
+func (t *TaskRPC) Delete(data shared.TaskUpdateData, done *bool) error {
+	log.Printf("TODO TaskRPC.Delete")
+	return nil
+}
+
 func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 	start := time.Now()
 
@@ -217,6 +227,29 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d Tasks", len(*tasks)))
+
+	return nil
+}
+
+func (t *TaskRPC) Get(id int, task *shared.Task) error {
+	start := time.Now()
+
+	err := DB.SQL(`select 
+		t.*,m.name as machine_name,s.name as site_name,u.username as username
+		from task t 
+			left join machine m on m.id=t.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=t.assigned_to
+		where t.id=$1`, id).
+		QueryStruct(task)
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	logger(start, "Task.Get",
+		fmt.Sprintf("ID %d", id),
+		task.Descr)
 
 	return nil
 }

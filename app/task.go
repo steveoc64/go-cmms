@@ -21,7 +21,92 @@ func taskMaint(context *router.Context) {
 }
 
 func taskEdit(context *router.Context) {
-	print("TODO - taskEdit")
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		task := shared.Task{}
+
+		rpcClient.Call("TaskRPC.Get", id, &task)
+
+		BackURL := "/tasks"
+		title := fmt.Sprintf("Task Details - %d", id)
+		form := formulate.EditForm{}
+		form.New("fa-server", title)
+
+		task.DisplayStartDate = task.StartDate.Format("Mon, Jan 2 2006")
+		task.DisplayDueDate = task.DueDate.Format("Mon, Jan 2 2006")
+		if task.Username == nil {
+			task.DisplayUsername = "Unassigned"
+		} else {
+			task.DisplayUsername = *task.Username
+		}
+
+		print("task =", task)
+		// Layout the fields
+		form.Row(3).
+			AddInput(1, "User", "DisplayUsername").
+			AddInput(1, "Start Date", "DisplayStartDate").
+			AddInput(1, "Due Date", "DisplayDueDate")
+
+		form.Row(3).
+			AddInput(1, "Site", "SiteName").
+			AddInput(1, "Machine", "MachineName").
+			AddInput(1, "Component", "Component")
+
+		form.Row(1).
+			AddTextarea(1, "Description", "Descr")
+
+		form.Row(1).
+			AddTextarea(1, "Notes", "Log")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(BackURL)
+		})
+
+		form.DeleteEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			task.ID = id
+			go func() {
+				data := shared.TaskUpdateData{
+					Channel: Session.Channel,
+					Task:    &task,
+				}
+				done := false
+				rpcClient.Call("TaskRPC.Delete", data, &done)
+				Session.Router.Navigate(BackURL)
+			}()
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&task)
+			data := shared.TaskUpdateData{
+				Channel: Session.Channel,
+				Task:    &task,
+			}
+			go func() {
+				done := false
+				rpcClient.Call("TaskRPC.Update", data, &done)
+				Session.Router.Navigate(BackURL)
+			}()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &task)
+
+		// And attach actions
+		form.ActionGrid("event-actions", "#action-grid", task.ID, func(url string) {
+			Session.Router.Navigate(url)
+		})
+
+	}()
+
 }
 
 // Show a list of all tasks
