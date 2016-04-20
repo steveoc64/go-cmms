@@ -570,6 +570,7 @@ func siteTaskList(context *router.Context) {
 		rpcClient.Call("SiteRPC.Get", id, &site)
 		rpcClient.Call("TaskRPC.SiteList", id, &tasks)
 
+		BackURL := fmt.Sprintf("/site/%d", id)
 		form := formulate.ListForm{}
 		form.New("fa-server", "Active Tasks for "+site.Name)
 
@@ -592,7 +593,7 @@ func siteTaskList(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate("/")
+			Session.Router.Navigate(BackURL)
 		})
 
 		form.RowEvent(func(key string) {

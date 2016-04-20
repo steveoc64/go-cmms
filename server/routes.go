@@ -26,6 +26,7 @@ func getRoutes(uid int, role string) []shared.UserRoute {
 			{Route: "/tasks", Func: "task-list"},
 			{Route: "/task/{id}", Func: "task-edit"},
 			{Route: "/stoppages", Func: "stoppage-list"},
+			{Route: "/stoppage/{id}", Func: "stoppage-edit"},
 			{Route: "/parts", Func: "part-list"},
 			{Route: "/part/add", Func: "part-add"},
 			{Route: "/part/{id}", Func: "part-edit"},

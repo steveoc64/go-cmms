@@ -441,7 +441,8 @@ perspective effects (not including the modals and the overlay).
 }
 
 .md-show.md-effect-12 ~ .md-overlay {
-	background: #FEFEB2; // lemonchiffon
+	// background: #FEFEB2; // lemonchiffon
+	background: #ffffff; // lemonchiffon
 } 
 
 .md-effect-12 .md-content h3,

@@ -17,7 +17,7 @@ type MachineReq struct {
 
 type Machine struct {
 	ID         int         `db:"id"`
-	SiteId     int         `db:"site_id"`
+	SiteID     int         `db:"site_id"`
 	Name       string      `db:"name"`
 	Descr      string      `db:"descr"`
 	Make       string      `db:"make"`

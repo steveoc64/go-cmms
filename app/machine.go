@@ -77,7 +77,7 @@ func machineEdit(context *router.Context) {
 		rpcClient.Call("MachineRPC.Get", id, &machine)
 		rpcClient.Call("UserRPC.List", Session.Channel, &users)
 
-		BackURL := fmt.Sprintf("/site/machine/%d", machine.SiteId)
+		BackURL := fmt.Sprintf("/site/machine/%d", machine.SiteID)
 		title := fmt.Sprintf("Machine Details - %s - %s", machine.Name, *machine.SiteName)
 		form := formulate.EditForm{}
 		form.New("fa-cogs", title)
@@ -183,7 +183,7 @@ func siteMachineAdd(context *router.Context) {
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&machine)
-			machine.SiteId = site.ID
+			machine.SiteID = site.ID
 			machine.Status = "Running"
 			go func() {
 				data := shared.MachineUpdateData{

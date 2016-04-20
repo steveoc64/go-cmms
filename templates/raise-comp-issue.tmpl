@@ -1,14 +1,20 @@
 <div class="md-content">
 	<h3>Raise New Issue</h3>	
+  {{if .IsTool}}
+	<h4>{{.Component.Name}} - {{.Machine.Name}} - {{.Machine.SiteName}}</h4>	
+	{{else}}
+	<h4>{{.NonTool}} - {{.Machine.Name}} - {{.Machine.SiteName}}</h4>	
+	{{end}}
+
 	<div id="issue-machine-diag" class="row"></div>
 	<div>
 	<form>
 		<fieldset>
 	    <label for="desc">Description of Problem</label>
 	    {{if .IsTool}}
-	    	<textarea id="desc">Problem with {{.Component.Name}} tool on {{.Machine.Name}} machine.</textarea>
+	    	<textarea id="evtdesc">Problem with {{.Component.Name}} tool on {{.Machine.Name}} machine.</textarea>
 	    {{else}}
-	    	<textarea id="desc">Problem with {{.NonTool}} on {{.Machine.Name}} machine.</textarea>
+	    	<textarea id="evtdesc">Problem with {{.NonTool}} on {{.Machine.Name}} machine.</textarea>
 	    {{end}}
 	    <label for="photo">Upload Photo</label>
 	    <input id="photo" name="photo" type="file">

@@ -22,15 +22,6 @@ type SiteMachineData struct {
 	Machines  []shared.Machine
 }
 
-type RaiseIssueData struct {
-	MachineID int
-	CompID    int
-	IsTool    bool
-	Machine   *shared.Machine
-	Component *shared.Component
-	NonTool   string
-}
-
 // Display a map showing the status of all sites, with buttons to
 // jump to specific sites
 func siteMap(context *router.Context) {
@@ -326,6 +317,8 @@ func siteMachines(context *router.Context) {
 		"Electrical", "Hydraulic", "Lube", "Printer", "Console", "Uncoiler", "Rollbed",
 	}
 
+	RefreshURL := fmt.Sprintf("/sitemachines/%d", id)
+
 	go func() {
 		data.MultiSite = true
 		rpcClient.Call("SiteRPC.Get", id, &data.Site)
@@ -388,7 +381,8 @@ func siteMachines(context *router.Context) {
 
 									// Get the details of the component that we clicked on
 									t := evt.Target()
-									d := RaiseIssueData{}
+									d := shared.RaiseIssue{}
+									d.Channel = Session.Channel
 									d.MachineID, _ = strconv.Atoi(t.GetAttribute("machine"))
 									d.CompID, _ = strconv.Atoi(t.GetAttribute("comp"))
 									d.IsTool = true
@@ -426,7 +420,14 @@ func siteMachines(context *router.Context) {
 									})
 									doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
 										evt.PreventDefault()
-										print("TODO - save the event details")
+										d.Channel = Session.Channel
+										d.Descr = doc.QuerySelector("#evtdesc").(*dom.HTMLTextAreaElement).Value
+										go func() {
+											newID := 0
+											rpcClient.Call("EventRPC.Raise", d, &newID)
+											print("Raised new event", newID)
+											Session.Router.Navigate(RefreshURL)
+										}()
 										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
 									})
 								})
@@ -439,7 +440,7 @@ func siteMachines(context *router.Context) {
 
 									// Get the details of the component that we clicked on
 									t := evt.Target()
-									d := RaiseIssueData{}
+									d := shared.RaiseIssue{}
 									d.MachineID, _ = strconv.Atoi(t.GetAttribute("machine"))
 									d.NonTool = t.GetAttribute("comp")
 									d.IsTool = false
@@ -469,7 +470,15 @@ func siteMachines(context *router.Context) {
 									})
 									doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
 										evt.PreventDefault()
-										print("TODO - save the event details")
+										d.Channel = Session.Channel
+										d.Descr = doc.QuerySelector("#evtdesc").(*dom.HTMLTextAreaElement).Value
+
+										go func() {
+											newID := 0
+											rpcClient.Call("EventRPC.Raise", d, &newID)
+											print("Raised new event", newID)
+											Session.Router.Navigate(RefreshURL)
+										}()
 										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
 									})
 								})
