@@ -1,16 +1,26 @@
 <div class="action-grid">
-	<div class="action__item" url="/task/complete/{{.}}">
-		<div class="action__title">Stoppages</div>
+	<div class="action__item" url="/stoppage/complete/{{.}}">
+		<div class="action__title">Complete</div>
 		<div class="action__icon"><i class="fa fa-thumbs-up fa-lg"></i></div>
 		<div class="action__text">
-			View Stoppage events that are outside of regular scheduled maintenance.			
+			<b>TODO</b><br>
+			Mark this event as complete, reset the tool and machine status.
 		</div>
 	</div>
-	<div class="action__item" url="/task/parts/{{.}}">
-		<div class="action__title">Parts</div>
-		<div class="action__icon"><i class="fa fa-puzzle-piece fa-lg"></i></div>
+	<div class="action__item" url="/stoppage/newtask/{{.}}">
+		<div class="action__title">New Task</div>
+		<div class="action__icon"><i class="fa fa-sign-in fa-lg"></i></div>
 		<div class="action__text">
-			Select Spare Parts used in this job.
+			<b>TODO</b><br>
+			List tasks / workorders for this event
+		</div>
+	</div>
+	<div class="action__item" url="/stoppage/tasks/{{.}}">
+		<div class="action__title">Tasks</div>
+		<div class="action__icon"><i class="fa fa-server fa-lg"></i></div>
+		<div class="action__text">
+			<b>TODO</b><br>
+			List tasks / workorders for this event
 		</div>
 	</div>
 </div>
