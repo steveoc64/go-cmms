@@ -60,6 +60,14 @@ func taskEdit(context *router.Context) {
 		form.Row(1).
 			AddTextarea(1, "Description", "Descr")
 
+		form.Row(2).
+			AddInput(1, "Labour Est $", "LabourEst").
+			AddInput(1, "Material Est $", "MaterialEst")
+
+		form.Row(2).
+			AddInput(1, "Actual Labour $", "LabourCost").
+			AddInput(1, "Actual Material $", "MaterialCost")
+
 		form.Row(1).
 			AddTextarea(1, "Notes", "Log")
 
@@ -101,7 +109,7 @@ func taskEdit(context *router.Context) {
 		form.Render("edit-form", "main", &task)
 
 		// And attach actions
-		form.ActionGrid("event-actions", "#action-grid", task.ID, func(url string) {
+		form.ActionGrid("task-actions", "#action-grid", task.ID, func(url string) {
 			Session.Router.Navigate(url)
 		})
 
@@ -123,6 +131,7 @@ func taskList(context *router.Context) {
 		switch Session.UserRole {
 		case "Admin", "Site Manager":
 			form.Column("User", "Username")
+			form.Column("TaskID", "ID")
 		}
 		form.Column("Date", "GetStartDate")
 		// form.Column("Due", "GetDueDate")

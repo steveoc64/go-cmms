@@ -152,7 +152,24 @@ func (t *TaskRPC) InsertSched(data *shared.SchedTaskUpdateData, id *int) error {
 }
 
 func (t *TaskRPC) Update(data shared.TaskUpdateData, done *bool) error {
-	log.Printf("TODO TaskRPC.Update")
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.Update("task").
+		SetWhitelist(data.Task,
+			"log",
+			"labour_cost", "material_cost").
+		Where("id = $1", data.Task.ID).
+		Exec()
+
+	logger(start, "Task.Update",
+		fmt.Sprintf("Channel %d, Task %d, User %d %s %s",
+			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%f %f %s",
+			data.Task.LabourCost, data.Task.MaterialCost, data.Task.Log))
+
+	*done = true
 	return nil
 }
 
