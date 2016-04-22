@@ -66,17 +66,32 @@ func stoppageEdit(context *router.Context) {
 		event.DisplayDate = event.StartDate.Format("Mon, Jan 2 2006 15:04:05")
 
 		// Layout the fields
-		form.Row(2).
-			AddDisplay(1, "Site", "SiteName").
-			AddDisplay(1, "Machine", "MachineName")
+		switch Session.UserRole {
+		case "Admin":
+			form.Row(2).
+				AddDisplay(1, "Site", "SiteName").
+				AddDisplay(1, "Machine", "MachineName")
 
-		form.Row(3).
-			AddDisplay(1, "Component", "ToolType").
-			AddDisplay(1, "StartDate", "DisplayDate").
-			AddDisplay(1, "Raised By", "Username")
+			form.Row(3).
+				AddDisplay(1, "Component", "ToolType").
+				AddDisplay(1, "StartDate", "DisplayDate").
+				AddDisplay(1, "Raised By", "Username")
 
-		form.Row(1).
-			AddTextarea(1, "Notes", "Notes")
+			form.Row(1).
+				AddTextarea(1, "Notes", "Notes")
+		case "Site Manager":
+			form.Row(2).
+				AddDisplay(1, "Site", "SiteName").
+				AddDisplay(1, "Machine", "MachineName")
+
+			form.Row(3).
+				AddDisplay(1, "Component", "ToolType").
+				AddDisplay(1, "StartDate", "DisplayDate").
+				AddDisplay(1, "Raised By", "Username")
+
+			form.Row(1).
+				AddDisplayArea(1, "Notes", "Notes")
+		}
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -84,41 +99,51 @@ func stoppageEdit(context *router.Context) {
 			Session.Router.Navigate(BackURL)
 		})
 
-		form.DeleteEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			event.ID = id
-			go func() {
+		// Only Admin has the power to delete, update, or dig deeper on an event
+		if Session.UserRole == "Admin" {
+			form.DeleteEvent(func(evt dom.Event) {
+				evt.PreventDefault()
+				event.ID = id
+				go func() {
+					data := shared.EventUpdateData{
+						Channel: Session.Channel,
+						Event:   &event,
+					}
+					done := false
+					rpcClient.Call("EventRPC.Delete", data, &done)
+					Session.Router.Navigate(BackURL)
+				}()
+			})
+
+			form.SaveEvent(func(evt dom.Event) {
+				evt.PreventDefault()
+				form.Bind(&event)
 				data := shared.EventUpdateData{
 					Channel: Session.Channel,
 					Event:   &event,
 				}
-				done := false
-				rpcClient.Call("EventRPC.Delete", data, &done)
-				Session.Router.Navigate(BackURL)
-			}()
-		})
-
-		form.SaveEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			form.Bind(&event)
-			data := shared.EventUpdateData{
-				Channel: Session.Channel,
-				Event:   &event,
-			}
-			go func() {
-				done := false
-				rpcClient.Call("EventRPC.Update", data, &done)
-				Session.Router.Navigate(BackURL)
-			}()
-		})
+				go func() {
+					done := false
+					rpcClient.Call("EventRPC.Update", data, &done)
+					Session.Router.Navigate(BackURL)
+				}()
+			})
+		}
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &event)
 
 		// And attach actions
-		form.ActionGrid("event-actions", "#action-grid", event.ID, func(url string) {
-			Session.Router.Navigate(url)
-		})
+		switch Session.UserRole {
+		case "Admin":
+			form.ActionGrid("event-actions", "#action-grid", event.ID, func(url string) {
+				Session.Router.Navigate(url)
+			})
+		case "Site Manager":
+			form.ActionGrid("event-sm-actions", "#action-grid", event.ID, func(url string) {
+				Session.Router.Navigate(url)
+			})
+		}
 
 	}()
 
