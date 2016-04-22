@@ -217,11 +217,13 @@ func siteEdit(context *router.Context) {
 	go func() {
 		site := shared.Site{}
 		sites := []shared.Site{}
-		users := []shared.User{}
+		managers := []shared.User{}
+		technicians := []shared.User{}
 
 		rpcClient.Call("SiteRPC.Get", id, &site)
 		rpcClient.Call("SiteRPC.List", Session.Channel, &sites)
-		rpcClient.Call("UserRPC.List", Session.Channel, &users)
+		rpcClient.Call("UserRPC.GetManagers", id, &managers)
+		rpcClient.Call("UserRPC.GetTechnicians", id, &technicians)
 
 		BackURL := "/sites"
 		title := fmt.Sprintf("Site Details - %s", site.Name)
@@ -244,8 +246,8 @@ func siteEdit(context *router.Context) {
 			AddInput(1, "Fax", "Fax")
 
 		form.Row(2).
-			AddSelect(1, "Stoppage Alerts To", "AlertsTo", users, "ID", "Name", 0, site.AlertsTo).
-			AddSelect(1, "Scheduled Tasks To", "TasksTo", users, "ID", "Name", 0, site.TasksTo)
+			AddSelect(1, "Stoppage Alerts To", "AlertsTo", managers, "ID", "Name", 0, site.AlertsTo).
+			AddSelect(1, "Send Scheduled Tasks To", "TasksTo", technicians, "ID", "Name", 0, site.TasksTo)
 
 		form.Row(1).
 			AddTextarea(1, "Notes", "Notes")

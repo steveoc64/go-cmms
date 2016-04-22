@@ -72,7 +72,8 @@ func (t *TaskRPC) UpdateSched(data *shared.SchedTaskUpdateData, ok *bool) error 
 	DB.Update("sched_task").
 		SetWhitelist(data.SchedTask,
 			"comp_type", "tool_id",
-			"component", "descr", "startdate", "oneoffdate", "freq", "days", "week", "count",
+			"component", "descr", "startdate", "oneoffdate",
+			"freq", "days", "week", "weekday", "count", "user_id",
 			"labour_cost", "material_cost", "duration_days").
 		Where("id = $1", data.SchedTask.ID).
 		Exec()
@@ -132,7 +133,8 @@ func (t *TaskRPC) InsertSched(data *shared.SchedTaskUpdateData, id *int) error {
 
 	DB.InsertInto("sched_task").
 		Whitelist("machine_id", "comp_type", "tool_id",
-			"component", "descr", "startdate", "oneoffdate", "freq", "days", "week", "count",
+			"component", "descr", "startdate", "oneoffdate",
+			"freq", "days", "week", "weekday", "count", "user_id",
 			"labour_cost", "material_cost", "duration_days").
 		Record(data.SchedTask).
 		Returning("id").

@@ -19,6 +19,8 @@ type SchedTask struct {
 	Days          *int       `db:"days"`
 	Count         *int       `db:"count"`
 	Week          *int       `db:"week"`
+	WeekDay       *int       `db:"weekday"`
+	UserID        int        `db:"user_id"`
 	DurationDays  int        `db:"duration_days"`
 	LabourCost    float64    `db:"labour_cost"`
 	MaterialCost  float64    `db:"material_cost"`

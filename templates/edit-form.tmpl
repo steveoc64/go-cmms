@@ -30,9 +30,10 @@
               {{range .Rows}}
               <div data-row-span="{{.Span}}">
                 {{range .Fields}}
-                  <label>{{.Label}}</label>
+                  <div data-field-span="{{.Span}}">
+                  <label>{{.Label}}</label>                  
                   {{if eq .Type "text"}}
-                    <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}">
+                    <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Readonly}}readonly{{end}}>
                   {{end}}              
                   {{if eq .Type "date"}}
                     <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}">
@@ -58,6 +59,7 @@
                     {{end}}
                     </div>
                   {{end}}                  
+                  </div>
                 {{end}}
               </div>
               {{end}}
@@ -65,7 +67,7 @@
             {{end}}
           {{end}}
           {{if eq .Type "text"}}
-            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Focusme}}id="#focusme"{{end}}>
+            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Focusme}}id="#focusme"{{end}} {{if .Readonly}}readonly{{end}}>
           {{end}}
           {{if eq .Type "date"}}
             <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}">

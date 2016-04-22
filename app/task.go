@@ -48,21 +48,21 @@ func taskEdit(context *router.Context) {
 		print("task =", task)
 		// Layout the fields
 		form.Row(3).
-			AddInput(1, "User", "DisplayUsername").
-			AddInput(1, "Start Date", "DisplayStartDate").
-			AddInput(1, "Due Date", "DisplayDueDate")
+			AddDisplay(1, "User", "DisplayUsername").
+			AddDisplay(1, "Start Date", "DisplayStartDate").
+			AddDisplay(1, "Due Date", "DisplayDueDate")
 
 		form.Row(3).
-			AddInput(1, "Site", "SiteName").
-			AddInput(1, "Machine", "MachineName").
-			AddInput(1, "Component", "Component")
+			AddDisplay(1, "Site", "SiteName").
+			AddDisplay(1, "Machine", "MachineName").
+			AddDisplay(1, "Component", "Component")
 
 		form.Row(1).
 			AddTextarea(1, "Description", "Descr")
 
 		form.Row(2).
-			AddInput(1, "Labour Est $", "LabourEst").
-			AddInput(1, "Material Est $", "MaterialEst")
+			AddDisplay(1, "Labour Est $", "LabourEst").
+			AddDisplay(1, "Material Est $", "MaterialEst")
 
 		form.Row(2).
 			AddInput(1, "Actual Labour $", "LabourCost").
@@ -231,11 +231,21 @@ func schedEdit(context *router.Context) {
 		{4, "4th Week"},
 	}
 
+	weekdays := []formulate.SelectOption{
+		{1, "Mon"},
+		{2, "Tue"},
+		{3, "Wed"},
+		{4, "Thur"},
+		{5, "Fri"},
+	}
+
 	go func() {
 		machine := shared.Machine{}
 		task := shared.SchedTask{}
+		technicians := []shared.User{}
 		rpcClient.Call("TaskRPC.GetSched", id, &task)
 		rpcClient.Call("MachineRPC.Get", task.MachineID, &machine)
+		rpcClient.Call("UserRPC.GetTechnicians", machine.SiteID, &technicians)
 
 		BackURL := fmt.Sprintf("/machine/sched/%d", machine.ID)
 		title := fmt.Sprintf("Sched Maint Task for - %s - %s", machine.Name, *machine.SiteName)
@@ -254,8 +264,13 @@ func schedEdit(context *router.Context) {
 		if task.Week != nil {
 			theWeek = *task.Week
 		}
-		swapper.AddPanel("week").AddRow(1).
-			AddRadio(1, "Week of the Month", "Week", weeks, "ID", "Name", theWeek)
+		theWeekDay := 1
+		if task.WeekDay != nil {
+			theWeekDay = *task.WeekDay
+		}
+		swapper.AddPanel("week").AddRow(2).
+			AddRadio(1, "Week of the Month", "Week", weeks, "ID", "Name", theWeek).
+			AddRadio(1, "Weekday", "WeekDay", weekdays, "ID", "Name", theWeekDay)
 
 		swapper.AddPanel("year").AddRow(1).AddDate(1, "Day of the Year", "StartDate")
 		swapper.AddPanel("days").AddRow(1).AddNumber(1, "Number of Days", "Days", "1")
@@ -270,9 +285,9 @@ func schedEdit(context *router.Context) {
 				break
 			}
 		}
-		form.Row(2).
+		form.Row(3).
 			AddRadio(1, "Frequency", "Freq", freqs, "ID", "Name", currentFreq).
-			AddSwapper(1, "Frequency Options:", &swapper)
+			AddSwapper(2, "Frequency Options:", &swapper)
 
 		compGen := []formulate.SelectOption{
 			{0, "General Maintenance"},
@@ -318,7 +333,8 @@ func schedEdit(context *router.Context) {
 					{"Tools", compTools},
 					{"Other Components", compOther},
 				},
-				currentComp)
+				currentComp).
+			AddSelect(1, "Assign To Technician", "UserID", technicians, "ID", "Username", 0, task.UserID)
 
 		form.Row(1).
 			AddTextarea(1, "Task Description", "Descr")
@@ -476,10 +492,21 @@ func machineSchedAdd(context *router.Context) {
 		{4, "4th Week"},
 	}
 
+	weekdays := []formulate.SelectOption{
+		{1, "Mon"},
+		{2, "Tue"},
+		{3, "Wed"},
+		{4, "Thur"},
+		{5, "Fri"},
+	}
+
 	go func() {
 		machine := shared.Machine{}
 		task := shared.SchedTask{}
+		technicians := []shared.User{}
 		rpcClient.Call("MachineRPC.Get", id, &machine)
+		rpcClient.Call("TaskRPC.GetSched", id, &task)
+		rpcClient.Call("UserRPC.GetTechnicians", machine.SiteID, &technicians)
 
 		BackURL := fmt.Sprintf("/machine/sched/%d", machine.ID)
 		title := fmt.Sprintf("Add Sched Maint Task for - %s - %s", machine.Name, *machine.SiteName)
@@ -494,16 +521,18 @@ func machineSchedAdd(context *router.Context) {
 		}
 
 		// Add a set of swappable panels for freq options
-		swapper.AddPanel("week").AddRow(1).AddRadio(1, "Week of the Month", "Week", weeks, "ID", "Name", 1)
+		swapper.AddPanel("week").AddRow(2).
+			AddRadio(1, "Week of the Month", "Week", weeks, "ID", "Name", 1).
+			AddRadio(1, "Weekday", "WeekDay", weekdays, "ID", "Name", 1)
 		swapper.AddPanel("year").AddRow(1).AddDate(1, "Day of the Year", "StartDate")
 		swapper.AddPanel("days").AddRow(1).AddNumber(1, "Number of Days", "Days", "1")
 		swapper.AddPanel("oneoff").AddRow(1).AddDate(1, "One Off Date", "OneOffDate")
 		swapper.AddPanel("job").AddRow(1).AddNumber(1, "Job Count", "Count", "1")
 
 		// Layout the fields
-		form.Row(2).
+		form.Row(3).
 			AddRadio(1, "Frequency", "Freq", freqs, "ID", "Name", 1).
-			AddSwapper(1, "Frequency Options:", &swapper)
+			AddSwapper(2, "Frequency Options:", &swapper)
 
 		compGen := []formulate.SelectOption{
 			{0, "General Maintenance"},
@@ -533,7 +562,8 @@ func machineSchedAdd(context *router.Context) {
 					{"Tools", compTools},
 					{"Other Components", compOther},
 				},
-				0)
+				0).
+			AddSelect(1, "Assign To Technician", "UserID", technicians, "ID", "Username", 0, 0)
 
 		form.Row(1).
 			AddTextarea(1, "Task Description", "Descr")

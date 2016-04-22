@@ -22,6 +22,26 @@ u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
 	from users u
 	order by u.username`
 
+const TechniciansListQuery = `select 
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
+	from users u
+	left join user_site x on x.user_id=u.id and x.site_id=$1
+	where u.role in ('Worker','Technician') and x.site_id=$1
+	order by u.username`
+
+const ManagersListQuery = `select 
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
+	from users u
+	left join user_site x on x.user_id=u.id and x.site_id=$1
+	where u.role='Site Manager' and x.site_id=$1
+	order by u.username`
+
+const AdminsListQuery = `select 
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
+	from users u
+	where u.role='Admin'
+	order by u.username`
+
 ///////////////////////////////////////////////////////////
 // Code
 
@@ -234,5 +254,35 @@ func (u *UserRPC) SetSite(data shared.UserSiteSetRequest, done *bool) error {
 			data.UserID, data.SiteID, data.Role, data.IsSet))
 
 	*done = true
+	return nil
+}
+
+// Get a list of technicians by Site
+func (u *UserRPC) GetTechnicians(site_id int, users *[]shared.User) error {
+	start := time.Now()
+
+	// log.Println(TechniciansListQuery)
+	DB.SQL(TechniciansListQuery, site_id).QueryStructs(users)
+
+	logger(start, "User.GetTechnicians",
+		fmt.Sprintf("Site %d", site_id),
+		fmt.Sprintf("%d Techs", len(*users)))
+
+	return nil
+}
+
+// Get a list of technicians by Site
+func (u *UserRPC) GetManagers(site_id int, users *[]shared.User) error {
+	start := time.Now()
+
+	// log.Println(ManagersListQuery)
+	DB.SQL(ManagersListQuery, site_id).QueryStructs(users)
+	// log.Println(AdminsListQuery)
+	DB.SQL(AdminsListQuery, site_id).QueryStructs(users)
+
+	logger(start, "User.GetManagers",
+		fmt.Sprintf("Site %d", site_id),
+		fmt.Sprintf("%d Mananges", len(*users)))
+
 	return nil
 }

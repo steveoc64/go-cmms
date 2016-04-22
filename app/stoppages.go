@@ -67,13 +67,13 @@ func stoppageEdit(context *router.Context) {
 
 		// Layout the fields
 		form.Row(2).
-			Add(1, "Site", "text", "SiteName", "disabled").
-			Add(1, "Machine", "text", "MachineName", "disabled")
+			AddDisplay(1, "Site", "SiteName").
+			AddDisplay(1, "Machine", "MachineName")
 
 		form.Row(3).
-			Add(1, "Component", "text", "ToolType", "disabled").
-			Add(1, "StartDate", "text", "DisplayDate", "disabled").
-			Add(1, "Raised By", "text", "Username", "disabled")
+			AddDisplay(1, "Component", "ToolType").
+			AddDisplay(1, "StartDate", "DisplayDate").
+			AddDisplay(1, "Raised By", "Username")
 
 		form.Row(1).
 			AddTextarea(1, "Notes", "Notes")
