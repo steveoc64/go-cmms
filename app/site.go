@@ -57,8 +57,8 @@ func siteMap(context *router.Context) {
 			switch Session.UserRole {
 			case "Admin", "Site Manager":
 				loadTemplate("admin-actions", "#action-grid", nil)
-			case "Worker":
-				loadTemplate("worker-actions", "#action-grid", nil)
+			case "Technician":
+				loadTemplate("technician-actions", "#action-grid", nil)
 			}
 
 			// Add a click handler to navigate to the page

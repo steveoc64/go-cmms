@@ -243,7 +243,7 @@ func userEdit(context *router.Context) {
 	roles := []Roles{
 		{1, "Admin"},
 		{2, "Site Manager"},
-		{3, "Worker"},
+		{3, "Technician"},
 		{4, "Service Contractor"},
 		{5, "Floor"},
 		{6, "Public"},
@@ -372,7 +372,7 @@ func userAdd(context *router.Context) {
 	roles := []Roles{
 		{1, "Admin"},
 		{2, "Site Manager"},
-		{3, "Worker"},
+		{3, "Technician"},
 		{4, "Service Contractor"},
 		{5, "Floor"},
 		{6, "Public"},

@@ -214,7 +214,7 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 	conn := Connections.Get(channel)
 
 	switch conn.UserRole {
-	case "Worker":
+	case "Technician":
 		// Limit the tasks to only our own tasks
 		err := DB.SQL(`select 
 		t.*,m.name as machine_name,s.name as site_name,u.username as username
