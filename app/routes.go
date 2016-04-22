@@ -84,13 +84,15 @@ func enableRoutes(Role string) {
 		}
 	case "Technician":
 		Session.AppFn = map[string]router.Handler{
-			"sitemap":      siteMap,
-			"sitemachines": siteMachines,
-			"task-list":    taskList,
-			"task-edit":    taskEdit,
-			"stoppages":    stoppageList,
-			"parts":        partList,
-			"reports":      technicianReports,
+			"sitemap":        siteMap,
+			"sitemachines":   siteMachines,
+			"task-list":      taskList,
+			"task-edit":      taskEdit,
+			"task-part-list": taskPartList,
+			"task-complete":  taskComplete,
+			"stoppages":      stoppageList,
+			"parts":          partList,
+			"reports":        technicianReports,
 		}
 	case "Floor":
 		Session.AppFn = map[string]router.Handler{
