@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
@@ -25,12 +27,12 @@ func Login(username string, passwd string, rem bool) {
 		print("RPC error", err.Error())
 	}
 	if lr.Result == "OK" {
-		hideLoginForm(lc.Username)
 		// createMenu(lr.Menu)
 		loadRoutes(lr.Role, lr.Routes)
 		Session.Username = lc.Username
 		Session.UserRole = lr.Role
 		Session.UserID = lr.ID
+		hideLoginForm()
 	} else {
 		print("login failed")
 		dom.GetWindow().Alert("Login Failed")
@@ -53,7 +55,7 @@ func Logout() {
 	// Session.Router.Navigate("/")
 }
 
-func hideLoginForm(username string) {
+func hideLoginForm() {
 	w := dom.GetWindow()
 	doc := w.Document()
 
@@ -64,6 +66,7 @@ func hideLoginForm(username string) {
 	// 	Logout()
 	// })
 
+	username := fmt.Sprintf("%s - %s", Session.Username, Session.UserRole)
 	userBtn := doc.GetElementByID("userbtn").(*dom.HTMLButtonElement)
 	userBtn.SetTextContent(username)
 	userBtn.Style().Set("display", "inline")

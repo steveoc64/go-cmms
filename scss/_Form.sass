@@ -20,6 +20,10 @@ select
 	padding: .6rem 1.0rem // The .6rem vertically centers text on FF, ignored by Webkit
 	width: 100%
 
+	:read-only
+		background-color: white 
+		font-style: italic
+
 	&:focus
 		border: .1rem solid $color-primary
 		outline: 0
@@ -31,13 +35,13 @@ select-mg
 textarea
 	padding-bottom: .6rem
 	padding-top: .6rem
-	min-height: 12rem
+	min-height: 6rem
 
 	// if they insist on using an iphone
 	@media (max-height: 740px)
 		min-height: 2rem
-		max-height: 8rem
-		height: 2rem
+		// max-height: 4rem
+		height: 4rem
 
 	// @media (min-height: 741px) and (max-height: 800px)
 	// 	min-height: 4rem
@@ -45,7 +49,7 @@ textarea
 	// 		min-height: 12rem
 
 	@media (min-height: 841px) 
-		min-height: 12rem
+		min-height: 6rem
 
 label,
 legend

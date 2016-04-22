@@ -55,8 +55,10 @@ func siteMap(context *router.Context) {
 			// Add an Action Grid depending on which role the user is logged in as
 			// print("user role =", Session.UserRole)
 			switch Session.UserRole {
-			case "Admin", "Site Manager":
+			case "Admin":
 				loadTemplate("admin-actions", "#action-grid", nil)
+			case "Site Manager":
+				loadTemplate("site-manager-actions", "#action-grid", nil)
 			case "Technician":
 				loadTemplate("technician-actions", "#action-grid", nil)
 			}

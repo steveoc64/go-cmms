@@ -33,7 +33,7 @@ func taskEdit(context *router.Context) {
 		rpcClient.Call("TaskRPC.Get", id, &task)
 
 		BackURL := "/tasks"
-		title := fmt.Sprintf("Task Details - %d", id)
+		title := fmt.Sprintf("Task Details - %06d", id)
 		form := formulate.EditForm{}
 		form.New("fa-server", title)
 
@@ -46,29 +46,73 @@ func taskEdit(context *router.Context) {
 		}
 
 		// Layout the fields
-		form.Row(3).
-			AddDisplay(1, "User", "DisplayUsername").
-			AddDisplay(1, "Start Date", "DisplayStartDate").
-			AddDisplay(1, "Due Date", "DisplayDueDate")
+		switch Session.UserRole {
+		case "Admin":
+			form.Row(3).
+				AddDisplay(1, "User", "DisplayUsername").
+				AddDisplay(1, "Start Date", "DisplayStartDate").
+				AddDisplay(1, "Due Date", "DisplayDueDate")
 
-		form.Row(3).
-			AddDisplay(1, "Site", "SiteName").
-			AddDisplay(1, "Machine", "MachineName").
-			AddDisplay(1, "Component", "Component")
+			form.Row(3).
+				AddDisplay(1, "Site", "SiteName").
+				AddDisplay(1, "Machine", "MachineName").
+				AddDisplay(1, "Component", "Component")
 
-		form.Row(1).
-			AddTextarea(1, "Description", "Descr")
+			form.Row(1).
+				AddTextarea(1, "Description", "Descr")
 
-		form.Row(2).
-			AddDisplay(1, "Labour Est $", "LabourEst").
-			AddDisplay(1, "Material Est $", "MaterialEst")
+			form.Row(2).
+				AddDisplay(1, "Labour Est $", "LabourEst").
+				AddDisplay(1, "Material Est $", "MaterialEst")
 
-		form.Row(2).
-			AddInput(1, "Actual Labour $", "LabourCost").
-			AddInput(1, "Actual Material $", "MaterialCost")
+			form.Row(2).
+				AddInput(1, "Actual Labour $", "LabourCost").
+				AddInput(1, "Actual Material $", "MaterialCost")
 
-		form.Row(1).
-			AddTextarea(1, "Notes", "Log")
+			form.Row(1).
+				AddTextarea(1, "Notes", "Log")
+		case "Site Manager":
+			form.Row(3).
+				AddDisplay(1, "User", "DisplayUsername").
+				AddDisplay(1, "Start Date", "DisplayStartDate").
+				AddDisplay(1, "Due Date", "DisplayDueDate")
+
+			form.Row(3).
+				AddDisplay(1, "Site", "SiteName").
+				AddDisplay(1, "Machine", "MachineName").
+				AddDisplay(1, "Component", "Component")
+
+			form.Row(1).
+				AddDisplayArea(1, "Description", "Descr")
+
+			form.Row(2).
+				AddDisplay(1, "Labour Est $", "LabourEst").
+				AddDisplay(1, "Material Est $", "MaterialEst")
+
+			form.Row(2).
+				AddDisplay(1, "Actual Labour $", "LabourCost").
+				AddDisplay(1, "Actual Material $", "MaterialCost")
+
+			form.Row(1).
+				AddDisplayArea(1, "Notes", "Log")
+		case "Technician":
+			form.Row(4).
+				AddDisplay(1, "Start Date", "DisplayStartDate").
+				AddDisplay(1, "Due Date", "DisplayDueDate").
+				AddInput(1, "Actual Labour $", "LabourCost").
+				AddInput(1, "Actual Material $", "MaterialCost")
+
+			form.Row(3).
+				AddDisplay(1, "Site", "SiteName").
+				AddDisplay(1, "Machine", "MachineName").
+				AddDisplay(1, "Component", "Component")
+
+			form.Row(1).
+				AddDisplayArea(1, "Description", "Descr")
+
+			form.Row(1).
+				AddTextarea(1, "Notes", "Log")
+		}
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -76,33 +120,39 @@ func taskEdit(context *router.Context) {
 			Session.Router.Navigate(BackURL)
 		})
 
-		form.DeleteEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			task.ID = id
-			go func() {
+		if Session.UserRole == "Admin" {
+			form.DeleteEvent(func(evt dom.Event) {
+				evt.PreventDefault()
+				task.ID = id
+				go func() {
+					data := shared.TaskUpdateData{
+						Channel: Session.Channel,
+						Task:    &task,
+					}
+					done := false
+					rpcClient.Call("TaskRPC.Delete", data, &done)
+					Session.Router.Navigate(BackURL)
+				}()
+			})
+		}
+
+		switch Session.UserRole {
+		case "Admin", "Technician":
+
+			form.SaveEvent(func(evt dom.Event) {
+				evt.PreventDefault()
+				form.Bind(&task)
 				data := shared.TaskUpdateData{
 					Channel: Session.Channel,
 					Task:    &task,
 				}
-				done := false
-				rpcClient.Call("TaskRPC.Delete", data, &done)
-				Session.Router.Navigate(BackURL)
-			}()
-		})
-
-		form.SaveEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			form.Bind(&task)
-			data := shared.TaskUpdateData{
-				Channel: Session.Channel,
-				Task:    &task,
-			}
-			go func() {
-				done := false
-				rpcClient.Call("TaskRPC.Update", data, &done)
-				Session.Router.Navigate(BackURL)
-			}()
-		})
+				go func() {
+					done := false
+					rpcClient.Call("TaskRPC.Update", data, &done)
+					Session.Router.Navigate(BackURL)
+				}()
+			})
+		}
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &task)

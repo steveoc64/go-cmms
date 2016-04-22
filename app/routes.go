@@ -79,7 +79,8 @@ func enableRoutes(Role string) {
 		Session.AppFn = map[string]router.Handler{
 			"sitemap":      siteMap,
 			"sitemachines": siteMachines,
-			"tasks":        taskList,
+			"task-list":    taskList,
+			"task-edit":    taskEdit,
 			"stoppages":    stoppageList,
 			"parts":        partList,
 			"reports":      technicianReports,
