@@ -174,7 +174,7 @@ func taskEdit(context *router.Context) {
 					schedEdit(c)
 				}
 			})
-		default:
+		case "Technician":
 			form.ActionGrid("task-actions", "#action-grid", task.ID, func(url string) {
 				Session.Router.Navigate(url)
 			})
