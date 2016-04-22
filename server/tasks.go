@@ -44,7 +44,7 @@ func (t *TaskRPC) GetSched(id int, task *shared.SchedTask) error {
 	}
 
 	logger(start, "Task.GetSched",
-		fmt.Sprintf("id %d", id),
+		fmt.Sprintf("Sched %d", id),
 		fmt.Sprintf("%s %s", task.Freq, task.Descr))
 
 	return nil
@@ -79,7 +79,7 @@ func (t *TaskRPC) UpdateSched(data *shared.SchedTaskUpdateData, ok *bool) error 
 		Exec()
 
 	logger(start, "Task.UpdateSched",
-		fmt.Sprintf("Channel %d, Task %d, User %d %s %s",
+		fmt.Sprintf("Channel %d, Sched %d, User %d %s %s",
 			data.Channel, data.SchedTask.ID, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d %s %d %s %s",
 			data.SchedTask.MachineID, data.SchedTask.CompType,
@@ -89,6 +89,34 @@ func (t *TaskRPC) UpdateSched(data *shared.SchedTaskUpdateData, ok *bool) error 
 
 	newTasks := 0
 	schedTaskScan(time.Now(), &newTasks)
+	return nil
+}
+
+func (t *TaskRPC) SchedPlay(id int, ok *bool) error {
+	start := time.Now()
+
+	DB.SQL(`update sched_task set paused=false,last_generated=now() where id=$1`, id).Exec()
+
+	logger(start, "Task.SchedPlay",
+		fmt.Sprintf("Sched %d", id),
+		"Now Running")
+
+	*ok = true
+
+	return nil
+}
+
+func (t *TaskRPC) SchedPause(id int, ok *bool) error {
+	start := time.Now()
+
+	DB.SQL(`update sched_task set paused=true where id=$1`, id).Exec()
+
+	logger(start, "Task.SchedPause",
+		fmt.Sprintf("Sched %d", id),
+		"Now Paused")
+
+	*ok = true
+
 	return nil
 }
 
@@ -102,7 +130,7 @@ func (t *TaskRPC) DeleteSched(data *shared.SchedTaskUpdateData, ok *bool) error 
 		Exec()
 
 	logger(start, "Task.DeleteSched",
-		fmt.Sprintf("Channel %d, Task %d, User %d %s %s",
+		fmt.Sprintf("Channel %d, Sched %d, User %d %s %s",
 			data.Channel, data.SchedTask.ID, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d %s %d %s %s",
 			data.SchedTask.MachineID, data.SchedTask.CompType,
@@ -377,7 +405,7 @@ func schedTaskScan(runDate time.Time, count *int) error {
 	scheds := []shared.SchedTask{}
 	newTask := shared.Task{}
 
-	DB.SQL(`select * from sched_task order by id`).QueryStructs(&scheds)
+	DB.SQL(`select * from sched_task where paused=false order by id`).QueryStructs(&scheds)
 
 	for _, st := range scheds {
 		doit := true

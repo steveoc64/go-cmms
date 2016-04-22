@@ -1,0 +1,33 @@
+<div class="action-grid">
+		<div class="action__item action-hidden" url="play" id="playtask">
+			<div class="action__title">Play</div>
+			<div class="action__icon"><i class="fa fa-play fa-lg"></i></div>
+			<div class="action__text">
+				Schedule is currently PAUSED<br>
+				Click here to Resume the Schedule.
+			</div>
+		</div>
+		<div class="action__item action-hidden" url="pause" id="pausetask">
+			<div class="action__title">Pause</div>
+			<div class="action__icon"><i class="fa fa-pause fa-lg"></i></div>
+			<div class="action__text">
+				Schedule is currently RUNNING<br>
+				Click here to Pause the Schedule.
+			</div>
+		</div>
+	<div class="action__item" url="/sched/task/{{.ID}}">
+		<div class="action__title">Tasks</div>
+		<div class="action__icon"><i class="fa fa-server fa-lg"></i></div>
+		<div class="action__text">
+			View recent tasks generated from this schedule.
+		</div>
+	</div>
+	<div class="action__item" url="/sched/parts/{{.ID}}">
+		<div class="action__title">Parts</div>
+		<div class="action__icon"><i class="fa fa-puzzle-piece fa-lg"></i></div>
+		<div class="action__text">
+			<b>TODO</b><br>
+			Select Spare Parts used in this job.
+		</div>
+	</div>
+</div>

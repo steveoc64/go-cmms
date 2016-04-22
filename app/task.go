@@ -45,7 +45,6 @@ func taskEdit(context *router.Context) {
 			task.DisplayUsername = *task.Username
 		}
 
-		print("task =", task)
 		// Layout the fields
 		form.Row(3).
 			AddDisplay(1, "User", "DisplayUsername").
@@ -109,9 +108,27 @@ func taskEdit(context *router.Context) {
 		form.Render("edit-form", "main", &task)
 
 		// And attach actions
-		form.ActionGrid("task-actions", "#action-grid", task.ID, func(url string) {
-			Session.Router.Navigate(url)
-		})
+		switch Session.UserRole {
+		case "Admin":
+			form.ActionGrid("task-admin-actions", "#action-grid", task.ID, func(url string) {
+				// Session.Router.Navigate(url)
+				if task.SchedID != 0 {
+					c := &router.Context{
+						Path:        url,
+						InitialLoad: false,
+						Params: map[string]string{
+							"id":   fmt.Sprintf("%d", task.SchedID),
+							"back": fmt.Sprintf("/task/%d", task.ID),
+						},
+					}
+					schedEdit(c)
+				}
+			})
+		default:
+			form.ActionGrid("task-actions", "#action-grid", task.ID, func(url string) {
+				Session.Router.Navigate(url)
+			})
+		}
 
 	}()
 
@@ -246,9 +263,28 @@ func schedEdit(context *router.Context) {
 		rpcClient.Call("TaskRPC.GetSched", id, &task)
 		rpcClient.Call("MachineRPC.Get", task.MachineID, &machine)
 		rpcClient.Call("UserRPC.GetTechnicians", machine.SiteID, &technicians)
+		type Context struct {
+			// Params is the parameters from the url as a map of names to values.
+			Params map[string]string
+			// Path is the path that triggered this particular route. If the hash
+			// fallback is being used, the value of path does not include the '#'
+			// symbol.
+			Path string
+			// InitialLoad is true iff this route was triggered during the initial
+			// page load. I.e. it is true if this is the first path that the browser
+			// was visiting when the javascript finished loading.
+			InitialLoad bool
+		}
 
-		BackURL := fmt.Sprintf("/machine/sched/%d", machine.ID)
-		title := fmt.Sprintf("Sched Maint Task for - %s - %s", machine.Name, *machine.SiteName)
+		BackURL := context.Params["back"]
+		if BackURL == "" {
+			BackURL = fmt.Sprintf("/machine/sched/%d", machine.ID)
+		}
+		plainTitle := fmt.Sprintf("Sched Maint Task for - %s - %s", machine.Name, *machine.SiteName)
+		title := plainTitle
+		if task.Paused {
+			title += " (PAUSED)"
+		}
 
 		form := formulate.EditForm{}
 		form.New("fa-wrench", title)
@@ -466,6 +502,46 @@ func schedEdit(context *router.Context) {
 				}
 			}
 		})
+
+		// Add some action buttons for this schedule
+		form.ActionGrid("sched-actions", "#action-grid", task, func(url string) {
+			done := false
+			switch url {
+			case "play":
+				go rpcClient.Call("TaskRPC.SchedPlay", task.ID, &done)
+				task.Paused = false
+				doc.QuerySelector("#playtask").Class().Add("action-hidden")
+				doc.QuerySelector("#pausetask").Class().Remove("action-hidden")
+				task.Paused = false
+				title := plainTitle
+				if task.Paused {
+					title += " (PAUSED)"
+				}
+				form.SetTitle(title)
+			default:
+
+			case "pause":
+				go rpcClient.Call("TaskRPC.SchedPause", task.ID, &done)
+				task.Paused = true
+				doc.QuerySelector("#pausetask").Class().Add("action-hidden")
+				doc.QuerySelector("#playtask").Class().Remove("action-hidden")
+				title := plainTitle
+				if task.Paused {
+					title += " (PAUSED)"
+				}
+				form.SetTitle(title)
+			default:
+				Session.Router.Navigate(url)
+			}
+		})
+
+		// Set the initial vis of the action items
+		print("paused =", task.Paused)
+		if task.Paused {
+			doc.QuerySelector("#playtask").Class().Remove("action-hidden")
+		} else {
+			doc.QuerySelector("#pausetask").Class().Remove("action-hidden")
+		}
 
 	}()
 
