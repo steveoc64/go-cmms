@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/go-humble/router"
 	"github.com/steveoc64/formulate"
@@ -161,17 +162,20 @@ func taskEdit(context *router.Context) {
 		switch Session.UserRole {
 		case "Admin":
 			form.ActionGrid("task-admin-actions", "#action-grid", task.ID, func(url string) {
-				// Session.Router.Navigate(url)
-				if task.SchedID != 0 {
-					c := &router.Context{
-						Path:        url,
-						InitialLoad: false,
-						Params: map[string]string{
-							"id":   fmt.Sprintf("%d", task.SchedID),
-							"back": fmt.Sprintf("/task/%d", task.ID),
-						},
+				if strings.HasPrefix(url, "/sched") {
+					if task.SchedID != 0 {
+						c := &router.Context{
+							Path:        url,
+							InitialLoad: false,
+							Params: map[string]string{
+								"id":   fmt.Sprintf("%d", task.SchedID),
+								"back": fmt.Sprintf("/task/%d", task.ID),
+							},
+						}
+						schedEdit(c)
 					}
-					schedEdit(c)
+				} else {
+					Session.Router.Navigate(url)
 				}
 			})
 		case "Technician":
@@ -853,4 +857,20 @@ func siteTaskList(context *router.Context) {
 		form.Render("site-task-list", "main", tasks)
 
 	}()
+}
+
+func schedPartList(context *router.Context) {
+	print("TODO - schedPartList")
+}
+
+func schedTaskList(context *router.Context) {
+	print("TODO - schedTaskList")
+}
+
+func taskPartList(context *router.Context) {
+	print("TODO - taksPartList")
+}
+
+func taskComplete(context *router.Context) {
+	print("TODO - taskComplete")
 }

@@ -60,8 +60,8 @@ func stoppageEdit(context *router.Context) {
 		form := formulate.EditForm{}
 		form.New("fa-pause-circle-o", title)
 
-		print("and the startdate is ", event.StartDate)
-		print("and the startdate is ", event.StartDate.String())
+		// print("and the startdate is ", event.StartDate)
+		// print("and the startdate is ", event.StartDate.String())
 		event.DisplayDate = event.StartDate.String()
 		event.DisplayDate = event.StartDate.Format("Mon, Jan 2 2006 15:04:05")
 

@@ -5,7 +5,7 @@ import "github.com/steveoc64/go-cmms/shared"
 func getRoutes(uid int, role string) []shared.UserRoute {
 
 	switch role {
-	case "Admin", "Site Manager":
+	case "Admin":
 		return []shared.UserRoute{
 			{Route: "/", Func: "sitemap"},
 			{Route: "/sitemachines/{site}", Func: "sitemachines"},
@@ -23,8 +23,12 @@ func getRoutes(uid int, role string) []shared.UserRoute {
 			{Route: "/machine/reports/{machine}", Func: "machine-reports"},
 			{Route: "/machine/stoppages/{machine}", Func: "machine-stoppage-list"},
 			{Route: "/sched/{id}", Func: "sched-edit"},
+			{Route: "/sched/parts/{id}", Func: "sched-part-list"},
+			{Route: "/sched/task/{id}", Func: "sched-task-list"},
 			{Route: "/tasks", Func: "task-list"},
 			{Route: "/task/{id}", Func: "task-edit"},
+			{Route: "/task/parts/{id}", Func: "task-part-list"},
+			{Route: "/task/complete/{id}", Func: "task-complete"},
 			{Route: "/stoppages", Func: "stoppage-list"},
 			{Route: "/stoppage/{id}", Func: "stoppage-edit"},
 			{Route: "/stoppage/complete/{id}", Func: "stoppage-complete"},
@@ -36,6 +40,34 @@ func getRoutes(uid int, role string) []shared.UserRoute {
 			{Route: "/users", Func: "user-list"},
 			{Route: "/user/{id}", Func: "user-edit"},
 			{Route: "/user/add", Func: "user-add"},
+			{Route: "/reports", Func: "reports"},
+		}
+	case "Site Manager":
+		return []shared.UserRoute{
+			{Route: "/", Func: "sitemap"},
+			{Route: "/sitemachines/{site}", Func: "sitemachines"},
+			{Route: "/sites", Func: "site-list"},
+			{Route: "/site/{id}", Func: "site-edit"},
+			{Route: "/site/machine/{id}", Func: "site-machine-list"},
+			{Route: "/site/users/{id}", Func: "site-user-list"},
+			{Route: "/site/tasks/{id}", Func: "site-task-list"},
+			{Route: "/site/reports/{id}", Func: "site-reports"},
+			{Route: "/machine/{id}", Func: "machine-edit"},
+			{Route: "/machine/sched/{machine}", Func: "machine-sched-list"},
+			{Route: "/machine/reports/{machine}", Func: "machine-reports"},
+			{Route: "/machine/stoppages/{machine}", Func: "machine-stoppage-list"},
+			{Route: "/tasks", Func: "task-list"},
+			{Route: "/task/{id}", Func: "task-edit"},
+			{Route: "/task/parts/{id}", Func: "task-part-list"},
+			{Route: "/stoppages", Func: "stoppage-list"},
+			{Route: "/stoppage/{id}", Func: "stoppage-edit"},
+			{Route: "/stoppage/tasks/{id}", Func: "stoppage-task-list"},
+			{Route: "/parts", Func: "part-list"},
+			{Route: "/part/add", Func: "part-add"},
+			{Route: "/part/{id}", Func: "part-edit"},
+			// {Route: "/users", Func: "user-list"},
+			// {Route: "/user/{id}", Func: "user-edit"},
+			// {Route: "/user/add", Func: "user-add"},
 			{Route: "/reports", Func: "reports"},
 		}
 	case "Technician":

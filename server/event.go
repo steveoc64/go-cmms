@@ -120,6 +120,15 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 		where m.site_id in $1
 		order by e.startdate`, sites).
 			QueryStructs(events)
+
+		log.Printf(`select 
+		e.*,m.name as machine_name,s.name as site_name,u.username as username
+		from event e
+			left join machine m on m.id=e.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=e.created_by
+		where m.site_id in %v
+		order by e.startdate`, sites)
 		if err != nil {
 			log.Println(err.Error())
 		}
