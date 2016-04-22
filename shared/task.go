@@ -128,7 +128,7 @@ func (t *Task) GetDueDate() string {
 
 func (t *Task) DurationDays() string {
 	d := t.DueDate.Sub(*t.StartDate)
-	days := d / (time.Hour * 24)
+	days := 1 + (d / (time.Hour * 24))
 	if days == 1 {
 		return "1 Day"
 	}

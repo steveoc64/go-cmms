@@ -362,7 +362,7 @@ func schedTaskScan(runDate time.Time, count *int) error {
 	secondWeek := firstWeek.AddDate(0, 0, 7)
 	thirdWeek := firstWeek.AddDate(0, 0, 14)
 	fourthWeek := firstWeek.AddDate(0, 0, 21)
-	fifthWeek := firstWeek.AddDate(0, 0, 28)
+	// fifthWeek := firstWeek.AddDate(0, 0, 28)
 
 	log.Printf(".. first of the month falls on a %s", firstday)
 	log.Printf(".. 1st Week is %s", firstWeek.Format(rfc3339DateLayout))
@@ -393,27 +393,35 @@ func schedTaskScan(runDate time.Time, count *int) error {
 			dueDate := firstWeek
 			lastDate := secondWeek
 			if st.Week == nil {
-				// log.Printf("Error - Monthly Task %d has null week", st.ID)
+				log.Printf("Error - Monthly Task %d has null week", st.ID)
 				break
+			}
+			if st.WeekDay == nil {
+				log.Printf("Error - Monthly Task %d has null weekday", st.ID)
+			}
+			if *st.WeekDay < 1 {
+				*st.WeekDay = 1
+			}
+			if *st.WeekDay > 5 {
+				*st.WeekDay = 5
 			}
 			switch *st.Week {
 			case 1:
 				dueDate = firstWeek
-				lastDate = secondWeek
 			case 2:
 				dueDate = secondWeek
-				lastDate = thirdWeek
 			case 3:
 				dueDate = thirdWeek
-				lastDate = fourthWeek
 			case 4:
 				dueDate = fourthWeek
-				lastDate = fifthWeek
 			}
+
+			lastDate = dueDate.AddDate(0, 0, 4) // the friday of the week
+			realDueDate := dueDate.AddDate(0, 0, *st.WeekDay-1)
 
 			// now that we knov the duedate, check that we havent already generated this task
 			if st.LastGenerated != nil {
-				if st.LastGenerated.Format(rfc3339DateLayout) == dueDate.Format(rfc3339DateLayout) {
+				if st.LastGenerated.Format(rfc3339DateLayout) == realDueDate.Format(rfc3339DateLayout) {
 					// log.Printf("Task %d has already been generated for %s", st.ID, dueDate.Format(rfc3339DateLayout))
 					doit = false
 				}
@@ -422,13 +430,16 @@ func schedTaskScan(runDate time.Time, count *int) error {
 			if doit {
 				if dueDate.After(priorWeek) && dueDate.Before(tommorow) {
 
+					// Excellent - the Week that the task belongs to falls inside the window
+					// so its now safe to increment the actual start date by day of the week
+
 					log.Printf("»»» Task %d On Week %d Next Due on %s last date %s",
 						st.ID, *st.Week,
-						dueDate.Format(rfc3339DateLayout),
+						realDueDate.Format(rfc3339DateLayout),
 						lastDate.Format(rfc3339DateLayout))
 
 					// Generate a new Task record
-					genTask(st, &newTask, dueDate, lastDate)
+					genTask(st, &newTask, realDueDate, lastDate)
 					numTasks++
 				}
 			}
@@ -454,7 +465,7 @@ func schedTaskScan(runDate time.Time, count *int) error {
 
 						// Generate a new Task record
 						dueDate := *st.StartDate
-						genTask(st, &newTask, today, dueDate.AddDate(0, 0, st.DurationDays))
+						genTask(st, &newTask, dueDate, dueDate.AddDate(0, 0, st.DurationDays))
 						numTasks++
 					}
 				}

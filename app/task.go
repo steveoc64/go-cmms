@@ -470,6 +470,7 @@ func schedEdit(context *router.Context) {
 	}()
 
 }
+
 func machineSchedAdd(context *router.Context) {
 	id, err := strconv.Atoi(context.Params["machine"])
 	if err != nil {
@@ -505,7 +506,6 @@ func machineSchedAdd(context *router.Context) {
 		task := shared.SchedTask{}
 		technicians := []shared.User{}
 		rpcClient.Call("MachineRPC.Get", id, &machine)
-		rpcClient.Call("TaskRPC.GetSched", id, &task)
 		rpcClient.Call("UserRPC.GetTechnicians", machine.SiteID, &technicians)
 
 		BackURL := fmt.Sprintf("/machine/sched/%d", machine.ID)
