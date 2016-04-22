@@ -115,19 +115,19 @@ func stoppageEdit(context *router.Context) {
 				}()
 			})
 
-			form.SaveEvent(func(evt dom.Event) {
-				evt.PreventDefault()
-				form.Bind(&event)
-				data := shared.EventUpdateData{
-					Channel: Session.Channel,
-					Event:   &event,
-				}
-				go func() {
-					done := false
-					rpcClient.Call("EventRPC.Update", data, &done)
-					Session.Router.Navigate(BackURL)
-				}()
-			})
+			// form.SaveEvent(func(evt dom.Event) {
+			// 	evt.PreventDefault()
+			// 	form.Bind(&event)
+			// 	data := shared.EventUpdateData{
+			// 		Channel: Session.Channel,
+			// 		Event:   &event,
+			// 	}
+			// 	go func() {
+			// 		done := false
+			// 		rpcClient.Call("EventRPC.Update", data, &done)
+			// 		Session.Router.Navigate(BackURL)
+			// 	}()
+			// })
 		}
 
 		// All done, so render the form
@@ -147,4 +147,16 @@ func stoppageEdit(context *router.Context) {
 
 	}()
 
+}
+
+func stoppageComplete(context *router.Context) {
+	print("TODO - stoppageComplete")
+}
+
+func stoppageNewTask(context *router.Context) {
+	print("TODO - stoppageNewTask")
+}
+
+func stoppageTaskList(context *router.Context) {
+	print("TODO - stoppageTaskList")
 }
