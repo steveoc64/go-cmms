@@ -56,7 +56,7 @@ func stoppageEdit(context *router.Context) {
 		rpcClient.Call("EventRPC.Get", id, &event)
 
 		BackURL := "/stoppages"
-		title := fmt.Sprintf("Stoppage Details - %d", id)
+		title := fmt.Sprintf("Stoppage Details - %06d", id)
 		form := formulate.EditForm{}
 		form.New("fa-pause-circle-o", title)
 
