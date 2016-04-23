@@ -74,6 +74,8 @@ func enableRoutes(Role string) {
 			"stoppage-complete":     stoppageComplete,
 			"stoppage-new-task":     stoppageNewTask,
 			"stoppage-task-list":    stoppageTaskList,
+			"class-select":          classSelect,
+			"class-add":             classAdd,
 			"part-list":             partList,
 			"part-edit":             partEdit,
 			"part-add":              partAdd,

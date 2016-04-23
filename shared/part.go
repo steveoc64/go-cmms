@@ -1,7 +1,21 @@
 package shared
 
+import "fmt"
+
+type PartClass struct {
+	ID    int    `db:"id"`
+	Name  string `db:"name"`
+	Descr string `db:"descr"`
+}
+
+type PartListReq struct {
+	Channel int
+	Class   int
+}
+
 type Part struct {
 	ID                int     `db:"id"`
+	Class             int     `db:"class"`
 	Name              string  `db:"name"`
 	Descr             string  `db:"descr"`
 	StockCode         string  `db:"stock_code"`
@@ -11,6 +25,14 @@ type Part struct {
 	QtyType           string  `db:"qty_type"`
 	Picture           string  `db:"picture"`
 	Notes             string  `db:"notes"`
+}
+
+func (p *Part) ReorderDetails() string {
+	return fmt.Sprintf("%g / %g", p.ReorderStocklevel, p.ReorderQty)
+}
+
+func (p *Part) DisplayPrice() string {
+	return fmt.Sprintf("$ %8.2f", p.LatestPrice)
 }
 
 type PartComponents struct {
