@@ -265,8 +265,8 @@ func partEdit(context *router.Context) {
 			AddInput(1, "Qty Type", "QtyType")
 
 		form.Row(2).
-			AddDecimal(1, "Latest Price", "LatestPrice", 2).
-			AddDisplay(1, "Last Price Update", "LastPriceDateDisplay")
+			AddDisplay(1, "Last Price Update", "LastPriceDateDisplay").
+			AddDecimal(1, "Latest Price", "LatestPrice", 2)
 
 		form.Row(1).
 			AddTextarea(1, "Notes", "Notes")
