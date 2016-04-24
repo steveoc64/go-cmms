@@ -83,6 +83,7 @@ func enableRoutes(Role string) {
 			"user-edit":             userEdit,
 			"user-add":              userAdd,
 			"reports":               adminReports,
+			"util":                  adminUtils,
 		}
 	case "Technician":
 		Session.AppFn = map[string]router.Handler{

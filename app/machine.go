@@ -75,9 +75,12 @@ func machineEdit(context *router.Context) {
 		machine := shared.Machine{}
 		users := []shared.User{}
 		technicians := []shared.User{}
+		classes := []shared.PartClass{}
+
 		rpcClient.Call("MachineRPC.Get", id, &machine)
 		rpcClient.Call("UserRPC.GetManagers", Session.Channel, &users)
 		rpcClient.Call("UserRPC.GetTechnicians", machine.SiteID, &technicians)
+		rpcClient.Call("PartRPC.ClassList", Session.Channel, &classes)
 
 		BackURL := fmt.Sprintf("/site/machine/%d", machine.SiteID)
 		title := fmt.Sprintf("Machine Details - %s - %s", machine.Name, *machine.SiteName)
@@ -90,6 +93,11 @@ func machineEdit(context *router.Context) {
 			AddInput(1, "Name", "Name").
 			AddInput(1, "Serial #", "Serialnum").
 			Add(1, "Status", "text", "Status", "disabled")
+
+		form.Row(1).
+			AddSelect(1, "Machine Type (for classification of Parts)", "PartClass",
+				classes, "ID", "Name",
+				1, machine.PartClass)
 
 		form.Row(1).
 			AddInput(1, "Descrpition", "Descr")

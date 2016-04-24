@@ -231,6 +231,7 @@ func partEdit(context *router.Context) {
 		classes := []shared.PartClass{}
 		stocks := []shared.PartStock{}
 		prices := []shared.PartPrice{}
+
 		rpcClient.Call("PartRPC.Get", id, &part)
 		rpcClient.Call("PartRPC.ClassList", Session.Channel, &classes)
 		rpcClient.Call("PartRPC.StockList", id, &stocks)
