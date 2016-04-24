@@ -96,7 +96,7 @@ func classAdd(context *router.Context) {
 func partList(context *router.Context) {
 
 	partClass, _ := strconv.Atoi(context.Params["id"])
-	print("show parts of class", partClass)
+	// print("show parts of class", partClass)
 
 	go func() {
 		data := []shared.Part{}
@@ -228,13 +228,23 @@ func partEdit(context *router.Context) {
 	go func() {
 		part := shared.Part{}
 		classes := []shared.PartClass{}
+		stocks := []shared.PartStock{}
+		prices := []shared.PartPrice{}
 		rpcClient.Call("PartRPC.Get", id, &part)
 		rpcClient.Call("PartRPC.ClassList", Session.Channel, &classes)
+		rpcClient.Call("PartRPC.StockList", id, &stocks)
+		rpcClient.Call("PartRPC.PriceList", id, &prices)
 
 		BackURL := fmt.Sprintf("/parts/%d", part.Class)
 		title := fmt.Sprintf("Part Details - %s - %s", part.Name, part.StockCode)
 		form := formulate.EditForm{}
 		form.New("fa-puzzle-piece", title)
+
+		// convert the last_price_date into a display field
+		part.LastPriceDateDisplay = ""
+		if part.LastPriceDate != nil {
+			part.LastPriceDateDisplay = part.LastPriceDate.Format("Mon, Jan 2 2006")
+		}
 
 		// Layout the fields
 
@@ -248,9 +258,10 @@ func partEdit(context *router.Context) {
 		form.Row(1).
 			AddInput(1, "Description", "Descr")
 
-		form.Row(3).
+		form.Row(4).
 			AddDecimal(1, "ReOrder Level", "ReorderStocklevel", 2).
 			AddDecimal(1, "ReOrder Qty", "ReorderQty", 2).
+			AddDecimal(1, "Current Stock", "CurrentStock", 2).
 			AddInput(1, "Qty Type", "QtyType")
 
 		form.Row(2).
@@ -259,6 +270,12 @@ func partEdit(context *router.Context) {
 
 		form.Row(1).
 			AddTextarea(1, "Notes", "Notes")
+
+		form.Row(1).
+			AddCustom(1, "Stock History", "StockList", "")
+
+		form.Row(1).
+			AddCustom(1, "Price History", "PriceList", "")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -289,7 +306,14 @@ func partEdit(context *router.Context) {
 				}
 				done := false
 				rpcClient.Call("PartRPC.Update", data, &done)
-				NewBackURL := fmt.Sprintf("/parts/%d", part.Class)
+				NewBackURL := ""
+				if done {
+					// Go back to parts list
+					NewBackURL = fmt.Sprintf("/parts/%d", part.Class)
+				} else {
+					// refresh this screen
+					NewBackURL = fmt.Sprintf("/part/%d", part.ID)
+				}
 				Session.Router.Navigate(NewBackURL)
 			}()
 		})
@@ -297,10 +321,24 @@ func partEdit(context *router.Context) {
 		// All done, so render the form
 		form.Render("edit-form", "main", &part)
 
-		// And attach actions
-		form.ActionGrid("part-actions", "#action-grid", part.ID, func(url string) {
-			Session.Router.Navigate(url)
-		})
+		// Inject the StockLevel list
+		stocklist := formulate.ListForm{}
+		stocklist.New("", "")
+		stocklist.ColumnFormat("Date", "DateFromDisplay", `width="60%"`)
+		stocklist.ColumnFormat("Stock", "StockLevel", `width="40%" text-align="right"`)
+		stocklist.Render("part-stock-list", "[name=StockList]", stocks)
+
+		// Inject the Price list
+		pricelist := formulate.ListForm{}
+		pricelist.New("", "")
+		pricelist.ColumnFormat("Date", "DateFromDisplay", `width="60%"`)
+		pricelist.ColumnFormat("Price", "PriceDisplay", `width="40%" text-align="right"`)
+		pricelist.Render("part-price-list", "[name=PriceList]", prices)
+
+		// // And attach actions
+		// form.ActionGrid("part-actions", "#action-grid", part.ID, func(url string) {
+		// 	print("clicked on url", url)
+		// })
 
 	}()
 }
@@ -344,7 +382,7 @@ func partAdd(context *router.Context) {
 
 		form.Row(2).
 			AddDecimal(1, "Latest Price", "LatestPrice", 2).
-			AddDisplay(1, "Last Price Update", "LastPriceDateDisplay")
+			AddDecimal(1, "Current Stock", "CurrentStock", 2)
 
 		form.Row(1).
 			AddTextarea(1, "Notes", "Notes")

@@ -79,8 +79,6 @@ func enableRoutes(Role string) {
 			"part-list":             partList,
 			"part-edit":             partEdit,
 			"part-add":              partAdd,
-			"part-price-list":       partPriceList,
-			"part-stock-list":       partStockList,
 			"user-list":             userList,
 			"user-edit":             userEdit,
 			"user-add":              userAdd,

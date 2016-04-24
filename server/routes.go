@@ -39,8 +39,6 @@ func getRoutes(uid int, role string) []shared.UserRoute {
 			{Route: "/parts/{id}", Func: "part-list"},
 			{Route: "/part/add/{id}", Func: "part-add"},
 			{Route: "/part/{id}", Func: "part-edit"},
-			{Route: "/part/prices/{id}", Func: "part-price-list"},
-			{Route: "/part/stocktake/{id}", Func: "part-stock-list"},
 			{Route: "/users", Func: "user-list"},
 			{Route: "/user/{id}", Func: "user-edit"},
 			{Route: "/user/add", Func: "user-add"},
@@ -70,11 +68,6 @@ func getRoutes(uid int, role string) []shared.UserRoute {
 			{Route: "/parts/{id}", Func: "part-list"},
 			{Route: "/part/add/{id}", Func: "part-add"},
 			{Route: "/part/{id}", Func: "part-edit"},
-			{Route: "/part/prices/{id}", Func: "part-price-list"},
-			{Route: "/part/stocktake/{id}", Func: "part-stock-list"},
-			// {Route: "/users", Func: "user-list"},
-			// {Route: "/user/{id}", Func: "user-edit"},
-			// {Route: "/user/add", Func: "user-add"},
 			{Route: "/reports", Func: "reports"},
 		}
 	case "Technician":

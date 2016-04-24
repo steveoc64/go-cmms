@@ -32,6 +32,7 @@ type Part struct {
 	LatestPrice          float64    `db:"latest_price"`
 	LastPriceDate        *time.Time `db:"last_price_date"`
 	LastPriceDateDisplay string     `db:"last_price_date_display"`
+	CurrentStock         float64    `db:"current_stock"`
 	QtyType              string     `db:"qty_type"`
 	Picture              string     `db:"picture"`
 	Notes                string     `db:"notes"`
@@ -40,6 +41,32 @@ type Part struct {
 type PartUpdateData struct {
 	Channel int
 	Part    *Part
+}
+
+type PartPrice struct {
+	ID       int       `db:"id"`
+	PartID   int       `db:"part_id"`
+	DateFrom time.Time `db:"datefrom"`
+	Price    float64   `db:"price"`
+}
+
+func (p *PartPrice) DateFromDisplay() string {
+	return p.DateFrom.Format("Mon, Jan 2 2006 15:04:05")
+}
+
+func (p *PartPrice) PriceDisplay() string {
+	return fmt.Sprintf("$ %12.02f", p.Price)
+}
+
+type PartStock struct {
+	ID         int       `db:"id"`
+	PartID     int       `db:"part_id"`
+	DateFrom   time.Time `db:"datefrom"`
+	StockLevel float64   `db:"stock_level"`
+}
+
+func (p *PartStock) DateFromDisplay() string {
+	return p.DateFrom.Format("Mon, Jan 2 2006 15:04:05")
 }
 
 func (p *Part) ReorderDetails() string {
