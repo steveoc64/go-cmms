@@ -43,4 +43,9 @@ func registerRPC() {
 		log.Fatal(err)
 	}
 	log.Println("» Event")
+
+	if err := rpc.Register(new(UtilRPC)); err != nil {
+		log.Fatal(err)
+	}
+	log.Println("» Util")
 }

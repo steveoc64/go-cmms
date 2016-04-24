@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os/exec"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/engine/standard"
@@ -66,6 +67,14 @@ func main() {
 		e.SetDebug(true)
 	}
 	echocors.Init(e, Config.Debug)
+
+	// Do a database backup before we begin
+	out, err := exec.Command("../scripts/cmms-backup.sh").Output()
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println(string(out))
+	}
 
 	// Connect to the database
 	DB = db.Init(Config.DataSourceName)

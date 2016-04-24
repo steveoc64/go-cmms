@@ -1,0 +1,39 @@
+<div class="action-grid">
+	<div class="action__item" url="backup">
+		<div class="action__title">Backup</div>
+		<div class="action__icon"><i class="fa fa-database fa-lg"></i></div>
+		<div class="action__text">
+			Backup the database.
+		</div>
+	</div>
+	<div class="action__item" url="top">
+		<div class="action__title">Procs</div>
+		<div class="action__icon"><i class="fa fa-tachometer fa-lg"></i></div>
+		<div class="action__text">
+			Web Server processes, memory usage and performance stats.
+		</div>
+	</div>
+	<div class="action__item" url="logs">
+		<div class="action__title">System Logs</div>
+		<div class="action__icon"><i class="fa fa-search-plus fa-lg"></i></div>
+		<div class="action__text">
+			View the most recent system activity logs.
+		</div>
+	</div>
+	{{if .}}
+	<div class="action__item" url="machine">
+		<div class="action__title">Machine</div>
+		<div class="action__icon"><i class="fa fa-gears fa-lg"></i></div>
+		<div class="action__text">
+			Generate the Part Class for all the machines.
+		</div>
+	</div>
+	<div class="action__item" url="part">
+		<div class="action__title">Part Class</div>
+		<div class="action__icon"><i class="fa fa-puzzle-piece fa-lg"></i></div>
+		<div class="action__text">
+			Generate the Part Class for all the parts.
+		</div>
+	</div>
+	{{end}}
+</div>
