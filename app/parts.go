@@ -24,6 +24,7 @@ func classSelect(context *router.Context) {
 		// Define the layout
 		form.Column("Name", "Name")
 		form.Column("Description", "Descr")
+		form.Column("Number of Parts", "Count")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {

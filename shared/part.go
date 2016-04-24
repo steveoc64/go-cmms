@@ -9,6 +9,7 @@ type PartClass struct {
 	ID    int    `db:"id"`
 	Name  string `db:"name"`
 	Descr string `db:"descr"`
+	Count int    `db:"count"`
 }
 
 type PartClassUpdateData struct {

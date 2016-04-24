@@ -122,14 +122,25 @@ func (m *PartRPC) ClassList(channel int, classes *[]shared.PartClass) error {
 
 	conn := Connections.Get(channel)
 
+	haveNone := 0
+	DB.SQL(`select count(*) from part where part.class=0`).QueryScalar(&haveNone)
+
 	// Read the sites that this user has access to
 	*classes = append(*classes, shared.PartClass{
 		ID:    0,
 		Name:  "All",
 		Descr: "Parts that apply to all machine types",
+		Count: haveNone,
 	})
-	err := DB.SQL(`select id,name,descr from part_class order by name`).
+
+	err := DB.SQL(`select 
+		p.id as id,p.name as name,p.descr as descr,
+		(select count(*) from part where part.class=p.id) as count
+		from part_class p order by p.name`).
 		QueryStructs(classes)
+
+	// err := DB.SQL(`select id,name,descr from part_class order by name`).
+	// 	QueryStructs(classes)
 
 	if err != nil {
 		log.Println(err.Error())
