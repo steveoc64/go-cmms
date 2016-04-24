@@ -227,7 +227,9 @@ func partEdit(context *router.Context) {
 
 	go func() {
 		part := shared.Part{}
+		classes := []shared.PartClass{}
 		rpcClient.Call("PartRPC.Get", id, &part)
+		rpcClient.Call("PartRPC.ClassList", Session.Channel, &classes)
 
 		BackURL := fmt.Sprintf("/parts/%d", part.Class)
 		title := fmt.Sprintf("Part Details - %s - %s", part.Name, part.StockCode)
@@ -235,6 +237,9 @@ func partEdit(context *router.Context) {
 		form.New("fa-puzzle-piece", title)
 
 		// Layout the fields
+
+		form.Row(1).
+			AddSelect(1, "For Machine Type", "Class", classes, "ID", "Name", 1, part.Class)
 
 		form.Row(2).
 			AddInput(1, "Name", "Name").
@@ -244,9 +249,13 @@ func partEdit(context *router.Context) {
 			AddInput(1, "Description", "Descr")
 
 		form.Row(3).
-			AddNumber(1, "ReOrder Level", "ReorderStocklevel", "1").
-			AddNumber(1, "ReOrder Qty", "ReorderQty", "1").
+			AddDecimal(1, "ReOrder Level", "ReorderStocklevel", 2).
+			AddDecimal(1, "ReOrder Qty", "ReorderQty", 2).
 			AddInput(1, "Qty Type", "QtyType")
+
+		form.Row(2).
+			AddDecimal(1, "Latest Price", "LatestPrice", 2).
+			AddDisplay(1, "Last Price Update", "LastPriceDateDisplay")
 
 		form.Row(1).
 			AddTextarea(1, "Notes", "Notes")
@@ -259,35 +268,30 @@ func partEdit(context *router.Context) {
 
 		form.DeleteEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			print("TODO - delete part")
-			return
-
-			// machine.ID = id
-			// go func() {
-			// 	data := shared.MachineUpdateData{
-			// 		Channel: Session.Channel,
-			// 		Machine: &machine,
-			// 	}
-			// 	done := false
-			// 	rpcClient.Call("MachineRPC.Delete", data, &done)
-			// 	Session.Router.Navigate(BackURL)
-			// }()
+			go func() {
+				data := shared.PartUpdateData{
+					Channel: Session.Channel,
+					Part:    &part,
+				}
+				done := false
+				rpcClient.Call("PartRPC.Delete", data, &done)
+				Session.Router.Navigate(BackURL)
+			}()
 		})
 
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			print("TODO - part save")
-			return
-			// form.Bind(&machine)
-			// go func() {
-			// 	data := shared.MachineUpdateData{
-			// 		Channel: Session.Channel,
-			// 		Machine: &machine,
-			// 	}
-			// 	done := false
-			// 	rpcClient.Call("MachineRPC.Update", data, &done)
-			// 	Session.Router.Navigate(BackURL)
-			// }()
+			form.Bind(&part)
+			go func() {
+				data := shared.PartUpdateData{
+					Channel: Session.Channel,
+					Part:    &part,
+				}
+				done := false
+				rpcClient.Call("PartRPC.Update", data, &done)
+				NewBackURL := fmt.Sprintf("/parts/%d", part.Class)
+				Session.Router.Navigate(NewBackURL)
+			}()
 		})
 
 		// All done, so render the form
@@ -302,5 +306,81 @@ func partEdit(context *router.Context) {
 }
 
 func partAdd(context *router.Context) {
-	print("TODO partAdd")
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		part := shared.Part{}
+		part.Class = id
+		classes := []shared.PartClass{}
+		class := shared.PartClass{}
+		rpcClient.Call("PartRPC.GetClass", id, &class)
+		rpcClient.Call("PartRPC.ClassList", Session.Channel, &classes)
+
+		BackURL := fmt.Sprintf("/parts/%d", part.Class)
+		title := fmt.Sprintf("Add Part for Machine Type - %s - %s", class.Name, class.Descr)
+		form := formulate.EditForm{}
+		form.New("fa-puzzle-piece", title)
+
+		// Layout the fields
+
+		form.Row(1).
+			AddSelect(1, "For Machine Type", "Class", classes, "ID", "Name", 1, part.Class)
+
+		form.Row(2).
+			AddInput(1, "Name", "Name").
+			AddInput(1, "Stock Code", "StockCode")
+
+		form.Row(1).
+			AddInput(1, "Description", "Descr")
+
+		form.Row(3).
+			AddDecimal(1, "ReOrder Level", "ReorderStocklevel", 2).
+			AddDecimal(1, "ReOrder Qty", "ReorderQty", 2).
+			AddInput(1, "Qty Type", "QtyType")
+
+		form.Row(2).
+			AddDecimal(1, "Latest Price", "LatestPrice", 2).
+			AddDisplay(1, "Last Price Update", "LastPriceDateDisplay")
+
+		form.Row(1).
+			AddTextarea(1, "Notes", "Notes")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(BackURL)
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&part)
+			go func() {
+				data := shared.PartUpdateData{
+					Channel: Session.Channel,
+					Part:    &part,
+				}
+				newID := 0
+				rpcClient.Call("PartRPC.Insert", data, &newID)
+				print("Added new part", newID)
+				NewBackURL := fmt.Sprintf("/parts/%d", part.Class)
+				Session.Router.Navigate(NewBackURL)
+			}()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &part)
+
+	}()
+}
+
+func partPriceList(context *router.Context) {
+	print("TODO - partPriceList")
+}
+
+func partStockList(context *router.Context) {
+	print("TODO - partStockList")
 }

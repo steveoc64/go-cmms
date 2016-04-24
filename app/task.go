@@ -430,8 +430,8 @@ func schedEdit(context *router.Context) {
 			AddTextarea(1, "Task Description", "Descr")
 
 		form.Row(3).
-			AddNumber(1, "Labour Cost", "LabourCost", "1").
-			AddNumber(1, "Material Cost", "MaterialCost", "1").
+			AddDecimal(1, "Labour Cost", "LabourCost", 2).
+			AddDecimal(1, "Material Cost", "MaterialCost", 2).
 			AddNumber(1, "Duration (days)", "DurationDays", "1")
 
 		// Add event handlers
@@ -699,8 +699,8 @@ func machineSchedAdd(context *router.Context) {
 			AddTextarea(1, "Task Description", "Descr")
 
 		form.Row(3).
-			AddNumber(1, "Labour Cost", "LabourCost", "1").
-			AddNumber(1, "Material Cost", "MaterialCost", "1").
+			AddDecimal(1, "Labour Cost", "LabourCost", 2).
+			AddDecimal(1, "Material Cost", "MaterialCost", 2).
 			AddNumber(1, "Duration (days)", "DurationDays", "1")
 
 		// Add event handlers

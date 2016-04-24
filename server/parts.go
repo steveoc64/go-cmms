@@ -165,3 +165,66 @@ func (p *PartRPC) List(req shared.PartListReq, parts *[]shared.Part) error {
 
 	return nil
 }
+
+// Update the part
+func (p *PartRPC) Update(data shared.PartUpdateData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.Update("part").
+		SetWhitelist(data.Part,
+			"class", "name", "descr", "stock_code", "reorder_stocklevel",
+			"reorder_qty", "latest_price", "qty_type", "notes").
+		Where("id = $1", data.Part.ID).
+		Exec()
+
+	logger(start, "Part.Update",
+		fmt.Sprintf("Channel %d, Part %d, User %d %s %s",
+			data.Channel, data.Part.ID, conn.UserID, conn.Username, conn.UserRole),
+		data.Part.Name)
+
+	*done = true
+
+	return nil
+}
+
+// Insert a new part
+func (p *PartRPC) Insert(data shared.PartUpdateData, id *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.InsertInto("part").
+		Columns("class", "name", "descr", "stock_code", "reorder_stocklevel",
+			"reorder_qty", "latest_price", "qty_type", "notes").
+		Record(data.Part).
+		Returning("id").
+		QueryScalar(id)
+
+	logger(start, "Part.Insert",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("New Part %d", *id))
+
+	return nil
+}
+
+// Delete a new part
+func (p *PartRPC) Delete(data shared.PartUpdateData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.DeleteFrom("part").
+		Where("id=$1", data.Part.ID).
+		Exec()
+
+	logger(start, "Part.Delete",
+		fmt.Sprintf("Channel %d, Part %d, User %d %s %s",
+			data.Channel, data.Part.ID, conn.UserID, conn.Username, conn.UserRole),
+		data.Part.Name)
+
+	*done = true
+	return nil
+}
