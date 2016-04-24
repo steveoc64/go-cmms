@@ -8,6 +8,11 @@ type PartClass struct {
 	Descr string `db:"descr"`
 }
 
+type PartClassUpdateData struct {
+	Channel   int
+	PartClass *PartClass
+}
+
 type PartListReq struct {
 	Channel int
 	Class   int

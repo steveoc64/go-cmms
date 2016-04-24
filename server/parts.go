@@ -54,6 +54,68 @@ func (p *PartRPC) GetClass(id int, partClass *shared.PartClass) error {
 	return nil
 }
 
+// Add a new part class
+func (p *PartRPC) InsertClass(data shared.PartClassUpdateData, id *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	*id = 0
+	DB.InsertInto("part_class").
+		Columns("name", "descr").
+		Record(data.PartClass).
+		Returning("id").
+		QueryScalar(id)
+
+	logger(start, "Part.InsertClass",
+		fmt.Sprintf("Channel %d, Class %d, User %d %s %s",
+			data.Channel, *id, conn.UserID, conn.Username, conn.UserRole),
+		data.PartClass.Name)
+
+	return nil
+}
+
+// Delete the class
+func (p *PartRPC) DeleteClass(data shared.PartClassUpdateData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.DeleteFrom("part_class").
+		Where("id=$1", data.PartClass.ID).
+		Exec()
+
+	logger(start, "Part.DeleteClass",
+		fmt.Sprintf("Channel %d, Class %d, User %d %s %s",
+			data.Channel, data.PartClass.ID, conn.UserID, conn.Username, conn.UserRole),
+		data.PartClass.Name)
+
+	*done = true
+
+	return nil
+}
+
+// Update the class
+func (p *PartRPC) UpdateClass(data shared.PartClassUpdateData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.Update("part_class").
+		SetWhitelist(data.PartClass, "name", "descr").
+		Where("id = $1", data.PartClass.ID).
+		Exec()
+
+	logger(start, "Part.UpdateClass",
+		fmt.Sprintf("Channel %d, Class %d, User %d %s %s",
+			data.Channel, data.PartClass.ID, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%s : %s", data.PartClass.Name, data.PartClass.Descr))
+
+	*done = true
+
+	return nil
+}
+
 // Get a list of machine classes
 func (m *PartRPC) ClassList(channel int, classes *[]shared.PartClass) error {
 	start := time.Now()

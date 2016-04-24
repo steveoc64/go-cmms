@@ -48,7 +48,48 @@ func classSelect(context *router.Context) {
 }
 
 func classAdd(context *router.Context) {
-	print("TODO - classAdd")
+
+	go func() {
+		partClass := shared.PartClass{}
+		BackURL := "/class/select"
+		title := "Add Machine Type for Parts List"
+		form := formulate.EditForm{}
+		form.New("fa-puzzle-piece", title)
+
+		// Layout the fields
+
+		form.Row(2).
+			AddInput(1, "Name", "Name")
+
+		form.Row(1).
+			AddInput(1, "Description", "Descr")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(BackURL)
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&partClass)
+			go func() {
+				data := shared.PartClassUpdateData{
+					Channel:   Session.Channel,
+					PartClass: &partClass,
+				}
+				newID := 0
+				rpcClient.Call("PartRPC.InsertClass", data, &newID)
+				print("added class ID", newID)
+				Session.Router.Navigate(BackURL)
+			}()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &partClass)
+
+	}()
+
 }
 
 // Show a list of all parts for the given class
@@ -67,11 +108,53 @@ func partList(context *router.Context) {
 		rpcClient.Call("PartRPC.List", req, &data)
 		rpcClient.Call("PartRPC.GetClass", partClass, &class)
 
-		// load a form for the class
-		loadTemplate("class-edit", "main", class)
-
 		BackURL := "/class/select"
 		Title := fmt.Sprintf("Parts of type - %s", class.Name)
+
+		// load a form for the class
+		if partClass == 0 {
+			loadTemplate("class-display", "main", class)
+		} else {
+			loadTemplate("class-edit", "main", class)
+			w := dom.GetWindow()
+			doc := w.Document()
+
+			if el := doc.QuerySelector(".data-del-btn"); el != nil {
+
+				if el := doc.QuerySelector(".md-confirm-del"); el != nil {
+					el.AddEventListener("click", false, func(evt dom.Event) {
+						go func() {
+							data := shared.PartClassUpdateData{
+								Channel:   Session.Channel,
+								PartClass: &class,
+							}
+							done := false
+							rpcClient.Call("PartRPC.DeleteClass", data, &done)
+						}()
+						Session.Router.Navigate(BackURL)
+					})
+				}
+
+				el.AddEventListener("click", false, func(evt dom.Event) {
+					doc.QuerySelector("#confirm-delete").Class().Add("md-show")
+				})
+
+				if el := doc.QuerySelector(".md-close-del"); el != nil {
+					el.AddEventListener("click", false, func(evt dom.Event) {
+						doc.QuerySelector("#confirm-delete").Class().Remove("md-show")
+					})
+				}
+
+				if el := doc.QuerySelector("#confirm-delete"); el != nil {
+					el.AddEventListener("keyup", false, func(evt dom.Event) {
+						if evt.(*dom.KeyboardEvent).KeyCode == 27 {
+							evt.PreventDefault()
+							doc.QuerySelector("#confirm-delete").Class().Remove("md-show")
+						}
+					})
+				}
+			}
+		}
 
 		form := formulate.ListForm{}
 		form.New("fa-puzzle-piece", Title)
@@ -109,9 +192,27 @@ func partList(context *router.Context) {
 
 		doc.QuerySelector("#class-name").AddEventListener("change", false, func(evt dom.Event) {
 			print("TODO - Name has changed")
+			go func() {
+				class.Name = doc.QuerySelector("#class-name").(*dom.HTMLInputElement).Value
+				data := shared.PartClassUpdateData{
+					Channel:   Session.Channel,
+					PartClass: &class,
+				}
+				done := false
+				rpcClient.Call("PartRPC.UpdateClass", data, &done)
+			}()
 		})
 		doc.QuerySelector("#class-descr").AddEventListener("change", false, func(evt dom.Event) {
 			print("TODO - Description has changed")
+			go func() {
+				class.Descr = doc.QuerySelector("#class-descr").(*dom.HTMLInputElement).Value
+				data := shared.PartClassUpdateData{
+					Channel:   Session.Channel,
+					PartClass: &class,
+				}
+				done := false
+				rpcClient.Call("PartRPC.UpdateClass", data, &done)
+			}()
 		})
 
 	}()
