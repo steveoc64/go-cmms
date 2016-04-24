@@ -135,7 +135,7 @@ func (s *SiteRPC) Update(data shared.SiteUpdateData, retval *bool) error {
 
 	DB.Update("site").
 		SetWhitelist(data.Site, "name", "address", "phone", "fax",
-			"parent_site", "stock_site", "notes", "alerts_to", "tasks_to").
+			"parent_site", "stock_site", "notes", "alerts_to", "tasks_to", "manager").
 		Where("id = $1", data.Site.ID).
 		Exec()
 
@@ -157,7 +157,7 @@ func (s *SiteRPC) Insert(data shared.SiteUpdateData, id *int) error {
 	*id = 0
 	DB.InsertInto("site").
 		Columns("name", "address", "phone", "fax",
-			"parent_site", "stock_site", "notes", "alerts_to", "tasks_to").
+			"parent_site", "stock_site", "notes", "alerts_to", "tasks_to", "manager").
 		Record(data.Site).
 		Returning("id").
 		QueryScalar(id)

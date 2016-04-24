@@ -36,6 +36,12 @@ u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
 	where u.role='Site Manager' and x.site_id=$1
 	order by u.username`
 
+const ManagersAllQuery = `select 
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
+	from users u
+	where u.role='Site Manager'
+	order by u.username`
+
 const AdminsListQuery = `select 
 u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
 	from users u
@@ -276,7 +282,14 @@ func (u *UserRPC) GetManagers(site_id int, users *[]shared.User) error {
 	start := time.Now()
 
 	// log.Println(ManagersListQuery)
-	DB.SQL(ManagersListQuery, site_id).QueryStructs(users)
+	if site_id == 0 {
+		log.Println("here with", ManagersAllQuery)
+		DB.SQL(ManagersAllQuery).QueryStructs(users)
+	} else {
+		log.Println("here with", ManagersListQuery, "param=", site_id)
+		DB.SQL(ManagersListQuery, site_id).QueryStructs(users)
+	}
+
 	// log.Println(AdminsListQuery)
 	DB.SQL(AdminsListQuery, site_id).QueryStructs(users)
 

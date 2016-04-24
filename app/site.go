@@ -219,11 +219,13 @@ func siteEdit(context *router.Context) {
 	go func() {
 		site := shared.Site{}
 		sites := []shared.Site{}
+		allManagers := []shared.User{}
 		managers := []shared.User{}
 		technicians := []shared.User{}
 
 		rpcClient.Call("SiteRPC.Get", id, &site)
 		rpcClient.Call("SiteRPC.List", Session.Channel, &sites)
+		rpcClient.Call("UserRPC.GetManagers", 0, &allManagers)
 		rpcClient.Call("UserRPC.GetManagers", id, &managers)
 		rpcClient.Call("UserRPC.GetTechnicians", id, &technicians)
 
@@ -233,9 +235,9 @@ func siteEdit(context *router.Context) {
 		form.New("fa-industry", title)
 
 		// Layout the fields
-		form.Row(1).
-			AddInput(1, "Name", "Name")
-
+		form.Row(2).
+			AddInput(1, "Name", "Name").
+			AddSelect(1, "Site Manager", "Manager", allManagers, "ID", "Name", 0, site.Manager)
 		form.Row(2).
 			AddSelect(1, "Parent Site", "ParentSite", sites, "ID", "Name", 0, site.ParentSite).
 			AddSelect(1, "Stock Site", "StockSite", sites, "ID", "Name", 0, site.StockSite)
