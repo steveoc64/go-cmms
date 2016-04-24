@@ -164,6 +164,7 @@ func partList(context *router.Context) {
 		form.Column("Description", "Descr")
 		form.Column("Stock Code", "StockCode")
 		form.Column("Reorder Lvl/Qty", "ReorderDetails")
+		form.Column("Stock", "CurrentStock")
 		form.Column("Qty", "QtyType")
 		form.Column("Latest Price", "DisplayPrice")
 
@@ -245,6 +246,7 @@ func partEdit(context *router.Context) {
 		if part.LastPriceDate != nil {
 			part.LastPriceDateDisplay = part.LastPriceDate.Format("Mon, Jan 2 2006")
 		}
+		part.ValuationString = part.DisplayValuation()
 
 		// Layout the fields
 
@@ -264,9 +266,10 @@ func partEdit(context *router.Context) {
 			AddDecimal(1, "Current Stock", "CurrentStock", 2).
 			AddInput(1, "Qty Type", "QtyType")
 
-		form.Row(2).
-			AddDisplay(1, "Last Price Update", "LastPriceDateDisplay").
-			AddDecimal(1, "Latest Price", "LatestPrice", 2)
+		form.Row(4).
+			AddDisplay(2, "Last Price Update", "LastPriceDateDisplay").
+			AddDecimal(1, "Latest Price", "LatestPrice", 2).
+			AddDisplay(1, "Valuation", "ValuationString")
 
 		form.Row(1).
 			AddTextarea(1, "Notes", "Notes")
@@ -334,6 +337,30 @@ func partEdit(context *router.Context) {
 		pricelist.ColumnFormat("Date", "DateFromDisplay", `width="60%"`)
 		pricelist.ColumnFormat("Price", "PriceDisplay", `width="40%" text-align="right"`)
 		pricelist.Render("part-price-list", "[name=PriceList]", prices)
+
+		// Auto calculate the valuation on change of fields
+		w := dom.GetWindow()
+		doc := w.Document()
+		doc.QuerySelector("[name=CurrentStock]").AddEventListener("change", false, func(evt dom.Event) {
+			s := doc.QuerySelector("[name=CurrentStock]").(*dom.HTMLInputElement).Value
+			p := doc.QuerySelector("[name=LatestPrice]").(*dom.HTMLInputElement).Value
+			s1, _ := strconv.ParseFloat(s, 64)
+			p1, _ := strconv.ParseFloat(p, 64)
+			part.CurrentStock = s1
+			part.LatestPrice = p1
+			part.ValuationString = part.DisplayValuation()
+			doc.QuerySelector("[name=ValuationString]").(*dom.HTMLInputElement).Value = part.ValuationString
+		})
+		doc.QuerySelector("[name=LatestPrice]").AddEventListener("change", false, func(evt dom.Event) {
+			s := doc.QuerySelector("[name=CurrentStock]").(*dom.HTMLInputElement).Value
+			p := doc.QuerySelector("[name=LatestPrice]").(*dom.HTMLInputElement).Value
+			s1, _ := strconv.ParseFloat(s, 64)
+			p1, _ := strconv.ParseFloat(p, 64)
+			part.CurrentStock = s1
+			part.LatestPrice = p1
+			part.ValuationString = part.DisplayValuation()
+			doc.QuerySelector("[name=ValuationString]").(*dom.HTMLInputElement).Value = part.ValuationString
+		})
 
 		// // And attach actions
 		// form.ActionGrid("part-actions", "#action-grid", part.ID, func(url string) {

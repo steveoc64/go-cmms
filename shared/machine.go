@@ -42,6 +42,7 @@ type Machine struct {
 	AlertsTo   int         `db:"alerts_to"`
 	TasksTo    int         `db:"tasks_to"`
 	Components []Component `db:"components"`
+	PartClass  int         `db:"part_class"`
 }
 
 type MachineUpdateData struct {

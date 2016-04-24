@@ -33,6 +33,8 @@ type Part struct {
 	LastPriceDate        *time.Time `db:"last_price_date"`
 	LastPriceDateDisplay string     `db:"last_price_date_display"`
 	CurrentStock         float64    `db:"current_stock"`
+	ValuationString      string     `db:"valuation_string"`
+	Valuation            float64    `db:"valuation"`
 	QtyType              string     `db:"qty_type"`
 	Picture              string     `db:"picture"`
 	Notes                string     `db:"notes"`
@@ -75,6 +77,10 @@ func (p *Part) ReorderDetails() string {
 
 func (p *Part) DisplayPrice() string {
 	return fmt.Sprintf("$ %8.2f", p.LatestPrice)
+}
+
+func (p *Part) DisplayValuation() string {
+	return fmt.Sprintf("$ %8.2f", p.LatestPrice*p.CurrentStock)
 }
 
 type PartComponents struct {
