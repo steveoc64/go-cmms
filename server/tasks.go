@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 
@@ -42,6 +43,37 @@ func (t *TaskRPC) GetSched(id int, task *shared.SchedTask) error {
 
 	if err != nil {
 		log.Println(err.Error())
+	} else {
+		// Get the parts allowed from the PartClass of the machine
+		partClass := 0
+		DB.SQL(`select part_class from machine where id=$1`, task.MachineID).
+			QueryScalar(&partClass)
+
+		// if partClass != 0 {
+		// 	DB.SQL(`select * from part where class=$1 order by part.name`, partClass).
+		// 		QueryStructs(&task.PartsAllowed)
+		// }
+
+		log.Println("key task", task.ID, "class", partClass)
+		// Get the parts used in this sched
+		DB.SQL(`select 
+			p.id as part_id,p.stock_code as stock_code,p.name as name,p.qty_type as qty_type,
+			u.qty as qty,u.notes as notes
+			from part p
+			left join sched_task_part u on u.part_id=p.id and u.task_id=$1
+			where p.class=$2
+			order by p.name`, task.ID, partClass).
+			QueryStructs(&task.PartsRequired)
+
+		// dereference all the qty and notes fields
+		for i, v := range task.PartsRequired {
+			if v.QtyPtr != nil {
+				task.PartsRequired[i].Qty = *v.QtyPtr
+			}
+			if v.NotesPtr != nil {
+				task.PartsRequired[i].Notes = *v.NotesPtr
+			}
+		}
 	}
 
 	logger(start, "Task.GetSched",
@@ -93,6 +125,38 @@ func (t *TaskRPC) UpdateSched(data *shared.SchedTaskUpdateData, ok *bool) error 
 	return nil
 }
 
+func (t *TaskRPC) SchedPart(data shared.PartReqEdit, ok *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	// Kill any existing relationship, and then create a new one
+	DB.SQL(`delete from sched_task_part where task_id=$1 and part_id=$2`,
+		data.Task.ID, data.Part.PartID).Exec()
+
+	record := shared.SchedTaskPart{
+		TaskID: data.Task.ID,
+		PartID: data.Part.PartID,
+		Qty:    data.Part.Qty,
+		Notes:  data.Part.Notes,
+	}
+
+	DB.InsertInto("sched_task_part").
+		Whitelist("task_id", "part_id", "qty", "notes").
+		Record(record).
+		Exec()
+
+	logger(start, "Task.SchedPart",
+		fmt.Sprintf("Channel %d, Task %d, User %d %s %s",
+			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("Part %d Qty %f Notes %s",
+			data.Part.PartID, data.Part.Qty, data.Part.Notes))
+
+	*ok = true
+
+	return nil
+}
+
 func (t *TaskRPC) SchedPlay(id int, ok *bool) error {
 	start := time.Now()
 
@@ -103,6 +167,9 @@ func (t *TaskRPC) SchedPlay(id int, ok *bool) error {
 		"Now Running")
 
 	*ok = true
+
+	newTasks := 0
+	schedTaskScan(time.Now(), &newTasks)
 
 	return nil
 }
@@ -160,11 +227,15 @@ func (t *TaskRPC) InsertSched(data *shared.SchedTaskUpdateData, id *int) error {
 		data.SchedTask.DurationDays = 1
 	}
 
+	// Default the schedule to paused, so we can fine tune it before starting
+	// the first generation
+	data.SchedTask.Paused = true
+
 	DB.InsertInto("sched_task").
 		Whitelist("machine_id", "comp_type", "tool_id",
 			"component", "descr", "startdate", "oneoffdate",
 			"freq", "days", "week", "weekday", "count", "user_id",
-			"labour_cost", "material_cost", "duration_days").
+			"labour_cost", "material_cost", "duration_days", "paused").
 		Record(data.SchedTask).
 		Returning("id").
 		QueryScalar(id)
@@ -295,10 +366,37 @@ func (t *TaskRPC) Get(id int, task *shared.Task) error {
 		log.Println(err.Error())
 	}
 
+	// Now get all the parts for this task
+	DB.SQL(`select * from task_part where task_id=$1`, id).QueryStructs(&task.Parts)
+
+	// Now get all the checks for this task
+	DB.SQL(`select * from task_check where task_id=$1`, id).QueryStructs(&task.Checks)
+
 	logger(start, "Task.Get",
 		fmt.Sprintf("ID %d", id),
 		task.Descr)
 
+	return nil
+}
+
+func (t *TaskRPC) Check(data shared.TaskCheckUpdate, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`update task_check 
+		set done=true,done_date=now()
+		where task_id=$1 and seq=$2`,
+		data.TaskCheck.TaskID,
+		data.TaskCheck.Seq).Exec()
+
+	logger(start, "Task.Check",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("Task %d Seq %d Checked",
+			data.TaskCheck.TaskID, data.TaskCheck.Seq))
+
+	*done = true
 	return nil
 }
 
@@ -642,6 +740,53 @@ func genTask(st shared.SchedTask, task *shared.Task, startDate time.Time, dueDat
 		QueryScalar(&task.ID)
 
 	DB.SQL(`update sched_task set last_generated=$2 where id=$1`, st.ID, startDate).Exec()
+
+	// Now copy across the parts usage from the sched
+	schedParts := []shared.SchedTaskPart{}
+	DB.SQL(`select * from sched_task_part where task_id=$1`, st.ID).QueryStructs(&schedParts)
+
+	for _, s := range schedParts {
+
+		taskPart := shared.TaskPart{
+			TaskID: task.ID,
+			PartID: s.PartID,
+			Qty:    s.Qty,
+			Notes:  s.Notes,
+		}
+
+		DB.InsertInto("task_part").
+			Whitelist("task_id", "part_id", "qty", "notes").
+			Record(taskPart).
+			Exec()
+	}
+
+	// Now generate the task check items based on the description field of the schedtask
+	lines := strings.Split(st.Descr, "\n")
+	seq := 1
+	descr := ""
+	for _, l := range lines {
+		if strings.HasPrefix(l, "- ") {
+			check := shared.TaskCheck{
+				TaskID: task.ID,
+				Seq:    seq,
+				Descr:  l[2:],
+				Done:   false,
+			}
+
+			DB.InsertInto("task_check").
+				Whitelist("task_id", "seq", "descr", "done").
+				Record(check).
+				Exec()
+			seq++
+		} else {
+			descr += l
+			descr += "\n"
+		}
+	}
+	log.Println("Modded desc from", st.Descr, "to", descr)
+	if seq > 1 {
+		DB.SQL(`update task set descr=$1 where id=$2`, descr, task.ID).Exec()
+	}
 
 	return nil
 }

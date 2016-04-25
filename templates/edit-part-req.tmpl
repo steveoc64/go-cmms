@@ -1,0 +1,34 @@
+<div class="md-content">
+	<div>
+	<form>
+		<fieldset>
+			<div data-row-span="1">
+				<div data-field-span="1">
+					<h3>{{.Part.StockCode}} - {{.Part.Name}}</h3>	
+				</div>
+			</div>
+      <div data-row-span="3">
+        <div data-field-span="1">
+			    <label for="qtytype">Qty Type</label>
+		      <input type="text" name="qtytype" value="{{.Part.QtyType}}" readonly>
+		    </div>
+        <div data-field-span="2">
+			    <label for="qty">Qty</label>
+		      <input type="number" name="qty" value="{{.Part.Qty}}" step="1" id="partreq-qty">
+		    </div>
+		  </div>
+		  <div data-row-span="1">
+		  	<div data-field-span="1">
+			    <label for="notes">Notes</label>
+		      <textarea name="notes" id="partreq-notes">{{.Part.Notes}}</textarea>
+		  	</div>
+		  </div>
+		</fieldset>
+	</form>
+	</div>
+
+	<div class="row">
+		<button class="column button-outline md-close">Cancel</button>
+		<button class="column button-primary md-save">Save</button>
+	</div>
+</div>

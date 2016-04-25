@@ -1,0 +1,15 @@
+<div>{{.Descr}}</div>
+<div class="row row-wrap" style="flex-wrap: wrap">
+{{range .Checks}}
+	<div class="column column-50">
+		<input type="checkbox" id="seq-{{.Seq}}" key="{{.Seq}}" {{if .Done}}checked{{end}}>
+		<label class="label-inline" for="seq-{{.Seq}}">
+			{{.Descr}} {{if .DoneDate}} (Complete {{.ShowDoneDate}}){{end}}
+		</label>
+	</div>
+{{end}}
+</div>
+
+<!-- Raise issue modal dialog -->
+<div class="md-modal md-effect-1" id="edit-part-req"></div>
+<div class="md-overlay"></div>

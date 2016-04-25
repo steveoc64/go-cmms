@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-humble/router"
 	"github.com/steveoc64/formulate"
@@ -21,6 +22,19 @@ func taskMaint(context *router.Context) {
 	print("TODO - taskmaint")
 }
 
+func calcAllDone(task shared.Task) bool {
+
+	for _, v := range task.Checks {
+		if !v.Done {
+			print("not all done yet")
+			return false
+		}
+	}
+	print("YES all done")
+
+	return true
+}
+
 func taskEdit(context *router.Context) {
 	id, err := strconv.Atoi(context.Params["id"])
 	if err != nil {
@@ -32,6 +46,9 @@ func taskEdit(context *router.Context) {
 		task := shared.Task{}
 
 		rpcClient.Call("TaskRPC.Get", id, &task)
+
+		task.AllDone = calcAllDone(task)
+		print("task with parts and checks attached =", task)
 
 		BackURL := "/tasks"
 		title := fmt.Sprintf("Task Details - %06d", id)
@@ -60,18 +77,19 @@ func taskEdit(context *router.Context) {
 				AddDisplay(1, "Component", "Component")
 
 			form.Row(1).
-				AddTextarea(1, "Description", "Descr")
+				AddTextarea(1, "Notes", "Log")
+
+			form.Row(1).
+				AddCustom(1, "CheckList", "CheckList", "")
 
 			form.Row(2).
 				AddDisplay(1, "Labour Est $", "LabourEst").
-				AddDisplay(1, "Material Est $", "MaterialEst")
+				AddInput(1, "Actual Labour $", "LabourCost")
 
 			form.Row(2).
-				AddInput(1, "Actual Labour $", "LabourCost").
+				AddDisplay(1, "Material Est $", "MaterialEst").
 				AddInput(1, "Actual Material $", "MaterialCost")
 
-			form.Row(1).
-				AddTextarea(1, "Notes", "Log")
 		case "Site Manager":
 			form.Row(3).
 				AddDisplay(1, "User", "DisplayUsername").
@@ -84,18 +102,19 @@ func taskEdit(context *router.Context) {
 				AddDisplay(1, "Component", "Component")
 
 			form.Row(1).
-				AddDisplayArea(1, "Description", "Descr")
+				AddDisplayArea(1, "Notes", "Log")
+
+			form.Row(1).
+				AddCustom(1, "CheckList", "CheckList", "")
 
 			form.Row(2).
 				AddDisplay(1, "Labour Est $", "LabourEst").
-				AddDisplay(1, "Material Est $", "MaterialEst")
+				AddInput(1, "Actual Labour $", "LabourCost")
 
 			form.Row(2).
-				AddDisplay(1, "Actual Labour $", "LabourCost").
-				AddDisplay(1, "Actual Material $", "MaterialCost")
+				AddDisplay(1, "Material Est $", "MaterialEst").
+				AddInput(1, "Actual Material $", "MaterialCost")
 
-			form.Row(1).
-				AddDisplayArea(1, "Notes", "Log")
 		case "Technician":
 			form.Row(4).
 				AddDisplay(1, "Start Date", "DisplayStartDate").
@@ -109,10 +128,10 @@ func taskEdit(context *router.Context) {
 				AddDisplay(1, "Component", "Component")
 
 			form.Row(1).
-				AddDisplayArea(1, "Description", "Descr")
+				AddTextarea(1, "Notes", "Log")
 
 			form.Row(1).
-				AddTextarea(1, "Notes", "Log")
+				AddCustom(1, "CheckList", "CheckList", "")
 		}
 
 		// Add event handlers
@@ -158,10 +177,52 @@ func taskEdit(context *router.Context) {
 		// All done, so render the form
 		form.Render("edit-form", "main", &task)
 
+		// Add the custom checklist
+		loadTemplate("task-check-list", "[name=CheckList]", task)
+
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		if el := doc.QuerySelector("[name=CheckList]"); el != nil {
+
+			el.AddEventListener("click", false, func(evt dom.Event) {
+				evt.PreventDefault()
+				clickedOn := evt.Target()
+				switch clickedOn.TagName() {
+				case "INPUT":
+					ie := clickedOn.(*dom.HTMLInputElement)
+					key, _ := strconv.Atoi(ie.GetAttribute("key"))
+					print("clicked on key", key)
+
+					task.Checks[key-1].Done = true
+					now := time.Now()
+					task.Checks[key-1].DoneDate = &now
+					task.AllDone = calcAllDone(task)
+
+					// save to the backend
+					go func() {
+						done := false
+						data := shared.TaskCheckUpdate{
+							Channel:   Session.Channel,
+							TaskCheck: &task.Checks[key-1],
+						}
+						rpcClient.Call("TaskRPC.Check", data, &done)
+					}()
+					loadTemplate("task-check-list", "[name=CheckList]", task)
+					if Session.UserRole == "Admin" {
+						loadTemplate("task-admin-actions", "#action-grid", task)
+					} else {
+						loadTemplate("task-actions", "#action-grid", task)
+					}
+				}
+
+			})
+		}
+
 		// And attach actions
 		switch Session.UserRole {
 		case "Admin":
-			form.ActionGrid("task-admin-actions", "#action-grid", task.ID, func(url string) {
+			form.ActionGrid("task-admin-actions", "#action-grid", task, func(url string) {
 				if strings.HasPrefix(url, "/sched") {
 					if task.SchedID != 0 {
 						c := &router.Context{
@@ -179,7 +240,7 @@ func taskEdit(context *router.Context) {
 				}
 			})
 		case "Technician":
-			form.ActionGrid("task-actions", "#action-grid", task.ID, func(url string) {
+			form.ActionGrid("task-actions", "#action-grid", task, func(url string) {
 				Session.Router.Navigate(url)
 			})
 		}
@@ -260,6 +321,7 @@ func machineSchedList(context *router.Context) {
 		form.Column("$ Labour", "LabourCost")
 		form.Column("$ Materials", "MaterialCost")
 		form.Column("Duration", "DurationDays")
+		form.Column("", "ShowPaused")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -314,21 +376,10 @@ func schedEdit(context *router.Context) {
 		machine := shared.Machine{}
 		task := shared.SchedTask{}
 		technicians := []shared.User{}
+
 		rpcClient.Call("TaskRPC.GetSched", id, &task)
 		rpcClient.Call("MachineRPC.Get", task.MachineID, &machine)
 		rpcClient.Call("UserRPC.GetTechnicians", machine.SiteID, &technicians)
-		type Context struct {
-			// Params is the parameters from the url as a map of names to values.
-			Params map[string]string
-			// Path is the path that triggered this particular route. If the hash
-			// fallback is being used, the value of path does not include the '#'
-			// symbol.
-			Path string
-			// InitialLoad is true iff this route was triggered during the initial
-			// page load. I.e. it is true if this is the first path that the browser
-			// was visiting when the javascript finished loading.
-			InitialLoad bool
-		}
 
 		BackURL := context.Params["back"]
 		if BackURL == "" {
@@ -433,6 +484,10 @@ func schedEdit(context *router.Context) {
 			AddDecimal(1, "Labour Cost", "LabourCost", 2).
 			AddDecimal(1, "Material Cost", "MaterialCost", 2).
 			AddNumber(1, "Duration (days)", "DurationDays", "1")
+
+		// Add a DIV that we can attach panels to
+		form.Row(1).
+			AddCustom(1, "Parts Required", "PartsPicker", "")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -557,6 +612,86 @@ func schedEdit(context *router.Context) {
 			}
 		})
 
+		// Plug in the PartsPicker widget
+		loadTemplate("parts-picker", "[name=PartsPicker]", task)
+
+		if el := doc.QuerySelector("[name=PartsPicker]"); el != nil {
+
+			el.AddEventListener("click", false, func(evt dom.Event) {
+				evt.PreventDefault()
+				clickedOn := evt.Target()
+				switch clickedOn.TagName() {
+				case "INPUT":
+					ie := clickedOn.(*dom.HTMLInputElement)
+					key, _ := strconv.Atoi(ie.GetAttribute("key"))
+					// print("clicked on key", key)
+
+					// Get the selected partreq from the task
+					for i, v := range task.PartsRequired {
+						if v.PartID == key {
+							// popup a dialog to edit the relationship
+
+							req := shared.PartReqEdit{
+								Channel: Session.Channel,
+								Task:    task,
+								Part:    &task.PartsRequired[i],
+							}
+
+							// print("which has a part of ", v)
+							loadTemplate("edit-part-req", "#edit-part-req", req)
+							doc.QuerySelector("#edit-part-req").Class().Add("md-show")
+							doc.QuerySelector("#partreq-qty").(*dom.HTMLInputElement).Focus()
+
+							// Cancel the popup
+							doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
+								// print("Cancel Editing the part req")
+								doc.QuerySelector("#edit-part-req").Class().Remove("md-show")
+							})
+
+							el.AddEventListener("keyup", false, func(evt dom.Event) {
+								if evt.(*dom.KeyboardEvent).KeyCode == 27 {
+									evt.PreventDefault()
+									// print("Esc out of dialog")
+									doc.QuerySelector("#edit-part-req").Class().Remove("md-show")
+								}
+							})
+
+							// Save the popup
+							doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
+								evt.PreventDefault()
+								doc.QuerySelector("#edit-part-req").Class().Remove("md-show")
+								// print("Save the part req")
+
+								qty, _ := strconv.ParseFloat(doc.QuerySelector("#partreq-qty").(*dom.HTMLInputElement).Value, 64)
+								notes := doc.QuerySelector("#partreq-notes").(*dom.HTMLTextAreaElement).Value
+
+								// print("in save, req still =", req)
+								req.Part.Qty = qty
+								req.Part.Notes = notes
+
+								// print("qty =", qty, "notes =", notes)
+
+								if qty > 0.0 {
+									ie.Checked = true
+								} else {
+									ie.Checked = false
+								}
+
+								go func() {
+									done := false
+									rpcClient.Call("TaskRPC.SchedPart", req, &done)
+									// print("updated at backend")
+								}()
+							})
+							break // dont need to look at the rest
+						}
+					}
+
+				}
+
+			})
+		}
+
 		// Add some action buttons for this schedule
 		form.ActionGrid("sched-actions", "#action-grid", task, func(url string) {
 			done := false
@@ -590,7 +725,7 @@ func schedEdit(context *router.Context) {
 		})
 
 		// Set the initial vis of the action items
-		print("paused =", task.Paused)
+		// print("paused =", task.Paused)
 		if task.Paused {
 			doc.QuerySelector("#playtask").Class().Remove("action-hidden")
 		} else {
@@ -774,7 +909,7 @@ func machineSchedAdd(context *router.Context) {
 				newID := 0
 				rpcClient.Call("TaskRPC.InsertSched", data, &newID)
 				print("added task ID", newID)
-				Session.Router.Navigate(BackURL)
+				Session.Router.Navigate(fmt.Sprintf("/sched/%d", newID))
 			}()
 		})
 
@@ -857,10 +992,6 @@ func siteTaskList(context *router.Context) {
 		form.Render("site-task-list", "main", tasks)
 
 	}()
-}
-
-func schedPartList(context *router.Context) {
-	print("TODO - schedPartList")
 }
 
 func schedTaskList(context *router.Context) {

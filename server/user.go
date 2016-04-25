@@ -283,10 +283,8 @@ func (u *UserRPC) GetManagers(site_id int, users *[]shared.User) error {
 
 	// log.Println(ManagersListQuery)
 	if site_id == 0 {
-		log.Println("here with", ManagersAllQuery)
 		DB.SQL(ManagersAllQuery).QueryStructs(users)
 	} else {
-		log.Println("here with", ManagersListQuery, "param=", site_id)
 		DB.SQL(ManagersListQuery, site_id).QueryStructs(users)
 	}
 

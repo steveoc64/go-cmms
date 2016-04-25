@@ -28,6 +28,7 @@ type SchedTask struct {
 	OtherCost     *[]float64 `db:"other_cost"`
 	LastGenerated *time.Time `db:"last_generated"`
 	Paused        bool       `db:"paused"`
+	PartsRequired []PartReq  `db:"parts_required"`
 }
 
 type SchedTaskUpdateData struct {
@@ -70,38 +71,99 @@ func (t *SchedTask) ShowComponent(m Machine) string {
 	return fmt.Sprintf("%s:%d:%s", t.CompType, t.ToolID, t.Component)
 }
 
+func (t *SchedTask) ShowPaused() string {
+	if t.Paused {
+		return "PAUSED"
+	}
+	return ""
+}
+
+type SchedTaskPart struct {
+	TaskID int     `db:"task_id"`
+	PartID int     `db:"part_id"`
+	Qty    float64 `db:"qty"`
+	Notes  string  `db:"notes"`
+}
+
+type TaskPart struct {
+	TaskID int     `db:"task_id"`
+	PartID int     `db:"part_id"`
+	Qty    float64 `db:"qty"`
+	Notes  string  `db:"notes"`
+}
+
+type TaskCheck struct {
+	TaskID   int        `db:"task_id"`
+	Seq      int        `db:"seq"`
+	Descr    string     `db:"descr"`
+	Done     bool       `db:"done"`
+	DoneDate *time.Time `db:"done_date"`
+}
+
+type TaskCheckUpdate struct {
+	Channel   int
+	TaskCheck *TaskCheck
+}
+
+func (t *TaskCheck) ShowDoneDate() string {
+	if t.DoneDate == nil {
+		return ""
+	}
+	return t.DoneDate.Format(dateDisplayFormat)
+}
+
+type PartReq struct {
+	PartID    int      `db:"part_id"`
+	StockCode string   `db:"stock_code"`
+	Name      string   `db:"name"`
+	QtyType   string   `db:"qty_type"`
+	QtyPtr    *float64 `db:"qty"`
+	NotesPtr  *string  `db:"notes"`
+	Qty       float64  `db:"qty_deref"`
+	Notes     string   `db:"notes_deref"`
+}
+
+type PartReqEdit struct {
+	Channel int
+	Task    SchedTask
+	Part    *PartReq
+}
+
 type Task struct {
-	ID                int        `db:"id"`
-	MachineID         int        `db:"machine_id"`
-	MachineName       string     `db:"machine_name"`
-	SiteID            int        `db:"site_id"`
-	SiteName          string     `db:"site_name"`
-	SchedID           int        `db:"sched_id"`
-	CompType          string     `db:"comp_type"`
-	ToolID            int        `db:"tool_id"`
-	Component         string     `db:"component"`
-	Descr             string     `db:"descr"`
-	CreatedDate       time.Time  `db:"created_date"`
-	StartDate         *time.Time `db:"startdate"`
-	DisplayStartDate  string     `db:"display_startdate"`
-	Log               string     `db:"log"`
-	DueDate           *time.Time `db:"due_date"`
-	DisplayDueDate    string     `db:"display_duedate"`
-	EscalateDate      *time.Time `db:"escalate_date"`
-	AssignedBy        *int       `db:"assigned_by"`
-	AssignedTo        *int       `db:"assigned_to"`
-	Username          *string    `db:"username"`
-	DisplayUsername   string     `db:"display_username"`
-	AssignedDate      *time.Time `db:"assigned_date"`
-	CompletedDate     *time.Time `db:"completed_date"`
-	HasIssue          bool       `db:"has_issue"`
-	IssueResolvedDate *time.Time `db:"issue_resolved_date"`
-	LabourEst         float64    `db:"labour_est"`
-	MaterialEst       float64    `db:"material_est"`
-	LabourCost        float64    `db:"labour_cost"`
-	MaterialCost      float64    `db:"material_cost"`
-	OtherCostDesc     *[]string  `db:"other_cost_desc"`
-	OtherCost         *[]float64 `db:"other_cost"`
+	ID                int         `db:"id"`
+	MachineID         int         `db:"machine_id"`
+	MachineName       string      `db:"machine_name"`
+	SiteID            int         `db:"site_id"`
+	SiteName          string      `db:"site_name"`
+	SchedID           int         `db:"sched_id"`
+	CompType          string      `db:"comp_type"`
+	ToolID            int         `db:"tool_id"`
+	Component         string      `db:"component"`
+	Descr             string      `db:"descr"`
+	CreatedDate       time.Time   `db:"created_date"`
+	StartDate         *time.Time  `db:"startdate"`
+	DisplayStartDate  string      `db:"display_startdate"`
+	Log               string      `db:"log"`
+	DueDate           *time.Time  `db:"due_date"`
+	DisplayDueDate    string      `db:"display_duedate"`
+	EscalateDate      *time.Time  `db:"escalate_date"`
+	AssignedBy        *int        `db:"assigned_by"`
+	AssignedTo        *int        `db:"assigned_to"`
+	Username          *string     `db:"username"`
+	DisplayUsername   string      `db:"display_username"`
+	AssignedDate      *time.Time  `db:"assigned_date"`
+	CompletedDate     *time.Time  `db:"completed_date"`
+	HasIssue          bool        `db:"has_issue"`
+	IssueResolvedDate *time.Time  `db:"issue_resolved_date"`
+	LabourEst         float64     `db:"labour_est"`
+	MaterialEst       float64     `db:"material_est"`
+	LabourCost        float64     `db:"labour_cost"`
+	MaterialCost      float64     `db:"material_cost"`
+	OtherCostDesc     *[]string   `db:"other_cost_desc"`
+	OtherCost         *[]float64  `db:"other_cost"`
+	Parts             []TaskPart  `db:"parts"`
+	Checks            []TaskCheck `db:"checks"`
+	AllDone           bool        `db:"all_done"`
 }
 
 type TaskUpdateData struct {

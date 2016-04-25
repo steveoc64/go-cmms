@@ -1,12 +1,13 @@
 <div class="action-grid">
-	<div class="action__item" url="/sched/{{.}}">
+	<div class="action__item" url="/sched/{{.ID}}">
 		<div class="action__title">Schedule</div>
 		<div class="action__icon"><i class="fa fa-wrench fa-lg"></i></div>
 		<div class="action__text">
 			View the Scheduled Task that created this task.
 		</div>
 	</div>
-	<div class="action__item" url="/task/complete/{{.}}">
+	{{if .AllDone}}
+	<div class="action__item" url="/task/complete/{{.ID}}">
 		<div class="action__title">Complete</div>
 		<div class="action__icon"><i class="fa fa-thumbs-up fa-lg"></i></div>
 		<div class="action__text">
@@ -14,7 +15,8 @@
 			Mark this task as complete.
 		</div>
 	</div>
-	<div class="action__item" url="/task/parts/{{.}}">
+	{{end}}
+	<div class="action__item" url="/task/parts/{{.ID}}">
 		<div class="action__title">Parts</div>
 		<div class="action__icon"><i class="fa fa-puzzle-piece fa-lg"></i></div>
 		<div class="action__text">

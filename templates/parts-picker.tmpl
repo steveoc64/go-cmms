@@ -1,0 +1,15 @@
+<div class="row row-wrap" style="flex-wrap: wrap">
+{{range .PartsRequired}}
+	<div class="column column-50">
+		<!-- <input type="number" id="part-{{.PartID}}" value="{{.Qty}}"> -->
+		<input type="checkbox" id="part-{{.PartID}}" key="{{.PartID}}" {{if .QtyPtr}}checked{{end}}>
+		<label class="label-inline" for="part-{{.PartID}}">
+			{{.StockCode}} - {{.Name}} {{if .QtyPtr}}({{.Qty}}){{end}}
+		</label>
+	</div>
+{{end}}
+</div>
+
+<!-- Raise issue modal dialog -->
+<div class="md-modal md-effect-1" id="edit-part-req"></div>
+<div class="md-overlay"></div>
