@@ -26,11 +26,11 @@ func calcAllDone(task shared.Task) bool {
 
 	for _, v := range task.Checks {
 		if !v.Done {
-			print("not all done yet")
+			// print("not all done yet")
 			return false
 		}
 	}
-	print("YES all done")
+	print("Task appears to be complete")
 
 	return true
 }
@@ -90,6 +90,9 @@ func taskEdit(context *router.Context) {
 				AddDisplay(1, "Material Est $", "MaterialEst").
 				AddInput(1, "Actual Material $", "MaterialCost")
 
+			form.Row(1).
+				AddCustom(1, "Parts Used", "PartList", "")
+
 		case "Site Manager":
 			form.Row(3).
 				AddDisplay(1, "User", "DisplayUsername").
@@ -115,6 +118,9 @@ func taskEdit(context *router.Context) {
 				AddDisplay(1, "Material Est $", "MaterialEst").
 				AddInput(1, "Actual Material $", "MaterialCost")
 
+			form.Row(1).
+				AddCustom(1, "Parts Used", "PartList", "")
+
 		case "Technician":
 			form.Row(4).
 				AddDisplay(1, "Start Date", "DisplayStartDate").
@@ -132,6 +138,9 @@ func taskEdit(context *router.Context) {
 
 			form.Row(1).
 				AddCustom(1, "CheckList", "CheckList", "")
+
+			form.Row(1).
+				AddCustom(1, "Parts Used", "PartList", "")
 		}
 
 		// Add event handlers
@@ -179,6 +188,7 @@ func taskEdit(context *router.Context) {
 
 		// Add the custom checklist
 		loadTemplate("task-check-list", "[name=CheckList]", task)
+		loadTemplate("task-part-list", "[name=PartList]", task)
 
 		w := dom.GetWindow()
 		doc := w.Document()
@@ -192,7 +202,7 @@ func taskEdit(context *router.Context) {
 				case "INPUT":
 					ie := clickedOn.(*dom.HTMLInputElement)
 					key, _ := strconv.Atoi(ie.GetAttribute("key"))
-					print("clicked on key", key)
+					// print("clicked on key", key)
 
 					task.Checks[key-1].Done = true
 					now := time.Now()
@@ -908,7 +918,7 @@ func machineSchedAdd(context *router.Context) {
 				}
 				newID := 0
 				rpcClient.Call("TaskRPC.InsertSched", data, &newID)
-				print("added task ID", newID)
+				// print("added task ID", newID)
 				Session.Router.Navigate(fmt.Sprintf("/sched/%d", newID))
 			}()
 		})

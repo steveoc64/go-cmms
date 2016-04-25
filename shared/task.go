@@ -86,10 +86,13 @@ type SchedTaskPart struct {
 }
 
 type TaskPart struct {
-	TaskID int     `db:"task_id"`
-	PartID int     `db:"part_id"`
-	Qty    float64 `db:"qty"`
-	Notes  string  `db:"notes"`
+	TaskID    int     `db:"task_id"`
+	PartID    int     `db:"part_id"`
+	PartName  string  `db:"part_name"`
+	StockCode string  `db:"stock_code"`
+	Qty       float64 `db:"qty"`
+	QtyType   string  `db:"qty_type"`
+	Notes     string  `db:"notes"`
 }
 
 type TaskCheck struct {

@@ -367,7 +367,11 @@ func (t *TaskRPC) Get(id int, task *shared.Task) error {
 	}
 
 	// Now get all the parts for this task
-	DB.SQL(`select * from task_part where task_id=$1`, id).QueryStructs(&task.Parts)
+	DB.SQL(`select 
+		t.*,p.name as part_name,p.stock_code as stock_code,p.qty_type as qty_type
+		from task_part t
+		left join part p on p.id=t.part_id
+		where t.task_id=$1`, id).QueryStructs(&task.Parts)
 
 	// Now get all the checks for this task
 	DB.SQL(`select * from task_check where task_id=$1`, id).QueryStructs(&task.Checks)
