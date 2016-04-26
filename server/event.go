@@ -97,9 +97,11 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 		fmt.Sprintf("Event %d Tool %d:%s Desc %s", *id, evt.ToolID, ToolName, evt.Notes))
 
 	// send SMS to Peter only at this stage
-	SendSMS("0439086713",
-		fmt.Sprintf("Alert on Machine %s %s: %s", issue.Machine.Name, ToolName, issue.Descr),
-		fmt.Sprintf("%d", evt.ID))
+	if Config.SMSOn {
+		SendSMS("0439086713",
+			fmt.Sprintf("Alert on Machine %s %s: %s", issue.Machine.Name, ToolName, issue.Descr),
+			fmt.Sprintf("%d", evt.ID))
+	}
 
 	return nil
 }
