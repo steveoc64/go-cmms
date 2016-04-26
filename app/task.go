@@ -88,7 +88,7 @@ func taskEdit(context *router.Context) {
 				AddTextarea(1, "Notes", "Log")
 
 			form.Row(1).
-				AddCustom(1, "CheckList", "CheckList", "")
+				AddCustom(1, "Notes and CheckLists", "CheckList", "")
 
 			form.Row(2).
 				AddDisplay(1, "Labour Est $", "LabourEst").
@@ -116,7 +116,7 @@ func taskEdit(context *router.Context) {
 				AddDisplayArea(1, "Notes", "Log")
 
 			form.Row(1).
-				AddCustom(1, "CheckList", "CheckList", "")
+				AddCustom(1, "Notes and CheckLists", "CheckList", "")
 
 			form.Row(2).
 				AddDisplay(1, "Labour Est $", "LabourEst").
@@ -145,7 +145,7 @@ func taskEdit(context *router.Context) {
 				AddTextarea(1, "Notes", "Log")
 
 			form.Row(1).
-				AddCustom(1, "CheckList", "CheckList", "")
+				AddCustom(1, "Notes and CheckLists", "CheckList", "")
 
 			form.Row(1).
 				AddCustom(1, "Parts Used", "PartList", "")
