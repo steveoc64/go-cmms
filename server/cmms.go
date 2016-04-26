@@ -23,18 +23,20 @@ import (
 var e *echo.Echo
 var DB *runner.DB
 
+var Config config.ConfigType
+
 func main() {
 
-	Config := config.LoadConfig()
+	Config = config.LoadConfig()
 	cpus := smt.Init()
 	fmt.Printf("Go-CMMS running on %d CPU cores\n", cpus)
 
 	// Make sure the SMS stuff is all working before we go too far
-	// smsbal, smserr := sms.GetBalance()
-	// if smserr != nil {
-	// 	log.Fatal("Cannot retrieve SMS account info", smserr.Error())
-	// }
-	// log.Println("... Remaining SMS Balance =", smsbal)
+	smsbal, smserr := GetSMSBalance()
+	if smserr != nil {
+		log.Fatal("Cannot retrieve SMS account info", smserr.Error())
+	}
+	log.Println("... Remaining SMS Balance =", smsbal)
 
 	// Start up the basic web server
 	e = echo.New()

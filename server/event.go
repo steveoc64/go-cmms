@@ -96,6 +96,11 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 			issue.Channel, issue.Machine.ID, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("Event %d Tool %d:%s Desc %s", *id, evt.ToolID, ToolName, evt.Notes))
 
+	// send SMS to Peter only at this stage
+	SendSMS("0439086713",
+		fmt.Sprintf("Alert on Machine %s %s: %s", issue.Machine.Name, ToolName, issue.Descr),
+		fmt.Sprintf("%d", evt.ID))
+
 	return nil
 }
 
