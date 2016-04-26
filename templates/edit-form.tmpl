@@ -76,7 +76,12 @@
             <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" step="{{.Step}}">
           {{end}}
           {{if eq .Type "textarea"}}
+            {{if .CodeBlock}}
+            <pre><code name="{{.Model}}">{{.Value}}</code></pre>
+            {{else}}
             <textarea name="{{.Model}}" {{if .Readonly}}readonly{{end}}>{{.Value}}</textarea>
+            {{end}}
+            }
           {{end}}
           {{if eq .Type "select"}}
             <select name="{{.Model}}">

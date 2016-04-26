@@ -18,7 +18,7 @@ func adminUtils(context *router.Context) {
 	form := formulate.EditForm{}
 	form.New("fa-gear", title)
 
-	form.Row(1).AddDisplayArea(1, "Results", "Results")
+	form.Row(1).AddCodeBlock(1, "Results", "Results")
 
 	// Add event handlers
 	form.CancelEvent(func(evt dom.Event) {
@@ -32,7 +32,8 @@ func adminUtils(context *router.Context) {
 	w := dom.GetWindow()
 	doc := w.Document()
 
-	el := doc.QuerySelector("[name=Results]").(*dom.HTMLTextAreaElement)
+	// el := doc.QuerySelector("[name=Results]").(*dom.HTMLTextAreaElement)
+	el := doc.QuerySelector("[name=Results]")
 
 	isSteve := false
 	if Session.UserRole == "Admin" && Session.Username == "steve" {
@@ -55,7 +56,8 @@ func adminUtils(context *router.Context) {
 			default:
 				print("ERROR - unknown utility", url)
 			}
-			el.Value = retval
+			// el.Value = retval
+			el.SetTextContent(retval)
 		}()
 	})
 
