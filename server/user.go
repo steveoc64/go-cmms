@@ -130,15 +130,15 @@ func (u *UserRPC) Update(data *shared.UserUpdateData, done *bool) error {
 	conn := Connections.Get(data.Channel)
 
 	DB.Update("users").
-		SetWhitelist(data.User, "username", "name", "passwd", "email", "sms").
+		SetWhitelist(data.User, "username", "name", "passwd", "email", "sms", "role").
 		Where("id = $1", data.User.ID).
 		Exec()
 
 	logger(start, "User.Save",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d %s %s %s %s",
-			data.User.ID, data.User.Username, data.User.Email, data.User.SMS, data.User.Name, data.User.Passwd))
+		fmt.Sprintf("%d %s %s %s %s %s",
+			data.User.ID, data.User.Role, data.User.Username, data.User.Email, data.User.SMS, data.User.Name, data.User.Passwd))
 
 	*done = true
 
