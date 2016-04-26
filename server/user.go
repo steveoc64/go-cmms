@@ -42,6 +42,12 @@ u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
 	where u.role='Site Manager'
 	order by u.username`
 
+const TechniciansAllQuery = `select 
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
+	from users u
+	where u.role='Technician'
+	order by u.username`
+
 const AdminsListQuery = `select 
 u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
 	from users u
@@ -268,7 +274,13 @@ func (u *UserRPC) GetTechnicians(site_id int, users *[]shared.User) error {
 	start := time.Now()
 
 	// log.Println(TechniciansListQuery)
-	DB.SQL(TechniciansListQuery, site_id).QueryStructs(users)
+	if site_id == 0 {
+		DB.SQL(TechniciansAllQuery).QueryStructs(users)
+
+	} else {
+		DB.SQL(TechniciansListQuery, site_id).QueryStructs(users)
+
+	}
 
 	logger(start, "User.GetTechnicians",
 		fmt.Sprintf("Site %d", site_id),

@@ -48,7 +48,7 @@ func taskEdit(context *router.Context) {
 		rpcClient.Call("TaskRPC.Get", id, &task)
 
 		task.AllDone = calcAllDone(task)
-		print("task with parts and checks attached =", task)
+		// print("task with parts and checks attached =", task)
 
 		BackURL := "/tasks"
 		title := fmt.Sprintf("Task Details - %06d", id)
@@ -66,8 +66,16 @@ func taskEdit(context *router.Context) {
 		// Layout the fields
 		switch Session.UserRole {
 		case "Admin":
+
+			techs := []shared.User{}
+			rpcClient.Call("UserRPC.GetTechnicians", 0, &techs)
+			assignedTo := 0
+			if task.AssignedTo != nil {
+				assignedTo = *task.AssignedTo
+			}
+
 			form.Row(3).
-				AddDisplay(1, "User", "DisplayUsername").
+				AddSelect(1, "User", "AssignedTo", techs, "ID", "Username", 0, assignedTo).
 				AddDisplay(1, "Start Date", "DisplayStartDate").
 				AddDisplay(1, "Due Date", "DisplayDueDate")
 

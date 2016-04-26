@@ -287,12 +287,25 @@ func (t *TaskRPC) Update(data shared.TaskUpdateData, done *bool) error {
 
 	conn := Connections.Get(data.Channel)
 
-	DB.Update("task").
-		SetWhitelist(data.Task,
-			"log",
-			"labour_cost", "material_cost").
-		Where("id = $1", data.Task.ID).
-		Exec()
+	if conn.UserRole == "Admin" {
+
+		// Admin can re-assing the task to another user
+		DB.Update("task").
+			SetWhitelist(data.Task,
+				"log", "assigned_to",
+				"labour_cost", "material_cost").
+			Where("id = $1", data.Task.ID).
+			Exec()
+
+	} else {
+		DB.Update("task").
+			SetWhitelist(data.Task,
+				"log",
+				"labour_cost", "material_cost").
+			Where("id = $1", data.Task.ID).
+			Exec()
+
+	}
 
 	logger(start, "Task.Update",
 		fmt.Sprintf("Channel %d, Task %d, User %d %s %s",
