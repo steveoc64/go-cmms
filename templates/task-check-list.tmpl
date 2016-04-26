@@ -1,14 +1,14 @@
 <pre>{{.Descr}}</pre>
-<div class="row row-wrap" style="flex-wrap: wrap">
 {{range .Checks}}
+<div class="row row-wrap" style="flex-wrap: wrap">
 	<div class="column column-50">
 		<input type="checkbox" id="seq-{{.Seq}}" key="{{.Seq}}" {{if .Done}}checked{{end}}>
 		<label class="label-inline" for="seq-{{.Seq}}">
 			{{.Descr}} {{if .DoneDate}} (Complete {{.ShowDoneDate}}){{end}}
 		</label>
 	</div>
-{{end}}
 </div>
+{{end}}
 
 <!-- Raise issue modal dialog -->
 <div class="md-modal md-effect-1" id="edit-part-req"></div>
