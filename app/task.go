@@ -304,6 +304,48 @@ type MachineSchedListData struct {
 	Tasks   []shared.SchedTask
 }
 
+// List all scheduled maint tasks that include this hashtag
+func hashtagUsed(context *router.Context) {
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		hashtag := shared.Hashtag{}
+		tasks := []shared.SchedTask{}
+		rpcClient.Call("TaskRPC.HashtagGet", id, &hashtag)
+		rpcClient.Call("TaskRPC.ListHashSched", id, &tasks)
+
+		BackURL := fmt.Sprintf("/hashtag/%d", id)
+
+		form := formulate.ListForm{}
+		form.New("fa-wrench", "Sched Maint that includes #"+hashtag.Name)
+
+		// Define the layout
+		form.Column("Tool / Component", "Component")
+		form.Column("Frequency", "ShowFrequency")
+		form.Column("Description", "Descr")
+		form.Column("$ Labour", "LabourCost")
+		form.Column("$ Materials", "MaterialCost")
+		form.Column("Duration", "DurationDays")
+		form.Column("", "ShowPaused")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(BackURL)
+		})
+
+		form.RowEvent(func(key string) {
+			Session.Router.Navigate("/sched/" + key)
+		})
+
+		form.Render("hash-sched-list", "main", tasks)
+	}()
+}
+
 // Show a list of all Scheduled Maint items for this machine
 func machineSchedList(context *router.Context) {
 

@@ -36,6 +36,35 @@ func (t *TaskRPC) ListMachineSched(machineID int, tasks *[]shared.SchedTask) err
 	return nil
 }
 
+// Get all the tasks that contain the given hash
+func (t *TaskRPC) ListHashSched(id int, tasks *[]shared.SchedTask) error {
+	start := time.Now()
+
+	hashname := ""
+	err := DB.SQL(`select name from hashtag where id=$1`, id).QueryScalar(&hashname)
+
+	if err != nil {
+		log.Println(err.Error())
+	} else {
+
+		// Read the sites that this user has access to
+		err = DB.SQL(`select t.*
+		from sched_task t
+		where lower(descr) like lower($1)
+		order by id`, "%#"+hashname+"%").QueryStructs(tasks)
+
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+
+	logger(start, "Task.ListHashSched",
+		fmt.Sprintf("Hash %d", id),
+		fmt.Sprintf("%d tasks", len(*tasks)))
+
+	return nil
+}
+
 func (t *TaskRPC) GetSched(id int, task *shared.SchedTask) error {
 	start := time.Now()
 
@@ -764,10 +793,37 @@ func genTask(st shared.SchedTask, task *shared.Task, startDate time.Time, dueDat
 			Exec()
 	}
 
+	// Expand out using the hashtags
+	hasHashtag := false
+	oldDescr := st.Descr
+
+	if strings.Contains(oldDescr, "#") {
+		hashes := []shared.Hashtag{}
+		// Apply the longest hashtag first
+
+		DB.SQL(`select * from hashtag order by length(name) desc`).QueryStructs(&hashes)
+
+		// Keep looping through doing text conversions until there is
+		// nothing left to expand
+		stillLooking := true
+		for stillLooking {
+			stillLooking = false
+			for _, v := range hashes {
+				theHash := "#" + v.Name
+				if strings.Contains(oldDescr, theHash) {
+					oldDescr = strings.Replace(oldDescr, theHash, v.Descr, -1)
+					hasHashtag = true
+					stillLooking = true
+				}
+			}
+		}
+	}
+
 	// Now generate the task check items based on the description field of the schedtask
-	lines := strings.Split(st.Descr, "\n")
+	lines := strings.Split(oldDescr, "\n")
 	seq := 1
 	descr := ""
+
 	for _, l := range lines {
 		if strings.HasPrefix(l, "- ") {
 			check := shared.TaskCheck{
@@ -788,9 +844,93 @@ func genTask(st shared.SchedTask, task *shared.Task, startDate time.Time, dueDat
 		}
 	}
 	log.Println("Modded desc from", st.Descr, "to", descr)
-	if seq > 1 {
+	if hasHashtag || seq > 1 {
 		DB.SQL(`update task set descr=$1 where id=$2`, descr, task.ID).Exec()
 	}
+
+	return nil
+}
+
+func (t *TaskRPC) HashtagList(channel int, hashtags *[]shared.Hashtag) error {
+	start := time.Now()
+
+	conn := Connections.Get(channel)
+
+	DB.SQL(`select * from hashtag order by name`).QueryStructs(hashtags)
+
+	logger(start, "Task.HashtagList",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d Hashtags", len(*hashtags)))
+
+	return nil
+}
+
+func (t *TaskRPC) HashtagGet(id int, hashtag *shared.Hashtag) error {
+	start := time.Now()
+
+	DB.SQL(`select * from hashtag where id=$1`, id).QueryStruct(hashtag)
+
+	logger(start, "Task.HashtagGet",
+		fmt.Sprintf("ID %d", id),
+		fmt.Sprintf("Name %s", hashtag.Name))
+
+	return nil
+}
+
+func (t *TaskRPC) HashtagInsert(data shared.HashtagUpdateData, id *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.InsertInto("hashtag").
+		Whitelist("name", "descr").
+		Record(data.Hashtag).
+		Returning("id").
+		QueryScalar(id)
+
+	logger(start, "Task.HashtagInsert",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("ID %d Name %s",
+			data.Hashtag.ID, data.Hashtag.Name))
+
+	return nil
+}
+
+func (t *TaskRPC) HashtagDelete(data shared.HashtagUpdateData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`delete from hashtag where id=$1`, data.Hashtag.ID).Exec()
+
+	logger(start, "Task.HashtagDelete",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("ID %d Name %s",
+			data.Hashtag.ID, data.Hashtag.Name))
+
+	*done = true
+
+	return nil
+}
+
+func (t *TaskRPC) HashtagUpdate(data shared.HashtagUpdateData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`update hashtag set name=$2,descr=$3 where id=$1`,
+		data.Hashtag.ID, data.Hashtag.Name, data.Hashtag.Descr).Exec()
+
+	logger(start, "Task.HashtagUpdate",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("ID %d Name %s",
+			data.Hashtag.ID, data.Hashtag.Name))
+
+	*done = true
 
 	return nil
 }

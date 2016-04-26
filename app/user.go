@@ -132,10 +132,10 @@ func siteUserList(context *router.Context) {
 			Session.Router.Navigate(BackURL)
 		})
 
-		form.SaveEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
-		})
+		// form.SaveEvent(func(evt dom.Event) {
+		// 	evt.PreventDefault()
+		// 	Session.Router.Navigate(BackURL)
+		// })
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &site)

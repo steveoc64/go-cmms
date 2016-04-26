@@ -83,6 +83,10 @@ func enableRoutes(Role string) {
 			"user-add":              userAdd,
 			"reports":               adminReports,
 			"util":                  adminUtils,
+			"hashtags":              hashtagList,
+			"hashtag-add":           hashtagAdd,
+			"hashtag-edit":          hashtagEdit,
+			"hashtag-used":          hashtagUsed,
 		}
 	case "Technician":
 		Session.AppFn = map[string]router.Handler{

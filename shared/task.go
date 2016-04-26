@@ -209,3 +209,18 @@ func (t *Task) DurationHrs() string {
 	}
 	return fmt.Sprintf("%d Hours", hrs)
 }
+
+type Hashtag struct {
+	ID    int    `db:"id"`
+	Name  string `db:"name"`
+	Descr string `db:"descr"`
+}
+
+func (h *Hashtag) HashName() string {
+	return "#" + h.Name
+}
+
+type HashtagUpdateData struct {
+	Channel int
+	Hashtag *Hashtag
+}
