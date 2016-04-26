@@ -26,7 +26,7 @@ func calcAllDone(task shared.Task) bool {
 
 	for _, v := range task.Checks {
 		if !v.Done {
-			// print("not all done yet")
+			print("Task has incomlete checklist items")
 			return false
 		}
 	}
