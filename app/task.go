@@ -254,12 +254,14 @@ func taskEdit(context *router.Context) {
 						schedEdit(c)
 					}
 				} else {
-					Session.Router.Navigate(url)
+					print("task complete dialog", url)
+					// Session.Router.Navigate(url)
 				}
 			})
 		case "Technician":
 			form.ActionGrid("task-actions", "#action-grid", task, func(url string) {
-				Session.Router.Navigate(url)
+				print("task complete dialog", url)
+				// Session.Router.Navigate(url)
 			})
 		}
 
