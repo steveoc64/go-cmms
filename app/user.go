@@ -276,8 +276,9 @@ func userEdit(context *router.Context) {
 			Add(1, "Mobile", "text", "SMS", "")
 
 		form.Row(3).
-			Add(1, "Role", "select", "Role", "")
-		form.SetSelectOptions("Role", roles, "ID", "Name", 1, currentRole)
+			AddSelect(1, "Role", "Role", roles, "ID", "Name", 1, currentRole)
+		// 	Add(1, "Role", "select", "Role", "")
+		// form.SetSelectOptions("Role", roles, "ID", "Name", 1, currentRole)
 
 		form.Row(1).
 			Add(1, "Sites to Access", "div", "Sites", "")
@@ -304,6 +305,16 @@ func userEdit(context *router.Context) {
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&user)
+
+			// now convert the selected role ID into a string
+			roleID, _ := strconv.Atoi(user.Role)
+			for _, r := range roles {
+				if r.ID == roleID {
+					user.Role = r.Name
+					break
+				}
+			}
+
 			data := shared.UserUpdateData{
 				Channel: Session.Channel,
 				User:    &user,
