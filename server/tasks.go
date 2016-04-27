@@ -480,6 +480,40 @@ func (t *TaskRPC) SiteList(id int, tasks *[]shared.Task) error {
 	return nil
 }
 
+func (t *TaskRPC) StoppageList(id int, tasks *[]shared.Task) error {
+	start := time.Now()
+
+	// conn := Connections.Get(channel)
+
+	// Read the sites that this user has access to
+	err := DB.SQL(`select 
+		t.*,
+		m.name as machine_name,
+		s.name as site_name,s.id as site_id,
+		u.username as username
+		from task t 
+			left join machine m on m.id=t.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=t.assigned_to
+		where t.event_id=$1
+		order by t.startdate`, id).
+		QueryStructs(tasks)
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	// logger(start, "Task.SiteList",
+	// 	fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
+	// 		channel, id, conn.UserID, conn.Username, conn.UserRole),
+	// 	fmt.Sprintf("%d Tasks", len(*tasks)))
+	logger(start, "Task.StoppageList",
+		fmt.Sprintf("Stoppage Event %d", id),
+		fmt.Sprintf("%d Tasks", len(*tasks)))
+
+	return nil
+}
+
 func (t *TaskRPC) Generate(runDate time.Time, count *int) error {
 	return schedTaskScan(runDate, count)
 }

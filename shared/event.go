@@ -41,6 +41,22 @@ type Event struct {
 	ParentEvent  int        `db:"parent_event"`
 }
 
+type AssignEvent struct {
+	Channel     int
+	Event       *Event
+	AssignTo    int
+	StartDate   *time.Time
+	DueDate     *time.Time
+	LabourEst   float64
+	MaterialEst float64
+	SiteName    string
+	MachineName string
+	ToolType    string
+	DisplayDate string
+	Username    string
+	Notes       string
+}
+
 type EventUpdateData struct {
 	Channel int
 	Event   *Event

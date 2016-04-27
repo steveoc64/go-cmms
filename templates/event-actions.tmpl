@@ -1,22 +1,4 @@
 <div class="action-grid">
-	{{if not .Completed}}
-	<div class="action__item" url="/stoppage/complete/{{.ID}}">
-		<div class="action__title">Complete</div>
-		<div class="action__icon"><i class="fa fa-thumbs-up fa-lg"></i></div>
-		<div class="action__text">
-			<b>TODO</b><br>
-			Mark this event as complete, reset the tool and machine status.
-		</div>
-	</div>
-	<div class="action__item" url="/stoppage/newtask/{{.ID}}">
-		<div class="action__title">New Task</div>
-		<div class="action__icon"><i class="fa fa-sign-in fa-lg"></i></div>
-		<div class="action__text">
-			<b>TODO</b><br>
-			List tasks / workorders for this event
-		</div>
-	</div>
-	{{end}}
 	<div class="action__item" url="/stoppage/tasks/{{.ID}}">
 		<div class="action__title">Tasks</div>
 		<div class="action__icon"><i class="fa fa-server fa-lg"></i></div>
@@ -25,4 +7,22 @@
 			List tasks / workorders for this event
 		</div>
 	</div>
+	{{if not .Completed}}
+	<div class="action__item" url="/stoppage/newtask/{{.ID}}">
+		<div class="action__title">New Task</div>
+		<div class="action__icon"><i class="fa fa-sign-in fa-lg"></i></div>
+		<div class="action__text">
+			<b>TODO</b><br>
+			List tasks / workorders for this event
+		</div>
+	</div>
+	<div class="action__item" url="/stoppage/complete/{{.ID}}">
+		<div class="action__title">Complete</div>
+		<div class="action__icon"><i class="fa fa-thumbs-up fa-lg"></i></div>
+		<div class="action__text">
+			<b>TODO</b><br>
+			Mark this event as complete, reset the tool and machine status.
+		</div>
+	</div>
+	{{end}}
 </div>

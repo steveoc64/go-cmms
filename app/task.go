@@ -1067,3 +1067,48 @@ func taskPartList(context *router.Context) {
 func taskComplete(context *router.Context) {
 	print("TODO - taskComplete")
 }
+
+// Show a list of all tasks
+func stoppageTaskList(context *router.Context) {
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		tasks := []shared.Task{}
+		event := shared.Event{}
+		rpcClient.Call("EventRPC.Get", id, &event)
+		rpcClient.Call("TaskRPC.StoppageList", id, &tasks)
+
+		BackURL := fmt.Sprintf("/stoppage/%d", id)
+
+		form := formulate.ListForm{}
+		form.New("fa-server", fmt.Sprintf("Task List Stoppage / %06d", id))
+
+		form.Column("User", "Username")
+		form.Column("TaskID", "ID")
+		form.Column("Date", "GetStartDate")
+		// form.Column("Due", "GetDueDate")
+		form.Column("Site", "SiteName")
+		form.Column("Machine", "MachineName")
+		form.Column("Component", "Component")
+		form.Column("Description", "Descr")
+		form.Column("Duration", "DurationDays")
+		form.Column("Completed", "CompletedDate")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(BackURL)
+		})
+
+		form.RowEvent(func(key string) {
+			Session.Router.Navigate("/task/" + key)
+		})
+
+		form.Render("event-task-list", "main", tasks)
+
+	}()
+}

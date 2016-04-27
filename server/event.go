@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/steveoc64/go-cmms/shared"
@@ -298,6 +299,125 @@ func (e *EventRPC) Complete(data shared.EventUpdateData, done *bool) error {
 		fmt.Sprintf("Channel %d, Event %d User %d %s %s",
 			data.Channel, data.Event.ID, conn.UserID, conn.Username, conn.UserRole),
 		"Manually Completed by Admin")
+
+	return nil
+}
+
+// Add a site
+func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	*id = 0
+	log.Printf("here with %v", data)
+
+	now := time.Now()
+	if data.StartDate == nil {
+		data.StartDate = &now
+	}
+	if data.StartDate.Before(now) {
+		data.StartDate = &now
+	}
+	if data.DueDate == nil {
+		data.DueDate = &now
+	}
+	if data.DueDate.Before(now) {
+		data.DueDate = &now
+	}
+	task := shared.Task{
+		MachineID:    data.Event.MachineID,
+		SchedID:      0,
+		EventID:      data.Event.ID,
+		CompType:     data.Event.ToolType,
+		Component:    data.Event.ToolType,
+		StartDate:    data.StartDate,
+		DueDate:      data.DueDate,
+		Descr:        data.Notes,
+		AssignedBy:   &conn.UserID,
+		AssignedTo:   &data.AssignTo,
+		AssignedDate: &now,
+		LabourEst:    data.LabourEst,
+		MaterialEst:  data.MaterialEst,
+	}
+	log.Printf("task is %v", task)
+
+	DB.InsertInto("task").
+		Whitelist("machine_id", "sched_id", "event_id", "comp_type", "tool_id", "component",
+			"descr", "startdate", "due_date", "escalate_date",
+			"assigned_to", "assigned_date", "labour_est", "material_est").
+		Record(&task).
+		Returning("id").
+		QueryScalar(&task.ID)
+
+	*id = task.ID
+
+	// Expand out using the hashtags
+	hasHashtag := false
+	oldDescr := data.Notes
+
+	if strings.Contains(oldDescr, "#") {
+		hashes := []shared.Hashtag{}
+		// Apply the longest hashtag first
+
+		DB.SQL(`select * from hashtag order by length(name) desc`).QueryStructs(&hashes)
+
+		// Keep looping through doing text conversions until there is
+		// nothing left to expand
+		stillLooking := true
+		for stillLooking {
+			stillLooking = false
+			for _, v := range hashes {
+				theHash := "#" + v.Name
+				if strings.Contains(oldDescr, theHash) {
+					oldDescr = strings.Replace(oldDescr, theHash, v.Descr, -1)
+					hasHashtag = true
+					stillLooking = true
+				}
+			}
+		}
+	}
+
+	// Now generate the task check items based on the description field of the schedtask
+	lines := strings.Split(oldDescr, "\n")
+	seq := 1
+	descr := ""
+
+	for _, l := range lines {
+		if strings.HasPrefix(l, "- ") {
+			check := shared.TaskCheck{
+				TaskID: task.ID,
+				Seq:    seq,
+				Descr:  l[2:],
+				Done:   false,
+			}
+
+			DB.InsertInto("task_check").
+				Whitelist("task_id", "seq", "descr", "done").
+				Record(check).
+				Exec()
+			seq++
+		} else {
+			descr += l
+			descr += "\n"
+		}
+	}
+	log.Println("Modded desc from", task.Descr, "to", descr)
+	if hasHashtag || seq > 1 {
+		DB.SQL(`update task set descr=$1 where id=$2`, descr, task.ID).Exec()
+	}
+
+	// DB.InsertInto("site").
+	// 	Columns("name", "address", "phone", "fax",
+	// 		"parent_site", "stock_site", "notes", "alerts_to", "tasks_to", "manager").
+	// 	Record(data.Site).
+	// 	Returning("id").
+	// 	QueryScalar(id)
+
+	logger(start, "Event.Workorder",
+		fmt.Sprintf("Channel %d, Event %d, User %d %s %s",
+			data.Channel, *id, conn.UserID, conn.Username, conn.UserRole),
+		data.Notes)
 
 	return nil
 }

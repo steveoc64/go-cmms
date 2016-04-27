@@ -139,6 +139,7 @@ type Task struct {
 	SiteID            int         `db:"site_id"`
 	SiteName          string      `db:"site_name"`
 	SchedID           int         `db:"sched_id"`
+	EventID           int         `db:"event_id"`
 	CompType          string      `db:"comp_type"`
 	ToolID            int         `db:"tool_id"`
 	Component         string      `db:"component"`

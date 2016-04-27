@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/go-humble/router"
 	"github.com/steveoc64/formulate"
@@ -67,7 +68,7 @@ func stoppageEdit(context *router.Context) {
 
 		// print("and the startdate is ", event.StartDate)
 		// print("and the startdate is ", event.StartDate.String())
-		event.DisplayDate = event.StartDate.String()
+		// event.DisplayDate = event.StartDate.String()
 		event.DisplayDate = event.StartDate.Format("Mon, Jan 2 2006 15:04:05")
 
 		// Layout the fields
@@ -184,9 +185,88 @@ func stoppageComplete(context *router.Context) {
 }
 
 func stoppageNewTask(context *router.Context) {
-	print("TODO - stoppageNewTask")
-}
+	if Session.UserRole != "Admin" {
+		return
+	}
 
-func stoppageTaskList(context *router.Context) {
-	print("TODO - stoppageTaskList")
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		event := shared.Event{}
+		techs := []shared.User{}
+
+		rpcClient.Call("EventRPC.Get", id, &event)
+		rpcClient.Call("UserRPC.GetTechnicians", 0, &techs)
+
+		now1 := time.Now()
+		now2 := time.Now()
+
+		assign := shared.AssignEvent{
+			Channel:     Session.Channel,
+			SiteName:    event.SiteName,
+			MachineName: event.MachineName,
+			ToolType:    event.ToolType,
+			DisplayDate: event.StartDate.Format("Mon, Jan 2 2006 15:04:05"),
+			Username:    event.Username,
+			Event:       &event,
+			StartDate:   &now1,
+			DueDate:     &now2,
+			Notes:       event.Notes,
+		}
+
+		BackURL := fmt.Sprintf("/stoppage/%d", id)
+		title := fmt.Sprintf("Raise Task for Stoppage - %06d", id)
+		form := formulate.EditForm{}
+		form.New("fa-sign-in", title)
+
+		// print("and the startdate is ", event.StartDate)
+		// print("and the startdate is ", event.StartDate.String())
+		event.DisplayDate = event.StartDate.String()
+		event.DisplayDate = event.StartDate.Format("Mon, Jan 2 2006 15:04:05")
+
+		// Layout the fields
+		form.Row(2).
+			AddDisplay(1, "Site", "SiteName").
+			AddDisplay(1, "Machine", "MachineName")
+
+		form.Row(3).
+			AddDisplay(1, "Component", "ToolType").
+			AddDisplay(1, "StartDate", "DisplayDate").
+			AddDisplay(1, "Raised By", "Username")
+
+		form.Row(3).
+			AddSelect(1, "Assign To", "AssignTo", techs, "ID", "Username", 1, 0).
+			AddDate(1, "Workorder Start Date", "StartDate").
+			AddDate(1, "Workorder Due Date", "DueDate")
+
+		form.Row(1).
+			AddBigTextarea(1, "Notes", "Notes")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Router.Navigate(BackURL)
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&assign)
+
+			go func() {
+				newID := 0
+				rpcClient.Call("EventRPC.Workorder", assign, &newID)
+				print("new Task raised", newID)
+				Session.Router.Navigate(BackURL)
+			}()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &assign)
+
+	}()
+
 }
