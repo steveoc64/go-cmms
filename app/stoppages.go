@@ -22,6 +22,11 @@ func stoppageList(context *router.Context) {
 		// Define the layout
 		form.Column("Raised By", "Username")
 		form.Column("Date", "GetStartDate")
+
+		if Session.UserRole == "Admin" {
+			form.Column("Status", "GetStatus")
+		}
+
 		form.Column("Site", "SiteName")
 		form.Column("Machine", "MachineName")
 		form.Column("Component", "ToolType")
@@ -78,7 +83,7 @@ func stoppageEdit(context *router.Context) {
 				AddDisplay(1, "Raised By", "Username")
 
 			form.Row(1).
-				AddTextarea(1, "Notes", "Notes")
+				AddBigTextarea(1, "Notes", "Notes")
 		case "Site Manager":
 			form.Row(2).
 				AddDisplay(1, "Site", "SiteName").
@@ -115,19 +120,21 @@ func stoppageEdit(context *router.Context) {
 				}()
 			})
 
-			// form.SaveEvent(func(evt dom.Event) {
-			// 	evt.PreventDefault()
-			// 	form.Bind(&event)
-			// 	data := shared.EventUpdateData{
-			// 		Channel: Session.Channel,
-			// 		Event:   &event,
-			// 	}
-			// 	go func() {
-			// 		done := false
-			// 		rpcClient.Call("EventRPC.Update", data, &done)
-			// 		Session.Router.Navigate(BackURL)
-			// 	}()
-			// })
+			if Session.UserRole == "Admin" {
+				form.SaveEvent(func(evt dom.Event) {
+					evt.PreventDefault()
+					form.Bind(&event)
+					data := shared.EventUpdateData{
+						Channel: Session.Channel,
+						Event:   &event,
+					}
+					go func() {
+						done := false
+						rpcClient.Call("EventRPC.Update", data, &done)
+						Session.Router.Navigate(BackURL)
+					}()
+				})
+			}
 		}
 
 		// All done, so render the form
@@ -136,7 +143,7 @@ func stoppageEdit(context *router.Context) {
 		// And attach actions
 		switch Session.UserRole {
 		case "Admin":
-			form.ActionGrid("event-actions", "#action-grid", event.ID, func(url string) {
+			form.ActionGrid("event-actions", "#action-grid", event, func(url string) {
 				Session.Router.Navigate(url)
 			})
 		case "Site Manager":
@@ -150,7 +157,30 @@ func stoppageEdit(context *router.Context) {
 }
 
 func stoppageComplete(context *router.Context) {
-	print("TODO - stoppageComplete")
+
+	if Session.UserRole != "Admin" {
+		return
+	}
+
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		event := shared.Event{}
+		event.ID = id
+		data := shared.EventUpdateData{
+			Channel: Session.Channel,
+			Event:   &event,
+		}
+		done := false
+		rpcClient.Call("EventRPC.Complete", data, &done)
+		print("Completed Event", id)
+		Session.Router.Navigate("/stoppages")
+	}()
+
 }
 
 func stoppageNewTask(context *router.Context) {

@@ -124,18 +124,10 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 			left join machine m on m.id=e.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=e.created_by
-		where m.site_id in $1
+		where m.site_id in $1 and completed is null
 		order by e.startdate`, sites).
 			QueryStructs(events)
 
-		log.Printf(`select 
-		e.*,m.name as machine_name,s.name as site_name,u.username as username
-		from event e
-			left join machine m on m.id=e.machine_id
-			left join site s on s.id=m.site_id
-			left join users u on u.id=e.created_by
-		where m.site_id in %v
-		order by e.startdate`, sites)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -145,9 +137,10 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 		from event e
 			left join machine m on m.id=e.machine_id
 			left join site s on s.id=m.site_id
-			left join users u on u.id=e.created_by
-		order by e.startdate`).
+			left join users u on u.id=e.created_by		
+		order by e.completed desc,e.startdate`).
 			QueryStructs(events)
+
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -180,6 +173,87 @@ func (e *EventRPC) Get(id int, event *shared.Event) error {
 	logger(start, "Event.Get",
 		fmt.Sprintf("ID %d", id),
 		event.Notes)
+
+	return nil
+}
+
+func (e *EventRPC) Update(data shared.EventUpdateData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.Update("event").
+		SetWhitelist(data.Event, "notes").
+		Where("id = $1", data.Event.ID).
+		Exec()
+
+	logger(start, "Event.Update",
+		fmt.Sprintf("Channel %d, Event %d User %d %s %s",
+			data.Channel, data.Event.ID, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%s", data.Event.Notes))
+
+	return nil
+}
+
+func (e *EventRPC) Complete(data shared.EventUpdateData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+	if conn.UserRole != "Admin" {
+		return nil
+	}
+
+	// Read the sites that this user has access to
+	event := shared.Event{}
+	DB.SQL(`select
+		e.*,m.name as machine_name,s.name as site_name,u.username as username
+		from event e
+			left join machine m on m.id=e.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=e.created_by
+		where e.id=$1`, data.Event.ID).QueryStruct(&event)
+
+	// Mark the event as complete
+	DB.SQL(`update event 
+		set completed=now(), status='Complete'
+		where id=$1`, data.Event.ID).Exec()
+
+	// Reset the affected component - this code is the reverse of
+	// the code in the RaiseEvent function above
+	if event.ToolID == 0 {
+		// Reset the status of the basic component on this machine
+		fieldName := ""
+		switch event.ToolType {
+		case "Electrical":
+			fieldName = "electrical"
+		case "Hydraulic":
+			fieldName = "hydraulic"
+		case "Lube":
+			fieldName = "lube"
+		case "Printer":
+			fieldName = "printer"
+		case "Console":
+			fieldName = "console"
+		case "Uncoiler":
+			fieldName = "uncoiler"
+		case "Rollbed":
+			fieldName = "rollbed"
+		}
+		if fieldName != "" {
+			DB.SQL(fmt.Sprintf("update machine set %s='Running' where id=$1", fieldName), event.MachineID).Exec()
+		}
+	} else {
+		// is a tool
+		DB.SQL(`update component
+			set status='Running'
+			where id=$1`, event.ToolID).
+			Exec()
+	}
+
+	logger(start, "Event.Complete",
+		fmt.Sprintf("Channel %d, Event %d User %d %s %s",
+			data.Channel, data.Event.ID, conn.UserID, conn.Username, conn.UserRole),
+		"Manually Completed by Admin")
 
 	return nil
 }

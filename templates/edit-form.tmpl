@@ -45,7 +45,7 @@
                     {{if .CodeBlock}}
                     <pre><code name="{{.Model}}">{{.Value}}</code></pre>
                     {{else}}
-                    <textarea name="{{.Model}}" {{if .Readonly}}readonly{{end}}>{{.Value}}</textarea>
+                    <textarea name="{{.Model}}" {{if .Readonly}}readonly{{end}} {{if .BigText}}class="bigtext"}}{{end}}>{{.Value}}</textarea>
                     {{end}}
                   {{end}}
                   {{if eq .Type "select"}}
@@ -83,7 +83,7 @@
             {{if .CodeBlock}}
             <pre><code name="{{.Model}}">{{.Value}}</code></pre>
             {{else}}
-            <textarea name="{{.Model}}" {{if .Readonly}}readonly{{end}}>{{.Value}}</textarea>
+            <textarea name="{{.Model}}" {{if .Readonly}}readonly{{end}} {{if .BigText}}class="bigtext"{{end}}>{{.Value}}</textarea>
             {{end}}
           {{end}}
           {{if eq .Type "select"}}

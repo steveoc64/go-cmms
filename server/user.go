@@ -134,10 +134,10 @@ func (u *UserRPC) Update(data *shared.UserUpdateData, done *bool) error {
 		Where("id = $1", data.User.ID).
 		Exec()
 
-	logger(start, "User.Save",
+	logger(start, "User.Update",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d %s %s %s %s %s",
+		fmt.Sprintf("%d Role %s Uname %s Eml %s SMS %s Name %s PW %s",
 			data.User.ID, data.User.Role, data.User.Username, data.User.Email, data.User.SMS, data.User.Name, data.User.Passwd))
 
 	*done = true

@@ -9,7 +9,6 @@ input[type='search'],
 input[type='tel'],
 input[type='text'],
 input[type='url'],
-textarea,
 select
 	appearance: none 
 	background-color: transparent
@@ -28,16 +27,31 @@ select-mg
 	padding: 0.6rem 3rem 0.6rem 1rem
 	background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTQiIHZpZXdCb3g9IjAgMCAyOSAxNCIgd2lkdGg9IjI5Ij48cGF0aCBmaWxsPSIjZDFkMWQxIiBkPSJNOS40IDMuNmw1IDcgNS4yLTciLz48L3N2Zz4=) center right no-repeat
 
+.bigtext
+	height: 12rem
+
 textarea
 	padding-bottom: .6rem
 	padding-top: .6rem
-	min-height: 6rem
+	min-height: 11rem
+	appearance: none 
+	background-color: transparent
+	border: .1rem solid $color-quaternary
+	border-radius: .4rem
+	box-shadow: none
+	height: 8rem
+	padding: .6rem 1.0rem // The .6rem vertically centers text on FF, ignored by Webkit
+	width: 100%
+
+	&:focus
+		border: .1rem solid $color-primary
+		outline: 0
 
 	// if they insist on using an iphone
 	@media (max-height: 740px)
 		min-height: 2rem
 		// max-height: 4rem
-		height: 4rem
+		height: 6rem
 
 	// @media (min-height: 741px) and (max-height: 800px)
 	// 	min-height: 4rem

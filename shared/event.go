@@ -1,6 +1,9 @@
 package shared
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type RaiseIssue struct {
 	Channel   int
@@ -49,4 +52,12 @@ const (
 
 func (e *Event) GetStartDate() string {
 	return e.StartDate.Format(datetimeDisplayFormat)
+}
+
+func (e *Event) GetStatus() string {
+	if e.Completed != nil {
+		return fmt.Sprintf("%s %s", e.Status, e.Completed.Format(datetimeDisplayFormat))
+	} else {
+		return e.Status
+	}
 }
