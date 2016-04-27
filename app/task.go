@@ -1085,7 +1085,7 @@ func stoppageTaskList(context *router.Context) {
 		BackURL := fmt.Sprintf("/stoppage/%d", id)
 
 		form := formulate.ListForm{}
-		form.New("fa-server", fmt.Sprintf("Task List for Stoppage / %06d", id))
+		form.New("fa-server", fmt.Sprintf("Task List for Stoppage - %06d", id))
 
 		form.Column("User", "Username")
 		form.Column("TaskID", "ID")
