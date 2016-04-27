@@ -346,154 +346,157 @@ func siteMachines(context *router.Context) {
 				Session.Router.Navigate("/")
 			})
 
-			// Attach a menu opener for each machine
-			for _, v := range data.Machines {
-				mid := fmt.Sprintf("machine-div-%d", v.ID)
-				machinediv := doc.GetElementByID(mid)
-				machinediv.AddEventListener("click", false, func(evt dom.Event) {
-					machine_id, _ := strconv.Atoi(machinediv.GetAttribute("machine-id"))
-					machinemenu := doc.GetElementByID("machine-menu").(*dom.BasicHTMLElement)
+			switch Session.UserRole {
+			case "Admin", "Technician":
+				// Attach a menu opener for each machine
+				for _, v := range data.Machines {
+					mid := fmt.Sprintf("machine-div-%d", v.ID)
+					machinediv := doc.GetElementByID(mid)
+					machinediv.AddEventListener("click", false, func(evt dom.Event) {
+						machine_id, _ := strconv.Atoi(machinediv.GetAttribute("machine-id"))
+						machinemenu := doc.GetElementByID("machine-menu").(*dom.BasicHTMLElement)
 
-					// get the machine and construct a new menu based on the components
-					for _, m := range data.Machines {
-						if m.ID == machine_id {
-							menu := fmt.Sprintf(`<h3 id="machine-comp-title">%s</h3>`, m.Name)
-							// add the tool components
-							for i, c := range m.Components {
-								menu += fmt.Sprintf(`<a href="#" id="machine-comp-%d" machine="%d" comp="%d" class="%s">%d %s</a>`,
-									c.ID, m.ID, c.ID, c.GetClass(), i+1, c.Name)
-							}
-							// add the non-tool components
-							for i, c := range nonTools {
-								menu += fmt.Sprintf(`<a href="#" id="machine-nontool-%d" machine="%d" class="%s" comp="%s">%s</a>`,
-									i, m.ID, m.GetClass(m.GetStatus(c)), c, c)
-							}
-							machinemenu.SetInnerHTML(menu)
-							tk := machinemenu.Class()
-							if !tk.Contains("cbp-spmenu-open") {
-								tk.Add("cbp-spmenu-open")
-							}
-							// attach a backout option on the title
-							a := doc.GetElementByID("machine-comp-title")
-							a.AddEventListener("click", false, func(evt dom.Event) {
-								evt.PreventDefault()
-								tk.Remove("cbp-spmenu-open")
-							})
-							// attach event listeners to each tool menu item
-							for _, c := range m.Components {
-								a := doc.GetElementByID(fmt.Sprintf("machine-comp-%d", c.ID))
+						// get the machine and construct a new menu based on the components
+						for _, m := range data.Machines {
+							if m.ID == machine_id {
+								menu := fmt.Sprintf(`<h3 id="machine-comp-title">%s</h3>`, m.Name)
+								// add the tool components
+								for i, c := range m.Components {
+									menu += fmt.Sprintf(`<a href="#" id="machine-comp-%d" machine="%d" comp="%d" class="%s">%d %s</a>`,
+										c.ID, m.ID, c.ID, c.GetClass(), i+1, c.Name)
+								}
+								// add the non-tool components
+								for i, c := range nonTools {
+									menu += fmt.Sprintf(`<a href="#" id="machine-nontool-%d" machine="%d" class="%s" comp="%s">%s</a>`,
+										i, m.ID, m.GetClass(m.GetStatus(c)), c, c)
+								}
+								machinemenu.SetInnerHTML(menu)
+								tk := machinemenu.Class()
+								if !tk.Contains("cbp-spmenu-open") {
+									tk.Add("cbp-spmenu-open")
+								}
+								// attach a backout option on the title
+								a := doc.GetElementByID("machine-comp-title")
 								a.AddEventListener("click", false, func(evt dom.Event) {
 									evt.PreventDefault()
+									tk.Remove("cbp-spmenu-open")
+								})
+								// attach event listeners to each tool menu item
+								for _, c := range m.Components {
+									a := doc.GetElementByID(fmt.Sprintf("machine-comp-%d", c.ID))
+									a.AddEventListener("click", false, func(evt dom.Event) {
+										evt.PreventDefault()
 
-									// Get the details of the component that we clicked on
-									t := evt.Target()
-									d := shared.RaiseIssue{}
-									d.Channel = Session.Channel
-									d.MachineID, _ = strconv.Atoi(t.GetAttribute("machine"))
-									d.CompID, _ = strconv.Atoi(t.GetAttribute("comp"))
-									d.IsTool = true
-									for _, m1 := range data.Machines {
-										if m1.ID == d.MachineID {
-											d.Machine = &m1
+										// Get the details of the component that we clicked on
+										t := evt.Target()
+										d := shared.RaiseIssue{}
+										d.Channel = Session.Channel
+										d.MachineID, _ = strconv.Atoi(t.GetAttribute("machine"))
+										d.CompID, _ = strconv.Atoi(t.GetAttribute("comp"))
+										d.IsTool = true
+										for _, m1 := range data.Machines {
+											if m1.ID == d.MachineID {
+												d.Machine = &m1
 
-											// now get the component
-											for _, c1 := range m1.Components {
-												if c1.ID == d.CompID {
-													d.Component = &c1
-													break
+												// now get the component
+												for _, c1 := range m1.Components {
+													if c1.ID == d.CompID {
+														d.Component = &c1
+														break
+													}
 												}
+												break
 											}
-											break
 										}
-									}
 
-									// hide the side menu
-									tk.Remove("cbp-spmenu-open")
+										// hide the side menu
+										tk.Remove("cbp-spmenu-open")
 
-									// load a raise issue form from a template
-									loadTemplate("raise-comp-issue", "#raise-comp-issue", d)
-									doc.QuerySelector("#raise-comp-issue").Class().Add("md-show")
+										// load a raise issue form from a template
+										loadTemplate("raise-comp-issue", "#raise-comp-issue", d)
+										doc.QuerySelector("#raise-comp-issue").Class().Add("md-show")
 
-									// Add the machine diagram to the form
-									if d.Machine != nil {
-										loadTemplate("machine-diag", "#issue-machine-diag", d)
-									}
-
-									// Handle button clicks
-									doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
-										print("TODO - cancel the event, cleanup any temp attachments")
-										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
-									})
-									doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
-										evt.PreventDefault()
-										d.Channel = Session.Channel
-										d.Descr = doc.QuerySelector("#evtdesc").(*dom.HTMLTextAreaElement).Value
-										go func() {
-											newID := 0
-											rpcClient.Call("EventRPC.Raise", d, &newID)
-											print("Raised new event", newID)
-											Session.Router.Navigate(RefreshURL)
-										}()
-										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
-									})
-								})
-							}
-							// attach event listeners to each non-tool menu item
-							for i, _ := range nonTools {
-								a := doc.GetElementByID(fmt.Sprintf("machine-nontool-%d", i))
-								a.AddEventListener("click", false, func(evt dom.Event) {
-									evt.PreventDefault()
-
-									// Get the details of the component that we clicked on
-									t := evt.Target()
-									d := shared.RaiseIssue{}
-									d.MachineID, _ = strconv.Atoi(t.GetAttribute("machine"))
-									d.NonTool = t.GetAttribute("comp")
-									d.IsTool = false
-									for _, m1 := range data.Machines {
-										if m1.ID == d.MachineID {
-											d.Machine = &m1
-											break
+										// Add the machine diagram to the form
+										if d.Machine != nil {
+											loadTemplate("machine-diag", "#issue-machine-diag", d)
 										}
-									}
 
-									// hide the side menu
-									tk.Remove("cbp-spmenu-open")
-
-									// load a raise issue form from a template
-									loadTemplate("raise-comp-issue", "#raise-comp-issue", d)
-									doc.QuerySelector("#raise-comp-issue").Class().Add("md-show")
-
-									// Add the machine diagram to the form
-									if d.Machine != nil {
-										loadTemplate("machine-diag", "#issue-machine-diag", d)
-									}
-
-									// Handle button clicks
-									doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
-										print("TODO - cancel the event, cleanup any temp attachments")
-										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
+										// Handle button clicks
+										doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
+											print("TODO - cancel the event, cleanup any temp attachments")
+											doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
+										})
+										doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
+											evt.PreventDefault()
+											d.Channel = Session.Channel
+											d.Descr = doc.QuerySelector("#evtdesc").(*dom.HTMLTextAreaElement).Value
+											go func() {
+												newID := 0
+												rpcClient.Call("EventRPC.Raise", d, &newID)
+												print("Raised new event", newID)
+												Session.Router.Navigate(RefreshURL)
+											}()
+											doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
+										})
 									})
-									doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
+								}
+								// attach event listeners to each non-tool menu item
+								for i, _ := range nonTools {
+									a := doc.GetElementByID(fmt.Sprintf("machine-nontool-%d", i))
+									a.AddEventListener("click", false, func(evt dom.Event) {
 										evt.PreventDefault()
-										d.Channel = Session.Channel
-										d.Descr = doc.QuerySelector("#evtdesc").(*dom.HTMLTextAreaElement).Value
 
-										go func() {
-											newID := 0
-											rpcClient.Call("EventRPC.Raise", d, &newID)
-											print("Raised new event", newID)
-											Session.Router.Navigate(RefreshURL)
-										}()
-										doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
+										// Get the details of the component that we clicked on
+										t := evt.Target()
+										d := shared.RaiseIssue{}
+										d.MachineID, _ = strconv.Atoi(t.GetAttribute("machine"))
+										d.NonTool = t.GetAttribute("comp")
+										d.IsTool = false
+										for _, m1 := range data.Machines {
+											if m1.ID == d.MachineID {
+												d.Machine = &m1
+												break
+											}
+										}
+
+										// hide the side menu
+										tk.Remove("cbp-spmenu-open")
+
+										// load a raise issue form from a template
+										loadTemplate("raise-comp-issue", "#raise-comp-issue", d)
+										doc.QuerySelector("#raise-comp-issue").Class().Add("md-show")
+
+										// Add the machine diagram to the form
+										if d.Machine != nil {
+											loadTemplate("machine-diag", "#issue-machine-diag", d)
+										}
+
+										// Handle button clicks
+										doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
+											print("TODO - cancel the event, cleanup any temp attachments")
+											doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
+										})
+										doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
+											evt.PreventDefault()
+											d.Channel = Session.Channel
+											d.Descr = doc.QuerySelector("#evtdesc").(*dom.HTMLTextAreaElement).Value
+
+											go func() {
+												newID := 0
+												rpcClient.Call("EventRPC.Raise", d, &newID)
+												print("Raised new event", newID)
+												Session.Router.Navigate(RefreshURL)
+											}()
+											doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
+										})
 									})
-								})
-							}
-						} // is matching machine
-					}
+								}
+							} // is matching machine
+						}
 
-				})
-			} // range
+					})
+				} // range
+			} // switch user role
 		} // else
 	}()
 }
