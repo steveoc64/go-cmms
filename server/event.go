@@ -250,6 +250,9 @@ func (e *EventRPC) Complete(data shared.EventUpdateData, done *bool) error {
 			Exec()
 	}
 
+	// Reset the whole machine if clear
+	DB.SQL("update machine set status='Running' where id=$1", fieldName).Exec()
+
 	logger(start, "Event.Complete",
 		fmt.Sprintf("Channel %d, Event %d User %d %s %s",
 			data.Channel, data.Event.ID, conn.UserID, conn.Username, conn.UserRole),
