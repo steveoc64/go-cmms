@@ -55,6 +55,16 @@
 		color: $sbs-blue;
 		width: 100%;
 		font-size: 5.0rem;
+
+			// if they insist on using an iphone
+		@media (max-height: 740px) {
+			font-size: 3.0rem;
+		}
+
+		@media (min-height: 841px) {
+			font-size: 4.0rem;			
+		}
+
 	}
 
 	.action__text {
@@ -66,6 +76,16 @@
 		text-justify: inter-word;
 		border-top: 1px solid $sbs-dksand;
 		height: 100%;
+
+		// if they insist on using an iphone
+		@media (max-height: 740px) {
+			padding: 1.2rem 1rem 0.3rem 1rem;
+		}
+
+		@media (min-height: 841px) {
+			padding: 1.2rem 2rem 0.3rem 2rem;
+		}
+
 	}
 
 	&:hover {
