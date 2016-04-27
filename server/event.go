@@ -251,7 +251,31 @@ func (e *EventRPC) Complete(data shared.EventUpdateData, done *bool) error {
 	}
 
 	// Reset the whole machine if clear
-	DB.SQL("update machine set status='Running' where id=$1", fieldName).Exec()
+	machineIsClear := true
+	machine := shared.Machine{}
+	DB.SQL(`select * from machine where id=$1`, event.MachineID).QueryStruct(&machine)
+
+	if machine.Electrical != "Running" ||
+		machine.Hydraulic != "Running" ||
+		machine.Printer != "Running" ||
+		machine.Console != "Running" ||
+		machine.Rollbed != "Running" ||
+		machine.Uncoiler != "Running" ||
+		machine.Lube != "Running" {
+		machineIsClear = false
+	}
+
+	if machineIsClear {
+		badComps := 0
+		DB.SQL(`select count(*) 
+			from component 
+			where status != 'Running' and machine_id=$1`, machine.ID).
+			QueryScalar(&badComps)
+
+		if badComps == 0 {
+			DB.SQL("update machine set status='Running' where id=$1", event.MachineID).Exec()
+		}
+	}
 
 	logger(start, "Event.Complete",
 		fmt.Sprintf("Channel %d, Event %d User %d %s %s",
