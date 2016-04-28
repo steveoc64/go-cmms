@@ -347,7 +347,7 @@ func siteMachines(context *router.Context) {
 			})
 
 			switch Session.UserRole {
-			case "Admin", "Technician":
+			case "Admin", "Technician", "Site Manager":
 				// Attach a menu opener for each machine
 				for _, v := range data.Machines {
 					mid := fmt.Sprintf("machine-div-%d", v.ID)
