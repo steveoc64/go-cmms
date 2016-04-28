@@ -137,38 +137,38 @@
     </defs>
 
     <!-- Add picture for uncoiler -->
-    <g stroke="#114" stroke-width="2" class="fillhover">    
+    <g stroke="#114" stroke-width="2" class="fillhover" tooltype="Component" component="Uncoiler">    
       <title>Raise Event on Uncoiler</title>
       <polygon points="30,90 0,148 60,148" fill="url(#grad1)"/>
       <circle cx="30" cy="90" r="30" fill="{{.NonToolBg .Uncoiler}}"/>
     </g>
 
     <!-- Add buttons for elec, etc -->
-    <g stroke="#114" stroke-width="1" class="fillhover">
+    <g stroke="#114" stroke-width="1" class="fillhover"  tooltype="Component" component="Electrical">
       <title>Electrical</title>
       <rect x="0" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
             fill="{{.NonToolBg .Electrical}}"/>
       <image xlink:href="/img/elec.png" x="1" y="2" height="38px" width="38px"/>
     </g>  
-    <g stroke="#114" stroke-width="1" class="fillhover">
+    <g stroke="#114" stroke-width="1" class="fillhover" tooltype="Component" component="Hydraulic">
       <title>Hydraulic</title>
       <rect x="50" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
             fill="{{.NonToolBg .Hydraulic}}"/>
       <image xlink:href="/img/hydraulic.png" x="51" y="2" height="38px" width="38px"/>
     </g>
-    <g stroke="#114" stroke-width="1" class="fillhover">
+    <g stroke="#114" stroke-width="1" class="fillhover" tooltype="Component" component="Lube">
       <title>Lube</title>
       <rect x="100" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
             fill="{{.NonToolBg .Lube}}"/>
       <image xlink:href="/img/lube.png" x="101" y="2" height="38px" width="38px"/>
     </g>
-    <g stroke="#114" stroke-width="1" class="fillhover">
+    <g stroke="#114" stroke-width="1" class="fillhover" tooltype="Component" component="Printer">
       <title>Printer</title>
       <rect x="150" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
             fill="{{.NonToolBg .Printer}}"/>
       <image xlink:href="/img/printer.png" x="151" y="2" height="38px" width="38px"/>
     </g>
-    <g stroke="#114" stroke-width="1" class="fillhover">
+    <g stroke="#114" stroke-width="1" class="fillhover" tooltype="Component" component="Console">
       <title>Console</title>
       <rect x="200" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
             fill="{{.NonToolBg .Console}}"/>
@@ -205,7 +205,8 @@
     {{range $index,$comp := .Components}}
     <svg x="{{$comp.SVGX $index}}" 
          class="tooltip tooltip--ne"
-         ng-click="Machines.raiseIssue(row,comp,comp.ID,'tool')">
+         tooltype="Tool" 
+         toolid="{{$comp.ID}}">
          <title>{{$comp.Name}}</title>
       <a>
       <rect x="16" y="0" width="15" height="20" stroke="black" stroke-width="1" fill="#ddd"/>
