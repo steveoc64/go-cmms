@@ -160,6 +160,7 @@ type Task struct {
 	HasIssue          bool        `db:"has_issue"`
 	IssueResolvedDate *time.Time  `db:"issue_resolved_date"`
 	LabourEst         float64     `db:"labour_est"`
+	LabourHrs         float64     `db:"labour_hrs"`
 	MaterialEst       float64     `db:"material_est"`
 	LabourCost        float64     `db:"labour_cost"`
 	MaterialCost      float64     `db:"material_cost"`

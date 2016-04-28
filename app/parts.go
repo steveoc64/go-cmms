@@ -263,14 +263,14 @@ func partEdit(context *router.Context) {
 			AddInput(1, "Description", "Descr")
 
 		form.Row(4).
-			AddDecimal(1, "ReOrder Level", "ReorderStocklevel", 2).
-			AddDecimal(1, "ReOrder Qty", "ReorderQty", 2).
-			AddDecimal(1, "Current Stock", "CurrentStock", 2).
+			AddDecimal(1, "ReOrder Level", "ReorderStocklevel", 2, "1").
+			AddDecimal(1, "ReOrder Qty", "ReorderQty", 2, "1").
+			AddDecimal(1, "Current Stock", "CurrentStock", 2, "1").
 			AddInput(1, "Qty Type", "QtyType")
 
 		form.Row(4).
 			AddDisplay(2, "Last Price Update", "LastPriceDateDisplay").
-			AddDecimal(1, "Latest Price", "LatestPrice", 2).
+			AddDecimal(1, "Latest Price", "LatestPrice", 2, "1").
 			AddDisplay(1, "Valuation", "ValuationString")
 
 		form.Row(1).
@@ -405,13 +405,13 @@ func partAdd(context *router.Context) {
 			AddInput(1, "Description", "Descr")
 
 		form.Row(3).
-			AddDecimal(1, "ReOrder Level", "ReorderStocklevel", 2).
-			AddDecimal(1, "ReOrder Qty", "ReorderQty", 2).
+			AddDecimal(1, "ReOrder Level", "ReorderStocklevel", 2, "1").
+			AddDecimal(1, "ReOrder Qty", "ReorderQty", 2, "1").
 			AddInput(1, "Qty Type", "QtyType")
 
 		form.Row(2).
-			AddDecimal(1, "Latest Price", "LatestPrice", 2).
-			AddDecimal(1, "Current Stock", "CurrentStock", 2)
+			AddDecimal(1, "Latest Price", "LatestPrice", 2, "1").
+			AddDecimal(1, "Current Stock", "CurrentStock", 2, "1")
 
 		form.Row(1).
 			AddTextarea(1, "Notes", "Notes")

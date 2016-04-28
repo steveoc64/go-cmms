@@ -24,9 +24,13 @@ func taskMaint(context *router.Context) {
 
 func calcAllDone(task shared.Task) bool {
 
+	if task.LabourHrs == 0.0 {
+		print("Needs some labour input")
+		return false
+	}
 	for _, v := range task.Checks {
 		if !v.Done {
-			print("Task has incomlete checklist items")
+			print("Task has incomplete checklist items")
 			return false
 		}
 	}
@@ -90,13 +94,14 @@ func taskEdit(context *router.Context) {
 			form.Row(1).
 				AddCustom(1, "Notes and CheckLists", "CheckList", "")
 
-			form.Row(2).
-				AddDisplay(1, "Labour Est $", "LabourEst").
-				AddInput(1, "Actual Labour $", "LabourCost")
+			form.Row(4).
+				AddDisplay(2, "Labour Est $", "LabourEst").
+				AddDecimal(1, "Hours", "LabourHrs", 2, "0.5").
+				AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1")
 
-			form.Row(2).
-				AddDisplay(1, "Material Est $", "MaterialEst").
-				AddInput(1, "Actual Material $", "MaterialCost")
+			form.Row(4).
+				AddDisplay(2, "Material Est $", "MaterialEst").
+				AddDecimal(2, "Actual Material $", "MaterialCost", 2, "1")
 
 			form.Row(1).
 				AddCustom(1, "Parts Used", "PartList", "")
@@ -118,23 +123,25 @@ func taskEdit(context *router.Context) {
 			form.Row(1).
 				AddCustom(1, "Notes and CheckLists", "CheckList", "")
 
-			form.Row(2).
-				AddDisplay(1, "Labour Est $", "LabourEst").
-				AddInput(1, "Actual Labour $", "LabourCost")
+			form.Row(4).
+				AddDisplay(2, "Labour Est $", "LabourEst").
+				AddDecimal(1, "Hours", "LabourHrs", 2, "0.5").
+				AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1")
 
-			form.Row(2).
-				AddDisplay(1, "Material Est $", "MaterialEst").
-				AddInput(1, "Actual Material $", "MaterialCost")
+			form.Row(4).
+				AddDisplay(2, "Material Est $", "MaterialEst").
+				AddDecimal(2, "Actual Material $", "MaterialCost", 2, "1")
 
 			form.Row(1).
 				AddCustom(1, "Parts Used", "PartList", "")
 
 		case "Technician":
-			form.Row(4).
+			form.Row(5).
 				AddDisplay(1, "Start Date", "DisplayStartDate").
 				AddDisplay(1, "Due Date", "DisplayDueDate").
-				AddInput(1, "Actual Labour $", "LabourCost").
-				AddInput(1, "Actual Material $", "MaterialCost")
+				AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1").
+				AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1").
+				AddDecimal(1, "Hours", "LabourHrs", 2, "0.5")
 
 			form.Row(3).
 				AddDisplay(1, "Site", "SiteName").
@@ -200,6 +207,32 @@ func taskEdit(context *router.Context) {
 
 		w := dom.GetWindow()
 		doc := w.Document()
+
+		// on change of the labour hrs, update the all done flag
+		lh := doc.QuerySelector("[name=LabourHrs]").(*dom.HTMLInputElement)
+		lh.AddEventListener("change", false, func(evt dom.Event) {
+			print("labour hrs has changed")
+			wasDone := task.AllDone
+			task.LabourHrs, _ = strconv.ParseFloat(lh.Value, 64)
+			task.AllDone = calcAllDone(task)
+			if wasDone != task.AllDone {
+				// fire off the change to the backend
+				form.Bind(&task)
+				data := shared.TaskUpdateData{
+					Channel: Session.Channel,
+					Task:    &task,
+				}
+				go func() {
+					done := false
+					rpcClient.Call("TaskRPC.Update", data, &done)
+				}()
+				if Session.UserRole == "Admin" {
+					loadTemplate("task-admin-actions", "#action-grid", task)
+				} else {
+					loadTemplate("task-actions", "#action-grid", task)
+				}
+			}
+		})
 
 		if el := doc.QuerySelector("[name=CheckList]"); el != nil {
 
@@ -543,8 +576,8 @@ func schedEdit(context *router.Context) {
 			AddTextarea(1, "Task Description", "Descr")
 
 		form.Row(3).
-			AddDecimal(1, "Labour Cost", "LabourCost", 2).
-			AddDecimal(1, "Material Cost", "MaterialCost", 2).
+			AddDecimal(1, "Labour Cost", "LabourCost", 2, "1").
+			AddDecimal(1, "Material Cost", "MaterialCost", 2, "1").
 			AddNumber(1, "Duration (days)", "DurationDays", "1")
 
 		// Add a DIV that we can attach panels to
@@ -896,8 +929,8 @@ func machineSchedAdd(context *router.Context) {
 			AddTextarea(1, "Task Description", "Descr")
 
 		form.Row(3).
-			AddDecimal(1, "Labour Cost", "LabourCost", 2).
-			AddDecimal(1, "Material Cost", "MaterialCost", 2).
+			AddDecimal(1, "Labour Cost", "LabourCost", 2, "1").
+			AddDecimal(1, "Material Cost", "MaterialCost", 2, "1").
 			AddNumber(1, "Duration (days)", "DurationDays", "1")
 
 		// Add event handlers
