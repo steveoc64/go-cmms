@@ -2,10 +2,17 @@
 	{{if .AllDone}}
 	<div class="action__item" url="/task/complete/{{.ID}}">
 		<div class="action__title">Complete</div>
-		<div class="action__icon"><i class="fa fa-thumbs-up fa-lg"></i></div>
+		<div class="action__icon"><i class="fa fa-check-square fa-lg"></i></div>
 		<div class="action__text">
-			<b>TODO</b><br>
 			Mark this task as complete.
+		</div>
+	</div>
+	{{else}}
+	<div class="action__item" url="">
+		<div class="action__title">More Info Needed</div>
+		<div class="action__icon"><i class="fa fa-check-square fa-lg"></i></div>
+		<div class="action__text">
+		Before you can complete this task, please enter the number of hours spent, and complete any checkbox items.
 		</div>
 	</div>
 	{{end}}
