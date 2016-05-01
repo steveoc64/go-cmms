@@ -7,7 +7,8 @@ import (
 
 type PingRPC struct{}
 
-func (p *PingRPC) Ping(in *shared.PingReq, out *shared.PingRep) error {
-	out.Result = "Got " + in.Msg
+func (p *PingRPC) Ping(msg string, out *shared.AsyncMessage) error {
+	out.Action = "Ping"
+	out.ID = 0
 	return nil
 }

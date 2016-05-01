@@ -7,10 +7,10 @@ import (
 	"io"
 	"log"
 	"net/rpc"
-	"strconv"
 	"sync"
 	"time"
 
+	"github.com/steveoc64/go-cmms/shared"
 	"golang.org/x/net/websocket"
 )
 
@@ -31,7 +31,7 @@ type Connection struct {
 }
 
 // Safely send unsolicited RPC response to a connection
-func (c *Connection) Send(name string, payload string) error {
+func (c *Connection) Send(name string, payload interface{}) error {
 	c.Mutex.Lock()
 	defer c.Mutex.Unlock()
 
@@ -46,6 +46,7 @@ func (c *Connection) Send(name string, payload string) error {
 		log.Println("Payload", payload, err.Error())
 		return err
 	}
+	// log.Println("got here with", payload)
 	return nil
 }
 
@@ -60,11 +61,33 @@ func (c *Connection) Login(username string, id int, role string) {
 
 // Constantly Ping the Backend
 func (c *Connection) KeepAlive(sec time.Duration) {
-	c.Send("Ping", strconv.Itoa(c.ID))
+	log.Println("sending ping to ", c.ID)
+
+	data := shared.AsyncMessage{
+		Action: "Ping",
+		ID:     c.ID,
+	}
+	c.Send("Ping", data)
 	c.ticker = time.NewTicker(time.Second * sec)
 	for range c.ticker.C {
 		// log.Println("sending ping to client", c.ID)
-		c.Send("Ping", strconv.Itoa(c.ID))
+		c.Send("Ping", data)
+	}
+}
+
+// Send an async message to everyone but this connection
+func (c *Connection) Broadcast(name string, action string, id int) {
+
+	data := shared.AsyncMessage{
+		Action: action,
+		ID:     id,
+	}
+
+	for _, v := range Connections.conns {
+		if v != c && v.UserID != 0 {
+			log.Println("broadcast", name, action, id, "»", v.ID)
+			go v.Send(name, data)
+		}
 	}
 }
 

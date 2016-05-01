@@ -10,7 +10,6 @@ import (
 	"io"
 	"net"
 	"net/rpc"
-	"strconv"
 
 	"github.com/gopherjs/websocket"
 	"github.com/steveoc64/go-cmms/shared"
@@ -52,11 +51,8 @@ func websocketInit() net.Conn {
 	rpcClient = rpc.NewClientWithCodec(client)
 
 	// Call PingRPC to burn through the message with seq = 0
-	in := &shared.PingReq{
-		Msg: "Use up the first msg",
-	}
-	out := &shared.PingRep{}
-	rpcClient.Call("PingRPC.Ping", in, out)
+	out := &shared.AsyncMessage{}
+	rpcClient.Call("PingRPC.Ping", "init channel", out)
 
 	return wss
 }
@@ -92,10 +88,11 @@ func (c *myClientCodec) ReadResponseHeader(r *rpc.Response) error {
 	err := c.dec.Decode(r)
 	// print("rpc header <-", r)
 	if err != nil {
-		print("decode error", err.Error())
 
 		if err != nil && err.Error() == "extra data in buffer" {
 			err = c.dec.Decode(r)
+		} else {
+			print("decode error", err.Error())
 		}
 		if err != nil {
 			print("rpc error", err)
@@ -117,6 +114,7 @@ func autoReload() {
 
 	print("Connection has expired !!")
 	print("Logging out in ... 3")
+	return
 
 	go func() {
 		time.Sleep(time.Second)
@@ -133,9 +131,16 @@ func (c *myClientCodec) ReadResponseBody(body interface{}) error {
 
 	if c.async {
 		// Read the response body into a string
-		var b string
-		c.dec.Decode(&b)
-		processAsync(c.serviceMethod, b)
+		msg := shared.AsyncMessage{}
+		// var b string
+		// c.dec.Decode(&b)
+		err := c.dec.Decode(&msg)
+		if err != nil {
+			print("decode error", err.Error())
+		}
+		// print("appear to be async with body of ", body)
+		// processAsync(c.serviceMethod, body)
+		processAsync(c.serviceMethod, msg)
 		return nil
 	}
 
@@ -148,16 +153,33 @@ func (c *myClientCodec) Close() error {
 	return c.rwc.Close()
 }
 
-func processAsync(method string, body string) {
+// type AsyncMessage struct {
+// 	Action string
+// 	Data   interface{}
+// }
+
+func processAsync(method string, msg shared.AsyncMessage) {
+
+	// print("processing async with method =", method)
+	// print("and body =", body)
 
 	switch method {
 	case "Ping":
-		if Session.Channel == 0 {
-			print("Channel Set to", body)
-		}
-		Session.Channel, _ = strconv.Atoi(body)
+		Session.Channel = msg.ID
+		print("Set channel to", Session.Channel)
+	case "PingRPC.Ping":
+		print("Keepalive")
 	default:
-		print("Rx cmd", method, "body:", body)
+		print("Msg:", method, "Action:", msg.Action, "ID:", msg.ID)
+		if Session.Subscribe == method {
+			go Session.SFn(&msg)
+		}
 	}
+}
 
+func Subscribe(name string, f func(*shared.AsyncMessage)) int {
+	// print("subscribing to ", name)
+	Session.Subscribe = name
+	Session.SFn = f
+	return 0
 }

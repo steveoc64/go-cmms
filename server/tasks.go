@@ -942,6 +942,7 @@ func (t *TaskRPC) HashtagInsert(data shared.HashtagUpdateData, id *int) error {
 		fmt.Sprintf("ID %d Name %s",
 			data.Hashtag.ID, data.Hashtag.Name))
 
+	conn.Broadcast("hashtag", "insert", *id)
 	return nil
 }
 
@@ -959,6 +960,7 @@ func (t *TaskRPC) HashtagDelete(data shared.HashtagUpdateData, done *bool) error
 			data.Hashtag.ID, data.Hashtag.Name))
 
 	*done = true
+	conn.Broadcast("hashtag", "delete", data.Hashtag.ID)
 
 	return nil
 }
@@ -978,6 +980,8 @@ func (t *TaskRPC) HashtagUpdate(data shared.HashtagUpdateData, done *bool) error
 			data.Hashtag.ID, data.Hashtag.Name))
 
 	*done = true
+
+	conn.Broadcast("hashtag", "update", data.Hashtag.ID)
 
 	return nil
 }

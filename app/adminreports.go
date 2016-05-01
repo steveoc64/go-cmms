@@ -16,34 +16,38 @@ func adminReports(context *router.Context) {
 
 func hashtagList(context *router.Context) {
 
-	go func() {
-		hashtags := []shared.Hashtag{}
-		rpcClient.Call("TaskRPC.HashtagList", Session.Channel, &hashtags)
+	// gob.Register(shared.HashtagUpdateData{})
+	Subscribe("hashtag", _hashtagList)
+	go _hashtagList(nil)
+}
 
-		form := formulate.ListForm{}
-		form.New("fa-hashtag", "Hashtag List")
+func _hashtagList(msg *shared.AsyncMessage) {
+	hashtags := []shared.Hashtag{}
+	rpcClient.Call("TaskRPC.HashtagList", Session.Channel, &hashtags)
 
-		// Define the layout
-		form.Column("Name", "HashName")
-		form.Column("Expands To", "Descr")
+	form := formulate.ListForm{}
+	form.New("fa-hashtag", "Hashtag List")
 
-		// Add event handlers
-		form.CancelEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			Session.Router.Navigate("/util")
-		})
+	// Define the layout
+	form.Column("Name", "HashName")
+	form.Column("Expands To", "Descr")
 
-		form.NewRowEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			Session.Router.Navigate("/hashtag/add")
-		})
+	// Add event handlers
+	form.CancelEvent(func(evt dom.Event) {
+		evt.PreventDefault()
+		Session.Router.Navigate("/util")
+	})
 
-		form.RowEvent(func(key string) {
-			Session.Router.Navigate("/hashtag/" + key)
-		})
+	form.NewRowEvent(func(evt dom.Event) {
+		evt.PreventDefault()
+		Session.Router.Navigate("/hashtag/add")
+	})
 
-		form.Render("hashtag-list", "main", hashtags)
-	}()
+	form.RowEvent(func(key string) {
+		Session.Router.Navigate("/hashtag/" + key)
+	})
+
+	form.Render("hashtag-list", "main", hashtags)
 }
 
 func hashtagAdd(context *router.Context) {
