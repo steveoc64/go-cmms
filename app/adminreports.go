@@ -94,74 +94,93 @@ func hashtagAdd(context *router.Context) {
 
 }
 
+var currentHashtag = 0
+
 func hashtagEdit(context *router.Context) {
 	id, err := strconv.Atoi(context.Params["id"])
 	if err != nil {
 		print(err.Error())
 		return
 	}
+	currentHashtag = id
 
-	go func() {
-		hashtag := shared.Hashtag{}
-		rpcClient.Call("TaskRPC.HashtagGet", id, &hashtag)
+	Subscribe("hashtag", _hashtagEdit)
+	go _hashtagEdit(nil)
+}
 
-		BackURL := "/hashtags"
-		title := "Edit Hashtag - #" + hashtag.Name
+func _hashtagEdit(msg *shared.AsyncMessage) {
 
-		form := formulate.EditForm{}
-		form.New("fa-hashtag", title)
+	BackURL := "/hashtags"
 
-		// Layout the fields
-		form.Row(1).
-			AddInput(1, "Hashtag Name (without the # symbol)", "Name")
-
-		form.Row(1).
-			AddTextarea(1, "Expand to", "Descr")
-
-		// Add event handlers
-		form.CancelEvent(func(evt dom.Event) {
-			evt.PreventDefault()
+	if msg != nil {
+		if msg.ID != currentHashtag {
+			return
+		}
+		if msg.Action == "delete" {
+			print("current record has been deleted")
 			Session.Router.Navigate(BackURL)
-		})
+			return
+		}
+		print("refresh the display")
+	}
+	id := currentHashtag
 
-		form.DeleteEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			hashtag.ID = id
-			go func() {
-				data := shared.HashtagUpdateData{
-					Channel: Session.Channel,
-					Hashtag: &hashtag,
-				}
-				done := false
-				rpcClient.Call("TaskRPC.HashtagDelete", data, &done)
-				Session.Router.Navigate(BackURL)
-			}()
-		})
+	hashtag := shared.Hashtag{}
+	rpcClient.Call("TaskRPC.HashtagGet", id, &hashtag)
 
-		form.SaveEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			form.Bind(&hashtag)
+	title := "Edit Hashtag - #" + hashtag.Name
+
+	form := formulate.EditForm{}
+	form.New("fa-hashtag", title)
+
+	// Layout the fields
+	form.Row(1).
+		AddInput(1, "Hashtag Name (without the # symbol)", "Name")
+
+	form.Row(1).
+		AddTextarea(1, "Expand to", "Descr")
+
+	// Add event handlers
+	form.CancelEvent(func(evt dom.Event) {
+		evt.PreventDefault()
+		Session.Router.Navigate(BackURL)
+	})
+
+	form.DeleteEvent(func(evt dom.Event) {
+		evt.PreventDefault()
+		hashtag.ID = id
+		go func() {
 			data := shared.HashtagUpdateData{
 				Channel: Session.Channel,
 				Hashtag: &hashtag,
 			}
-			go func() {
-				done := false
-				rpcClient.Call("TaskRPC.HashtagUpdate", data, &done)
-				Session.Router.Navigate(BackURL)
-			}()
-		})
+			done := false
+			rpcClient.Call("TaskRPC.HashtagDelete", data, &done)
+			Session.Router.Navigate(BackURL)
+		}()
+	})
 
-		// All done, so render the form
-		form.Render("edit-form", "main", &hashtag)
+	form.SaveEvent(func(evt dom.Event) {
+		evt.PreventDefault()
+		form.Bind(&hashtag)
+		data := shared.HashtagUpdateData{
+			Channel: Session.Channel,
+			Hashtag: &hashtag,
+		}
+		go func() {
+			done := false
+			rpcClient.Call("TaskRPC.HashtagUpdate", data, &done)
+			Session.Router.Navigate(BackURL)
+		}()
+	})
 
-		// Add an action grid
-		form.ActionGrid("hash-action", "#action-grid", hashtag.ID, func(url string) {
-			Session.Router.Navigate(url)
-		})
+	// All done, so render the form
+	form.Render("edit-form", "main", &hashtag)
 
-	}()
-
+	// Add an action grid
+	form.ActionGrid("hash-action", "#action-grid", hashtag.ID, func(url string) {
+		Session.Router.Navigate(url)
+	})
 }
 
 func adminUtils(context *router.Context) {
