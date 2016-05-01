@@ -532,6 +532,7 @@ func autoGenerate() {
 
 			hours++
 			if hours >= 24 {
+				hours = 0
 				log.Println("24 Hours - db backup")
 				out, err := exec.Command("../scripts/cmms-backup.sh").Output()
 				if err != nil {
