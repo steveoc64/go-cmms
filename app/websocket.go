@@ -114,7 +114,6 @@ func autoReload() {
 
 	print("Connection has expired !!")
 	print("Logging out in ... 3")
-	return
 
 	go func() {
 		time.Sleep(time.Second)

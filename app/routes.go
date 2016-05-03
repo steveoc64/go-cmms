@@ -99,6 +99,7 @@ func enableRoutes(Role string) {
 			"stoppages":      stoppageList,
 			"parts":          partList,
 			"reports":        technicianReports,
+			"diary":          technicianDiary,
 		}
 	case "Floor":
 		Session.AppFn = map[string]router.Handler{

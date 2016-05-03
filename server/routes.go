@@ -88,6 +88,7 @@ func getRoutes(uid int, role string) []shared.UserRoute {
 			{Route: "/stoppages", Func: "stoppages"},
 			{Route: "/parts", Func: "parts"},
 			{Route: "/reports", Func: "reports"},
+			{Route: "/diary", Func: "diary"},
 		}
 	case "Floor":
 		return []shared.UserRoute{

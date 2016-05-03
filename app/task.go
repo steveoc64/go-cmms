@@ -1145,3 +1145,10 @@ func stoppageTaskList(context *router.Context) {
 
 	}()
 }
+
+func technicianDiary(context *router.Context) {
+	go func() {
+		done := false
+		rpcClient.Call("TaskRPC.Diary", Session.Channel, &done)
+	}()
+}
