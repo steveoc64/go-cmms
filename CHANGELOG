@@ -1,0 +1,21 @@
+This release includes :
+
+Admin:
+	- Stoppage list show latest first
+	- Stoppage list split into current and completed as 2 separate lists
+
+Site Manager:
+	- Stoppage list show status
+	- Remove task list from main page
+	- When assigning a new task to a technician, generate SMS for the technician
+
+Technician:
+	- Edit parts used on a task
+	- Add document / photo to a task
+	- Complete task button marks the task as complete
+	- Show completed tasks
+	- Actual costs fields not editable
+
+
+Network:
+	- Remove Grace network layer	

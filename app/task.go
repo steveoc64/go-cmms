@@ -139,8 +139,10 @@ func taskEdit(context *router.Context) {
 			form.Row(5).
 				AddDisplay(1, "Start Date", "DisplayStartDate").
 				AddDisplay(1, "Due Date", "DisplayDueDate").
-				AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1").
-				AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1").
+				// AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1").
+				// AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1").
+				AddDisplay(1, "Actual Material $", "MaterialCost").
+				AddDisplay(1, "Actual Labour $", "LabourCost").
 				AddDecimal(1, "Hours", "LabourHrs", 2, "0.5")
 
 			form.Row(3).
@@ -338,6 +340,39 @@ func taskList(context *router.Context) {
 		})
 
 		form.Render("task-list", "main", tasks)
+
+		ctasks := []shared.Task{}
+		rpcClient.Call("TaskRPC.ListCompleted", Session.Channel, &ctasks)
+
+		cform := formulate.ListForm{}
+		cform.New("fa-server", "Completed Tasks")
+
+		// Define the layout
+		switch Session.UserRole {
+		case "Admin", "Site Manager":
+			cform.Column("User", "Username")
+			cform.Column("TaskID", "ID")
+		}
+		cform.Column("Date", "GetStartDate")
+		// form.Column("Due", "GetDueDate")
+		cform.Column("Site", "SiteName")
+		cform.Column("Machine", "MachineName")
+		cform.Column("Component", "Component")
+		cform.Column("Description", "Descr")
+		cform.Column("Duration", "DurationDays")
+		cform.Column("Completed", "CompletedDate")
+
+		cform.RowEvent(func(key string) {
+			Session.Router.Navigate("/task/" + key)
+		})
+
+		w := dom.GetWindow()
+		doc := w.Document()
+		div := doc.CreateElement("div").(*dom.HTMLDivElement)
+		div.SetID("ctasks")
+		doc.QuerySelector("main").AppendChild(div)
+
+		cform.Render("task-list", "#ctasks", ctasks)
 
 	}()
 }

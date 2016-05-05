@@ -39,6 +39,7 @@ type Event struct {
 	OtherCost    float64    `db:"other_cost"`
 	Notes        string     `db:"notes"`
 	ParentEvent  int        `db:"parent_event"`
+	AssignedTo   []string   `db:"assigned_to"`
 }
 
 type AssignEvent struct {
@@ -71,9 +72,27 @@ func (e *Event) GetStartDate() string {
 }
 
 func (e *Event) GetStatus() string {
-	if e.Completed != nil {
-		return fmt.Sprintf("%s %s", e.Status, e.Completed.Format(datetimeDisplayFormat))
-	} else {
+	switch e.Status {
+	case "":
+		return "Pending"
+	case "Assigned":
+		status := "Assigned To: "
+		for i, j := range e.AssignedTo {
+			if i > 0 {
+				status += ", "
+			}
+			status += j
+		}
+		return status
+	default:
 		return e.Status
+	}
+}
+
+func (e *Event) GetCompleted() string {
+	if e.Completed != nil {
+		return fmt.Sprintf("%s", e.Completed.Format(datetimeDisplayFormat))
+	} else {
+		return ""
 	}
 }

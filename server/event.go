@@ -33,10 +33,11 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 		CreatedBy: conn.UserID,
 		Notes:     issue.Descr,
 		Priority:  1,
+		Status:    "Pending",
 	}
 
 	DB.InsertInto("event").
-		Whitelist("site_id", "type", "machine_id", "tool_id", "tool_type", "created_by", "notes", "priority").
+		Whitelist("site_id", "type", "machine_id", "tool_id", "tool_type", "created_by", "notes", "priority", "status").
 		Record(evt).
 		Returning("id").
 		QueryScalar(id)
@@ -101,7 +102,8 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 	DB.SQL(`select name from site where id=$1`, issue.Machine.SiteID).QueryScalar(&siteName)
 
 	if false && Config.SMSOn {
-		SendSMS("get the number from the db for the correct person",
+		//		SendSMS("get the number from the db for the correct person",
+		SendSMS("0417824950", // shane
 			fmt.Sprintf("Alert at Site %s on Machine %s on %s: %s",
 				siteName,
 				issue.Machine.Name,
@@ -140,8 +142,8 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 			left join machine m on m.id=e.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=e.created_by
-		where m.site_id in $1 and completed is null
-		order by e.startdate`, sites).
+		where m.site_id in $1 and e.completed is null
+		order by e.startdate desc`, sites).
 			QueryStructs(events)
 
 		if err != nil {
@@ -153,8 +155,9 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 		from event e
 			left join machine m on m.id=e.machine_id
 			left join site s on s.id=m.site_id
-			left join users u on u.id=e.created_by		
-		order by e.completed desc,e.startdate`).
+			left join users u on u.id=e.created_by	
+		where e.completed is null	
+		order by e.completed desc,e.startdate desc`).
 			QueryStructs(events)
 
 		if err != nil {
@@ -162,7 +165,80 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 		}
 	}
 
+	// fetch all assignments
+	for i, v := range *events {
+		DB.SQL(`select u.username
+			from task t
+			left join users u on u.id=t.assigned_to
+			where t.event_id=$1`, v.ID).
+			QueryStructs(&v.AssignedTo)
+
+		// log.Println("assignments for event", v.ID, "=", v.AssignedTo)
+		(*events)[i].AssignedTo = v.AssignedTo
+	}
+
 	logger(start, "Event.List",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d Events", len(*events)))
+
+	return nil
+}
+
+func (e *EventRPC) ListCompleted(channel int, events *[]shared.Event) error {
+	start := time.Now()
+
+	conn := Connections.Get(channel)
+
+	switch conn.UserRole {
+	case "Site Manager":
+		// Limit the tasks to just the sites that we are in control of
+		sites := []int{}
+
+		DB.SQL(`select site_id from user_site where user_id=$1`, conn.UserID).QuerySlice(&sites)
+
+		err := DB.SQL(`select 
+		e.*,m.name as machine_name,s.name as site_name,u.username as username
+		from event e
+			left join machine m on m.id=e.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=e.created_by
+		where m.site_id in $1 and e.completed is not null
+		order by e.startdate desc`, sites).
+			QueryStructs(events)
+
+		if err != nil {
+			log.Println(err.Error())
+		}
+	case "Admin":
+		err := DB.SQL(`select 
+		e.*,m.name as machine_name,s.name as site_name,u.username as username
+		from event e
+			left join machine m on m.id=e.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=e.created_by	
+		where e.completed is not null	
+		order by e.completed desc,e.startdate desc`).
+			QueryStructs(events)
+
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+
+	// fetch all assignments
+	for i, v := range *events {
+		DB.SQL(`select u.username
+			from task t
+			left join users u on u.id=t.assigned_to
+			where t.event_id=$1`, v.ID).
+			QueryStructs(&v.AssignedTo)
+
+		// log.Println("assignments for event", v.ID, "=", v.AssignedTo)
+		(*events)[i].AssignedTo = v.AssignedTo
+	}
+
+	logger(start, "Event.ListCompleted",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d Events", len(*events)))
@@ -308,7 +384,7 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 	conn := Connections.Get(data.Channel)
 
 	*id = 0
-	log.Printf("here with %v", data)
+	// log.Printf("here with %v", data)
 
 	now := time.Now()
 	if data.StartDate == nil {
@@ -338,7 +414,7 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 		LabourEst:    data.LabourEst,
 		MaterialEst:  data.MaterialEst,
 	}
-	log.Printf("task is %v", task)
+	// log.Printf("task is %v", task)
 
 	DB.InsertInto("task").
 		Whitelist("machine_id", "sched_id", "event_id", "comp_type", "tool_id", "component",
@@ -349,6 +425,9 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 		QueryScalar(&task.ID)
 
 	*id = task.ID
+
+	// Stamp the event as assigned
+	DB.SQL(`update event set status='Assigned' where id=$1`, data.Event.ID).Exec()
 
 	// Expand out using the hashtags
 	hasHashtag := false
@@ -400,7 +479,7 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 			descr += "\n"
 		}
 	}
-	log.Println("Modded desc from", task.Descr, "to", descr)
+	// log.Println("Modded desc from", task.Descr, "to", descr)
 	if hasHashtag || seq > 1 {
 		DB.SQL(`update task set descr=$1 where id=$2`, descr, task.ID).Exec()
 	}
@@ -411,6 +490,35 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 	// 	Record(data.Site).
 	// 	Returning("id").
 	// 	QueryScalar(id)
+
+	// Now generate an SMS to the technician
+	// smsMsg := fmt.Sprintf("New Workorder at %s for Machine %s : %s",
+	// 	data.SiteName,
+	// 	data.MachineName,
+	// 	data.ToolType)
+	notes := data.Notes
+	if len(notes) > 40 {
+		notes = notes[:40] + "..."
+	}
+	smsMsg := fmt.Sprintf("Task %06d:\n %s - %s : %s",
+		task.ID,
+		notes,
+		data.MachineName,
+		data.ToolType)
+
+	phoneNumber := ""
+	DB.SQL(`select sms from users where id=$1`, data.AssignTo).QueryScalar(&phoneNumber)
+
+	if Config.SMSOn {
+
+		if phoneNumber != "" {
+			SendSMS(phoneNumber, smsMsg, fmt.Sprintf("%d", task.ID))
+		} else {
+			log.Println("No Phone Number for SMS:", smsMsg)
+		}
+	} else {
+		log.Println("Will send SMS:", smsMsg, "to", phoneNumber)
+	}
 
 	logger(start, "Event.Workorder",
 		fmt.Sprintf("Channel %d, Event %d, User %d %s %s",

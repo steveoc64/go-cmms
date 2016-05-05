@@ -25,13 +25,18 @@ func stoppageList(context *router.Context) {
 		form.Column("Date", "GetStartDate")
 
 		if Session.UserRole == "Admin" {
-			form.Column("Status", "GetStatus")
+			form.Column("Completed", "GetCompleted")
 		}
 
 		form.Column("Site", "SiteName")
 		form.Column("Machine", "MachineName")
 		form.Column("Component", "ToolType")
 		form.Column("Notes", "Notes")
+
+		switch Session.UserRole {
+		case "Admin", "Site Manager":
+			form.Column("Status", "GetStatus")
+		}
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -44,6 +49,38 @@ func stoppageList(context *router.Context) {
 		})
 
 		form.Render("stoppage-list", "main", events)
+
+		// completed events
+
+		if Session.UserRole == "Admin" {
+
+			cevents := []shared.Event{}
+			rpcClient.Call("EventRPC.ListCompleted", Session.Channel, &cevents)
+
+			cform := formulate.ListForm{}
+			cform.New("fa-pause-circle-o", "Completed Stoppages")
+
+			// Define the layout
+			cform.Column("Raised By", "Username")
+			cform.Column("Date", "GetStartDate")
+			cform.Column("Completed", "GetCompleted")
+			cform.Column("Site", "SiteName")
+			cform.Column("Machine", "MachineName")
+			cform.Column("Component", "ToolType")
+			cform.Column("Notes", "Notes")
+			cform.Column("Status", "GetStatus")
+
+			cform.RowEvent(func(key string) {
+				Session.Router.Navigate("/stoppage/" + key)
+			})
+
+			w := dom.GetWindow()
+			doc := w.Document()
+			div := doc.CreateElement("div").(*dom.HTMLDivElement)
+			div.SetID("cevent")
+			doc.QuerySelector("main").AppendChild(div)
+			cform.Render("stoppage-list", "#cevent", cevents)
+		}
 
 	}()
 }

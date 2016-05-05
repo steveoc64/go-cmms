@@ -16,7 +16,7 @@ import (
 	"github.com/steveoc64/godev/smt"
 	runner "gopkg.in/mgutz/dat.v1/sqlx-runner"
 
-	"github.com/facebookgo/grace/gracehttp"
+	// "github.com/facebookgo/grace/gracehttp"
 	"golang.org/x/net/websocket"
 )
 
@@ -97,7 +97,9 @@ func main() {
 		log.Printf("... Starting Web Server on port %d", Config.WebPort)
 	}
 	std := standard.New(fmt.Sprintf(":%d", Config.WebPort))
-	std.SetHandler(e)
-	gracehttp.Serve(std.Server)
+	e.Run(std)
+
+	// std.SetHandler(e)
+	// gracehttp.Serve(std.Server)
 
 }
