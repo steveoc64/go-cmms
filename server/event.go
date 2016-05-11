@@ -258,6 +258,13 @@ func (e *EventRPC) Get(id int, event *shared.Event) error {
 			left join users u on u.id=e.created_by
 		where e.id=$1`, id).QueryStruct(event)
 
+	// fetch all assignments
+	DB.SQL(`select u.username
+			from task t
+			left join users u on u.id=t.assigned_to
+			where t.event_id=$1`, id).
+		QueryStructs(&event.AssignedTo)
+
 	if err != nil {
 		log.Println(err.Error())
 	}

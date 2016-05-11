@@ -298,7 +298,7 @@ func (t *TaskRPC) Update(data shared.TaskUpdateData, done *bool) error {
 		DB.Update("task").
 			SetWhitelist(data.Task,
 				"log", "assigned_to",
-				"labour_cost", "material_cost").
+				"labour_cost", "material_cost", "labour_hrs").
 			Where("id = $1", data.Task.ID).
 			Exec()
 
@@ -306,17 +306,25 @@ func (t *TaskRPC) Update(data shared.TaskUpdateData, done *bool) error {
 		DB.Update("task").
 			SetWhitelist(data.Task,
 				"log",
-				"labour_cost", "material_cost").
+				"labour_hrs").
 			Where("id = $1", data.Task.ID).
 			Exec()
+	}
 
+	for _, v := range data.Task.Parts {
+		log.Println("part = ", v)
+
+		DB.Update("task_part").
+			SetWhitelist(v, "notes", "qty_used").
+			Where("task_id=$1 and part_id=$2", data.Task.ID, v.PartID).
+			Exec()
 	}
 
 	logger(start, "Task.Update",
 		fmt.Sprintf("Channel %d, Task %d, User %d %s %s",
 			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%f %f %s",
-			data.Task.LabourCost, data.Task.MaterialCost, data.Task.Log))
+		fmt.Sprintf("%f %f %f %s",
+			data.Task.LabourCost, data.Task.MaterialCost, data.Task.LabourHrs, data.Task.Log))
 
 	*done = true
 	return nil

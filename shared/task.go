@@ -91,6 +91,7 @@ type TaskPart struct {
 	PartName  string  `db:"part_name"`
 	StockCode string  `db:"stock_code"`
 	Qty       float64 `db:"qty"`
+	QtyUsed   float64 `db:"qty_used"`
 	QtyType   string  `db:"qty_type"`
 	Notes     string  `db:"notes"`
 }
@@ -179,6 +180,10 @@ type TaskUpdateData struct {
 const (
 	dateDisplayFormat = "Mon, Jan 2 2006"
 )
+
+func (t *Task) GetID() string {
+	return fmt.Sprintf("%06d", t.ID)
+}
 
 func (t *Task) GetStartDate() string {
 	if t.StartDate == nil {

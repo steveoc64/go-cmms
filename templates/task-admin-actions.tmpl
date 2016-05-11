@@ -1,4 +1,14 @@
 <div class="action-grid">
+	{{if .EventID}}
+	<div class="action__item" url="/stoppage/{{.ID}}">
+		<div class="action__title">Stoppage</div>
+		<div class="action__icon"><i class="fa fa-pause-circle-o fa-lg"></i></div>
+		<div class="action__text">
+			View the Stoppage Event related to this task.
+		</div>
+	</div>
+	{{end}}
+	{{if .SchedID}}
 	<div class="action__item" url="/sched/{{.ID}}">
 		<div class="action__title">Schedule</div>
 		<div class="action__icon"><i class="fa fa-wrench fa-lg"></i></div>
@@ -6,6 +16,7 @@
 			View the Scheduled Task that created this task.
 		</div>
 	</div>
+	{{end}}
 	{{if .AllDone}}
 	<div class="action__item" url="/task/complete/{{.ID}}">
 		<div class="action__title">Complete Task</div>

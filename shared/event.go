@@ -84,6 +84,15 @@ func (e *Event) GetStatus() string {
 			status += j
 		}
 		return status
+	case "Completed":
+		status := "Completed: "
+		for i, j := range e.AssignedTo {
+			if i > 0 {
+				status += ", "
+			}
+			status += j
+		}
+		return status
 	default:
 		return e.Status
 	}

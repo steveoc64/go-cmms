@@ -122,6 +122,10 @@ func stoppageEdit(context *router.Context) {
 
 			form.Row(1).
 				AddBigTextarea(1, "Notes", "Notes")
+
+			form.Row(1).
+				AddCustom(1, "Assigned To", "AssignedTo", "")
+
 		case "Site Manager":
 			form.Row(2).
 				AddDisplay(1, "Site", "SiteName").
@@ -134,6 +138,9 @@ func stoppageEdit(context *router.Context) {
 
 			form.Row(1).
 				AddDisplayArea(1, "Notes", "Notes")
+
+			form.Row(1).
+				AddCustom(1, "Assigned To", "AssignedTo", "")
 		}
 
 		// Add event handlers
@@ -177,6 +184,9 @@ func stoppageEdit(context *router.Context) {
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &event)
+
+		// and show the assignments
+		loadTemplate("stoppage-assigned-to", "[name=AssignedTo]", event)
 
 		// And attach actions
 		switch Session.UserRole {

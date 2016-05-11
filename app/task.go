@@ -36,6 +36,13 @@ func calcAllDone(task shared.Task) bool {
 	}
 	print("Task appears to be complete")
 
+	for _, v := range task.Parts {
+		if v.QtyUsed == 0 && v.Notes == "" {
+			print("Task has an incomplete part record for part", v)
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -55,6 +62,7 @@ func taskEdit(context *router.Context) {
 		// print("task with parts and checks attached =", task)
 
 		BackURL := "/tasks"
+		RefreshURL := fmt.Sprintf("/task/%d", id)
 		title := fmt.Sprintf("Task Details - %06d", id)
 		form := formulate.EditForm{}
 		form.New("fa-server", title)
@@ -65,6 +73,49 @@ func taskEdit(context *router.Context) {
 			task.DisplayUsername = "Unassigned"
 		} else {
 			task.DisplayUsername = *task.Username
+		}
+
+		// Define a function to add the actions and set all the callbacks
+		setActions := func(actionID int) {
+
+			switch Session.UserRole {
+			case "Admin":
+				form.ActionGrid("task-admin-actions", "#action-grid", task, func(url string) {
+					if strings.HasPrefix(url, "/sched") {
+						if task.SchedID != 0 {
+							c := &router.Context{
+								Path:        url,
+								InitialLoad: false,
+								Params: map[string]string{
+									"id":   fmt.Sprintf("%d", task.SchedID),
+									"back": fmt.Sprintf("/task/%d", task.ID),
+								},
+							}
+							schedEdit(c)
+						}
+					} else if strings.HasPrefix(url, "/stoppage") {
+						if task.EventID != 0 {
+							c := &router.Context{
+								Path:        url,
+								InitialLoad: false,
+								Params: map[string]string{
+									"id":   fmt.Sprintf("%d", task.EventID),
+									"back": fmt.Sprintf("/task/%d", task.ID),
+								},
+							}
+							stoppageEdit(c)
+						}
+					} else {
+						print("task complete dialog", url, actionID, task)
+						// Session.Router.Navigate(url)
+					}
+				})
+			case "Technician":
+				form.ActionGrid("task-actions", "#action-grid", task, func(url string) {
+					print("task complete dialog", url, actionID, task)
+					// Session.Router.Navigate(url)
+				})
+			}
 		}
 
 		// Layout the fields
@@ -192,10 +243,24 @@ func taskEdit(context *router.Context) {
 					Channel: Session.Channel,
 					Task:    &task,
 				}
+
+				w := dom.GetWindow()
+				doc := w.Document()
+
+				// now get the parts array
+				for i, v := range task.Parts {
+					qtyUsed := doc.QuerySelector(fmt.Sprintf("[name=part-qty-used-%d]", v.PartID)).(*dom.HTMLInputElement)
+					notes := doc.QuerySelector(fmt.Sprintf("[name=part-notes-%d]", v.PartID)).(*dom.HTMLTextAreaElement)
+					print("Part ", v.PartID, "QtyUsed = ", qtyUsed.Value)
+					print("Part ", v.PartID, "Notes = ", notes.Value)
+					task.Parts[i].QtyUsed, _ = strconv.ParseFloat(qtyUsed.Value, 64)
+					task.Parts[i].Notes = notes.Value
+				}
+
 				go func() {
 					done := false
 					rpcClient.Call("TaskRPC.Update", data, &done)
-					Session.Router.Navigate(BackURL)
+					Session.Router.Navigate(RefreshURL)
 				}()
 			})
 		}
@@ -216,23 +281,24 @@ func taskEdit(context *router.Context) {
 			print("labour hrs has changed")
 			wasDone := task.AllDone
 			task.LabourHrs, _ = strconv.ParseFloat(lh.Value, 64)
+			print("value = ", lh.Value)
+			lh2 := evt.Target().(*dom.HTMLInputElement)
+			lh2v, _ := strconv.ParseFloat(lh2.Value, 64)
+			print("value 2 = ", lh2v)
+			// fire off the change to the backend
+			form.Bind(&task)
+			data := shared.TaskUpdateData{
+				Channel: Session.Channel,
+				Task:    &task,
+			}
+			go func() {
+				done := false
+				rpcClient.Call("TaskRPC.Update", data, &done)
+			}()
+
 			task.AllDone = calcAllDone(task)
 			if wasDone != task.AllDone {
-				// fire off the change to the backend
-				form.Bind(&task)
-				data := shared.TaskUpdateData{
-					Channel: Session.Channel,
-					Task:    &task,
-				}
-				go func() {
-					done := false
-					rpcClient.Call("TaskRPC.Update", data, &done)
-				}()
-				if Session.UserRole == "Admin" {
-					loadTemplate("task-admin-actions", "#action-grid", task)
-				} else {
-					loadTemplate("task-actions", "#action-grid", task)
-				}
+				setActions(2)
 			}
 		})
 
@@ -262,43 +328,15 @@ func taskEdit(context *router.Context) {
 						rpcClient.Call("TaskRPC.Check", data, &done)
 					}()
 					loadTemplate("task-check-list", "[name=CheckList]", task)
-					if Session.UserRole == "Admin" {
-						loadTemplate("task-admin-actions", "#action-grid", task)
-					} else {
-						loadTemplate("task-actions", "#action-grid", task)
-					}
+					setActions(3)
 				}
 
 			})
 		}
 
 		// And attach actions
-		switch Session.UserRole {
-		case "Admin":
-			form.ActionGrid("task-admin-actions", "#action-grid", task, func(url string) {
-				if strings.HasPrefix(url, "/sched") {
-					if task.SchedID != 0 {
-						c := &router.Context{
-							Path:        url,
-							InitialLoad: false,
-							Params: map[string]string{
-								"id":   fmt.Sprintf("%d", task.SchedID),
-								"back": fmt.Sprintf("/task/%d", task.ID),
-							},
-						}
-						schedEdit(c)
-					}
-				} else {
-					print("task complete dialog", url)
-					// Session.Router.Navigate(url)
-				}
-			})
-		case "Technician":
-			form.ActionGrid("task-actions", "#action-grid", task, func(url string) {
-				print("task complete dialog", url)
-				// Session.Router.Navigate(url)
-			})
-		}
+
+		setActions(1)
 
 	}()
 
@@ -318,8 +356,8 @@ func taskList(context *router.Context) {
 		switch Session.UserRole {
 		case "Admin", "Site Manager":
 			form.Column("User", "Username")
-			form.Column("TaskID", "ID")
 		}
+		form.Column("TaskID", "GetID")
 		form.Column("Date", "GetStartDate")
 		// form.Column("Due", "GetDueDate")
 		form.Column("Site", "SiteName")
@@ -327,6 +365,7 @@ func taskList(context *router.Context) {
 		form.Column("Component", "Component")
 		form.Column("Description", "Descr")
 		form.Column("Duration", "DurationDays")
+		form.Column("Hrs", "LabourHrs")
 		form.Column("Completed", "CompletedDate")
 
 		// Add event handlers
@@ -351,8 +390,8 @@ func taskList(context *router.Context) {
 		switch Session.UserRole {
 		case "Admin", "Site Manager":
 			cform.Column("User", "Username")
-			cform.Column("TaskID", "ID")
 		}
+		cform.Column("TaskID", "GetID")
 		cform.Column("Date", "GetStartDate")
 		// form.Column("Due", "GetDueDate")
 		cform.Column("Site", "SiteName")
@@ -360,6 +399,7 @@ func taskList(context *router.Context) {
 		cform.Column("Component", "Component")
 		cform.Column("Description", "Descr")
 		cform.Column("Duration", "DurationDays")
+		cform.Column("Hrs", "LabourHrs")
 		cform.Column("Completed", "CompletedDate")
 
 		cform.RowEvent(func(key string) {
@@ -1130,10 +1170,6 @@ func schedTaskList(context *router.Context) {
 
 func taskPartList(context *router.Context) {
 	print("TODO - taksPartList")
-}
-
-func taskComplete(context *router.Context) {
-	print("TODO - taskComplete")
 }
 
 // Show a list of all tasks

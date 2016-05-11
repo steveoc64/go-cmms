@@ -1,7 +1,7 @@
 <div class="row row-wrap" style="flex-wrap: wrap">
 	<fieldset>
 		{{range $index,$part := .Parts}}
-	  <div data-row-span="6">
+	  <div data-row-span="7">
 	    <div data-field-span="1">
 		    {{if eq $index 0}}<label for="part-name-{{$part.PartName}}">Part Name</label>{{end}}
 	      <input type="text" value="{{$part.PartName}}" readonly>
@@ -11,8 +11,13 @@
 	      <input type="text" value="{{$part.StockCode}}" readonly>
 	    </div>
 	    <div data-field-span="1">
-		    <label for="part-qty-{{$part.PartID}}">Qty ({{$part.QtyType}})</label>
-	      <input type="number" name="part-qty-{{$part.PartID}}" value="{{$part.Qty}}" key="{{$part.PartID}}" step="1">
+		    {{if eq $index 0}}<label for="part-qty-{{$part.PartID}}">Est. Qty</label>{{end}}
+	      <input type="number" name="part-qty-{{$part.PartID}}" value="{{$part.Qty}}" key="{{$part.PartID}}" readonly>
+
+	    </div>
+	    <div data-field-span="1">
+		    <label for="part-qty-{{$part.PartID}}">Actual Qty ({{$part.QtyType}})</label>
+	      <input type="number" name="part-qty-used-{{$part.PartID}}" value="{{$part.QtyUsed}}" key="{{$part.PartID}}" step="1">
 	    </div>
 	    <div data-field-span="3">
 		    {{if eq $index 0}}<label for="part-notes">Notes</label>{{end}}
