@@ -1,6 +1,9 @@
 package shared
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type SMSTrans struct {
 	ID         int       `db:"id"`
@@ -12,4 +15,20 @@ type SMSTrans struct {
 	Ref        string    `db:"ref"`
 	Status     string    `db:"status"`
 	Error      string    `db:"error"`
+}
+
+func (s *SMSTrans) GetNumber() string {
+	return fmt.Sprintf("%s %s", s.NumberTo, s.NumberUsed)
+}
+
+// const (
+// 	dateDisplayFormat = "Mon, Jan 2 2006"
+// )
+
+func (s *SMSTrans) GetDateSent() string {
+	return s.DateSent.Format(dateDisplayFormat)
+}
+
+func (s *SMSTrans) GetStatus() string {
+	return fmt.Sprintf("%s %s", s.Status, s.Error)
 }

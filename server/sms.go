@@ -2,12 +2,14 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/steveoc64/go-cmms/shared"
 )
@@ -137,5 +139,27 @@ func SendSMS(number string, message string, ref string, user_id int) error {
 			return errors.New(p[1])
 		}
 	}
+	return nil
+}
+
+type SMSRPC struct{}
+
+func (s *SMSRPC) List(channel int, smsTrans *[]shared.SMSTrans) error {
+	start := time.Now()
+
+	conn := Connections.Get(channel)
+
+	// Read the sites that this user has access to
+	err := DB.SQL(`select * from sms_trans order by date_sent desc`).QueryStructs(smsTrans)
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	logger(start, "SMS.List",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d Messages", len(*smsTrans)))
+
 	return nil
 }

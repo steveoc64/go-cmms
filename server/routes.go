@@ -43,6 +43,7 @@ func getRoutes(uid int, role string) []shared.UserRoute {
 			{Route: "/user/add", Func: "user-add"},
 			{Route: "/reports", Func: "reports"},
 			{Route: "/util", Func: "util"},
+			{Route: "/sms", Func: "sms-list"},
 			{Route: "/hashtags", Func: "hashtags"},
 			{Route: "/hashtag/add", Func: "hashtag-add"},
 			{Route: "/hashtag/{id}", Func: "hashtag-edit"},

@@ -48,4 +48,9 @@ func registerRPC() {
 		log.Fatal(err)
 	}
 	log.Println("» Util")
+
+	if err := rpc.Register(new(SMSRPC)); err != nil {
+		log.Fatal(err)
+	}
+	log.Println("» SMS")
 }
