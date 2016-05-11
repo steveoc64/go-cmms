@@ -610,14 +610,17 @@ func autoGenerate() {
 	log.Printf("... Running task scheduler")
 	go func() {
 		newTasks := 0
-		hours := 0
+
+		// Init Hours to be the hour of the day
+		hours := time.Now().Hour()
+
 		for {
 			schedTaskScan(time.Now(), &newTasks)
 			time.Sleep(1 * time.Hour)
 
 			hours++
 			if hours >= 24 {
-				hours = 0
+				hours = time.Now().Hour()
 				log.Println("24 Hours - db backup")
 				out, err := exec.Command("../scripts/cmms-backup.sh").Output()
 				if err != nil {
