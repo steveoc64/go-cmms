@@ -349,7 +349,7 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			left join machine m on m.id=t.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
-		where t.assigned_to=$1
+		where t.assigned_to=$1 and completed_date is null
 		order by t.startdate`, conn.UserID).
 			QueryStructs(tasks)
 		if err != nil {
@@ -367,7 +367,7 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			left join machine m on m.id=t.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
-		where m.site_id in $1
+		where m.site_id in $1 and completed_date is null
 		order by t.startdate`, sites).
 			QueryStructs(tasks)
 		if err != nil {
@@ -380,6 +380,7 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			left join machine m on m.id=t.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
+		where completed_date is null
 		order by t.startdate`).
 			QueryStructs(tasks)
 		if err != nil {
@@ -398,6 +399,77 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 	// 	QueryStructs(tasks)
 
 	logger(start, "Task.List",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d Tasks", len(*tasks)))
+
+	return nil
+}
+
+func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
+	start := time.Now()
+
+	conn := Connections.Get(channel)
+
+	switch conn.UserRole {
+	case "Technician":
+		// Limit the tasks to only our own tasks
+		err := DB.SQL(`select 
+		t.*,m.name as machine_name,s.name as site_name,u.username as username
+		from task t 
+			left join machine m on m.id=t.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=t.assigned_to
+		where t.assigned_to=$1 and completed_date is not null
+		order by t.startdate`, conn.UserID).
+			QueryStructs(tasks)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	case "Site Manager":
+		// Limit the tasks to just the sites that we are in control of
+		sites := []int{}
+
+		DB.SQL(`select site_id from user_site where user_id=$1`, conn.UserID).QuerySlice(&sites)
+
+		err := DB.SQL(`select 
+		t.*,m.name as machine_name,s.name as site_name,u.username as username
+		from task t 
+			left join machine m on m.id=t.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=t.assigned_to
+		where m.site_id in $1 and completed_date is not null
+		order by t.startdate`, sites).
+			QueryStructs(tasks)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	case "Admin":
+		err := DB.SQL(`select 
+		t.*,m.name as machine_name,s.name as site_name,u.username as username
+		from task t 
+			left join machine m on m.id=t.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=t.assigned_to
+		where completed_date is not null
+		order by t.startdate`).
+			QueryStructs(tasks)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+
+	// // Read the sites that this user has access to
+	// err := DB.SQL(`select
+	// 	t.*,m.name as machine_name,s.name as site_name,u.username as username
+	// 	from task t
+	// 		left join machine m on m.id=t.machine_id
+	// 		left join site s on s.id=m.site_id
+	// 		left join users u on u.id=t.assigned_to
+	// 	order by t.startdate`).
+	// 	QueryStructs(tasks)
+
+	logger(start, "Task.ListCompleted",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d Tasks", len(*tasks)))
@@ -1142,5 +1214,43 @@ func (t *TaskRPC) Diary(channel int, done *bool) error {
 	pdf.AddPage()
 	fancyTable()
 	err = pdf.OutputFileAndClose("public/pdf/countries.pdf")
+	return nil
+}
+
+func (t *TaskRPC) Complete(data shared.TaskUpdateData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	// Mark the task as complete
+	DB.SQL(`update task 
+		set completed_date=now()
+		where id=$1`, data.Task.ID).Exec()
+
+	// Decrement the stock values for any parts used
+	for _, v := range data.Task.Parts {
+		if v.QtyUsed != 0 {
+			thePart := shared.Part{}
+			DB.SQL(`select * from part where id=$1`, v.PartID).QueryStruct(&thePart)
+			thePart.CurrentStock -= v.QtyUsed
+			DB.SQL(`update part set current_stock=$2 where id=$1`, thePart.ID, thePart.CurrentStock).Exec()
+			DB.SQL(`insert into part_stock (part_id, stock_level, descr) values ($1, $2, $3)`,
+				thePart.ID,
+				thePart.CurrentStock,
+				fmt.Sprintf("Used %.02f on task %06d : %s", v.QtyUsed, data.Task.ID, v.Notes)).
+				Exec()
+		}
+
+	}
+
+	// If the task has a parent event, then clear the event IF there are
+	// no incomplete tasks left against that event.
+
+	logger(start, "Task.Complete",
+		fmt.Sprintf("Channel %d, Task %d User %d %s %s",
+			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
+		"Task marked as complete")
+
+	*done = true
 	return nil
 }

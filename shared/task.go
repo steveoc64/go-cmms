@@ -199,6 +199,13 @@ func (t *Task) GetDueDate() string {
 	return t.DueDate.Format(dateDisplayFormat)
 }
 
+func (t *Task) GetCompletedDate() string {
+	if t.CompletedDate == nil {
+		return ""
+	}
+	return t.CompletedDate.Format(dateDisplayFormat)
+}
+
 func (t *Task) DurationDays() string {
 	d := t.DueDate.Sub(*t.StartDate)
 	days := 1 + (d / (time.Hour * 24))

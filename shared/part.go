@@ -51,6 +51,7 @@ type PartPrice struct {
 	PartID   int       `db:"part_id"`
 	DateFrom time.Time `db:"datefrom"`
 	Price    float64   `db:"price"`
+	Descr    string    `db:"descr"`
 }
 
 func (p *PartPrice) DateFromDisplay() string {
@@ -66,6 +67,7 @@ type PartStock struct {
 	PartID     int       `db:"part_id"`
 	DateFrom   time.Time `db:"datefrom"`
 	StockLevel float64   `db:"stock_level"`
+	Descr      string    `db:"descr"`
 }
 
 func (p *PartStock) DateFromDisplay() string {

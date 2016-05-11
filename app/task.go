@@ -24,6 +24,10 @@ func taskMaint(context *router.Context) {
 
 func calcAllDone(task shared.Task) bool {
 
+	if task.CompletedDate != nil {
+		return false
+	}
+
 	if task.LabourHrs == 0.0 {
 		print("Needs some labour input")
 		return false
@@ -106,14 +110,29 @@ func taskEdit(context *router.Context) {
 							stoppageEdit(c)
 						}
 					} else {
-						print("task complete dialog", url, actionID, task)
-						// Session.Router.Navigate(url)
+						data := shared.TaskUpdateData{
+							Channel: Session.Channel,
+							Task:    &task,
+						}
+						go func() {
+							done := false
+							rpcClient.Call("TaskRPC.Complete", data, &done)
+							Session.Router.Navigate(BackURL)
+						}()
 					}
 				})
 			case "Technician":
 				form.ActionGrid("task-actions", "#action-grid", task, func(url string) {
-					print("task complete dialog", url, actionID, task)
-					// Session.Router.Navigate(url)
+					data := shared.TaskUpdateData{
+						Channel: Session.Channel,
+						Task:    &task,
+					}
+					go func() {
+						done := false
+						print("calling task.complete ???")
+						rpcClient.Call("TaskRPC.Complete", data, &done)
+						Session.Router.Navigate(BackURL)
+					}()
 				})
 			}
 		}
@@ -233,36 +252,38 @@ func taskEdit(context *router.Context) {
 			})
 		}
 
-		switch Session.UserRole {
-		case "Admin", "Technician":
+		if task.CompletedDate == nil {
+			switch Session.UserRole {
+			case "Admin", "Technician":
 
-			form.SaveEvent(func(evt dom.Event) {
-				evt.PreventDefault()
-				form.Bind(&task)
-				data := shared.TaskUpdateData{
-					Channel: Session.Channel,
-					Task:    &task,
-				}
+				form.SaveEvent(func(evt dom.Event) {
+					evt.PreventDefault()
+					form.Bind(&task)
+					data := shared.TaskUpdateData{
+						Channel: Session.Channel,
+						Task:    &task,
+					}
 
-				w := dom.GetWindow()
-				doc := w.Document()
+					w := dom.GetWindow()
+					doc := w.Document()
 
-				// now get the parts array
-				for i, v := range task.Parts {
-					qtyUsed := doc.QuerySelector(fmt.Sprintf("[name=part-qty-used-%d]", v.PartID)).(*dom.HTMLInputElement)
-					notes := doc.QuerySelector(fmt.Sprintf("[name=part-notes-%d]", v.PartID)).(*dom.HTMLTextAreaElement)
-					print("Part ", v.PartID, "QtyUsed = ", qtyUsed.Value)
-					print("Part ", v.PartID, "Notes = ", notes.Value)
-					task.Parts[i].QtyUsed, _ = strconv.ParseFloat(qtyUsed.Value, 64)
-					task.Parts[i].Notes = notes.Value
-				}
+					// now get the parts array
+					for i, v := range task.Parts {
+						qtyUsed := doc.QuerySelector(fmt.Sprintf("[name=part-qty-used-%d]", v.PartID)).(*dom.HTMLInputElement)
+						notes := doc.QuerySelector(fmt.Sprintf("[name=part-notes-%d]", v.PartID)).(*dom.HTMLTextAreaElement)
+						print("Part ", v.PartID, "QtyUsed = ", qtyUsed.Value)
+						print("Part ", v.PartID, "Notes = ", notes.Value)
+						task.Parts[i].QtyUsed, _ = strconv.ParseFloat(qtyUsed.Value, 64)
+						task.Parts[i].Notes = notes.Value
+					}
 
-				go func() {
-					done := false
-					rpcClient.Call("TaskRPC.Update", data, &done)
-					Session.Router.Navigate(RefreshURL)
-				}()
-			})
+					go func() {
+						done := false
+						rpcClient.Call("TaskRPC.Update", data, &done)
+						Session.Router.Navigate(RefreshURL)
+					}()
+				})
+			} // switch role
 		}
 
 		// All done, so render the form
@@ -366,7 +387,6 @@ func taskList(context *router.Context) {
 		form.Column("Description", "Descr")
 		form.Column("Duration", "DurationDays")
 		form.Column("Hrs", "LabourHrs")
-		form.Column("Completed", "CompletedDate")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -400,7 +420,7 @@ func taskList(context *router.Context) {
 		cform.Column("Description", "Descr")
 		cform.Column("Duration", "DurationDays")
 		cform.Column("Hrs", "LabourHrs")
-		cform.Column("Completed", "CompletedDate")
+		cform.Column("Completed", "GetCompletedDate")
 
 		cform.RowEvent(func(key string) {
 			Session.Router.Navigate("/task/" + key)

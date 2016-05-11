@@ -329,15 +329,17 @@ func partEdit(context *router.Context) {
 		// Inject the StockLevel list
 		stocklist := formulate.ListForm{}
 		stocklist.New("", "")
-		stocklist.ColumnFormat("Date", "DateFromDisplay", `width="60%"`)
-		stocklist.ColumnFormat("Stock", "StockLevel", `width="40%" text-align="right"`)
+		stocklist.ColumnFormat("Date", "DateFromDisplay", `width="30%"`)
+		stocklist.ColumnFormat("Description", "Descr", `width="50%" text-align="right"`)
+		stocklist.ColumnFormat("Stock", "StockLevel", `width="20%" text-align="right"`)
 		stocklist.Render("part-stock-list", "[name=StockList]", stocks)
 
 		// Inject the Price list
 		pricelist := formulate.ListForm{}
 		pricelist.New("", "")
-		pricelist.ColumnFormat("Date", "DateFromDisplay", `width="60%"`)
-		pricelist.ColumnFormat("Price", "PriceDisplay", `width="40%" text-align="right"`)
+		pricelist.ColumnFormat("Date", "DateFromDisplay", `width="30%"`)
+		pricelist.ColumnFormat("Description", "Descr", `width="30%"`)
+		pricelist.ColumnFormat("Price", "PriceDisplay", `width="20%" text-align="right"`)
 		pricelist.Render("part-price-list", "[name=PriceList]", prices)
 
 		// Auto calculate the valuation on change of fields

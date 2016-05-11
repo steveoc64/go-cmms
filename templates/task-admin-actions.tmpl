@@ -26,6 +26,7 @@
 		</div>
 	</div>
 	{{else}}
+	{{if not .CompletedDate}}
 	<div class="action__item" url="">
 		<div class="action__title">More Info Needed</div>
 		<div class="action__icon"><i class="fa fa-minus-square fa-lg"></i></div>
@@ -33,6 +34,7 @@
 		Before you can complete this task, please enter the number of hours spent, and complete any checkbox items.
 		</div>
 	</div>
+	{{end}}
 	{{end}}
 <!-- 
 	<div class="action__item" url="/task/parts/{{.ID}}">

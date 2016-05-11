@@ -201,6 +201,7 @@ func (p *PartRPC) Update(data shared.PartUpdateData, done *bool) error {
 		partStock := shared.PartStock{
 			PartID:     data.Part.ID,
 			StockLevel: data.Part.CurrentStock,
+			Descr:      fmt.Sprintf("Updated by %s", conn.Username),
 		}
 		DB.InsertInto("part_stock").
 			Columns("part_id", "stock_level").
@@ -211,14 +212,17 @@ func (p *PartRPC) Update(data shared.PartUpdateData, done *bool) error {
 
 	if existingPart.LatestPrice != data.Part.LatestPrice {
 		// update the last price date, and create a new part_price record
-		DB.SQL(`update part set last_price_date=now() where id=$1`, data.Part.ID).Exec()
+		DB.SQL(`update part set last_price_date=now() where id=$1`,
+			data.Part.ID,
+			fmt.Sprintf("Updated by %s", conn.Username)).Exec()
 
 		partPrice := shared.PartPrice{
 			PartID: data.Part.ID,
 			Price:  data.Part.LatestPrice,
+			Descr:  fmt.Sprintf("Updated by %s", conn.Username),
 		}
 		DB.InsertInto("part_price").
-			Columns("part_id", "price").
+			Columns("part_id", "price", "descr").
 			Record(partPrice).
 			Exec()
 		*done = false
@@ -256,7 +260,7 @@ func (p *PartRPC) Insert(data shared.PartUpdateData, id *int) error {
 		Exec()
 
 	// update the last price date, and create a new part_price record
-	DB.SQL(`update part set last_price_date=now() where id=$1`, *id).Exec()
+	DB.SQL(`update part set last_price_date=now(), where id=$1`, *id).Exec()
 
 	partPrice := shared.PartPrice{
 		PartID: *id,
