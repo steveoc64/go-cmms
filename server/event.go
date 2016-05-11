@@ -109,7 +109,7 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 				issue.Machine.Name,
 				ToolName,
 				issue.Descr),
-			fmt.Sprintf("%d", evt.ID))
+			fmt.Sprintf("%d", evt.ID), 8)
 	} else {
 		willSend := fmt.Sprintf("Alert at Site %s on Machine %s on %s: %s",
 			siteName,
@@ -519,7 +519,7 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 	if Config.SMSOn {
 
 		if phoneNumber != "" {
-			SendSMS(phoneNumber, smsMsg, fmt.Sprintf("%d", task.ID))
+			SendSMS(phoneNumber, smsMsg, fmt.Sprintf("%d", task.ID), data.AssignTo)
 		} else {
 			log.Println("No Phone Number for SMS:", smsMsg)
 		}

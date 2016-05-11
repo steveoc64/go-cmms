@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/steveoc64/go-cmms/shared"
 )
 
 func GetSMSBalance() (int, error) {
@@ -62,7 +64,7 @@ func GetSMSBalance() (int, error) {
 	return strconv.Atoi(s)
 }
 
-func SendSMS(number string, message string, ref string) error {
+func SendSMS(number string, message string, ref string, user_id int) error {
 
 	if !Config.SMSOn {
 		return nil
@@ -89,16 +91,49 @@ func SendSMS(number string, message string, ref string) error {
 	body, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
 	lines := strings.Split(string(body), "\n")
+
+	smsTrans := shared.SMSTrans{
+		NumberTo: number,
+		UserID:   user_id,
+		Message:  message,
+	}
+
 	for _, v := range lines {
 		p := strings.Split(v, ":")
+		smsTrans.Status = p[0]
 		switch p[0] {
 		case "OK":
 			log.Println("SMS OK", p[1], "ref", p[2])
+			smsTrans.NumberUsed = p[1]
+			smsTrans.Ref = p[2]
+			DB.InsertInto("sms_trans").
+				Whitelist("number_to", "number_used", "user_id", "message", "ref", "status", "error").
+				Record(smsTrans).
+				Exec()
 		case "BAD":
 			log.Println("SMS BAD", p[1], "reason", p[2])
+			smsTrans.NumberUsed = p[1]
+			smsTrans.Error = p[2]
+			DB.InsertInto("sms_trans").
+				Whitelist("number_to", "number_used", "user_id", "message", "ref", "status", "error").
+				Record(smsTrans).
+				Exec()
 			return errors.New(p[2])
 		case "ERROR":
 			log.Println("SMS ERROR", p[1])
+			smsTrans.Error = p[1]
+			DB.InsertInto("sms_trans").
+				Whitelist("number_to", "number_used", "user_id", "message", "ref", "status", "error").
+				Record(smsTrans).
+				Exec()
+			return errors.New(p[1])
+		default:
+			log.Println("Unknown SMS Error", p[0])
+			smsTrans.Error = p[1]
+			DB.InsertInto("sms_trans").
+				Whitelist("number_to", "number_used", "user_id", "message", "ref", "status", "error").
+				Record(smsTrans).
+				Exec()
 			return errors.New(p[1])
 		}
 	}
