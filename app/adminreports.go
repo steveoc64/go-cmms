@@ -17,7 +17,7 @@ func adminReports(context *router.Context) {
 func hashtagList(context *router.Context) {
 
 	// gob.Register(shared.HashtagUpdateData{})
-	Subscribe("hashtag", _hashtagList)
+	Session.Subscribe("hashtag", _hashtagList)
 	go _hashtagList(nil)
 }
 
@@ -35,16 +35,16 @@ func _hashtagList(msg *shared.AsyncMessage) {
 	// Add event handlers
 	form.CancelEvent(func(evt dom.Event) {
 		evt.PreventDefault()
-		Session.Router.Navigate("/util")
+		Session.Navigate("/util")
 	})
 
 	form.NewRowEvent(func(evt dom.Event) {
 		evt.PreventDefault()
-		Session.Router.Navigate("/hashtag/add")
+		Session.Navigate("/hashtag/add")
 	})
 
 	form.RowEvent(func(key string) {
-		Session.Router.Navigate("/hashtag/" + key)
+		Session.Navigate("/hashtag/" + key)
 	})
 
 	form.Render("hashtag-list", "main", hashtags)
@@ -69,7 +69,7 @@ func hashtagAdd(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.SaveEvent(func(evt dom.Event) {
@@ -83,7 +83,7 @@ func hashtagAdd(context *router.Context) {
 				newID := 0
 				rpcClient.Call("TaskRPC.HashtagInsert", data, &newID)
 				print("added hashtag", newID)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 
@@ -104,7 +104,7 @@ func hashtagEdit(context *router.Context) {
 	}
 	currentHashtag = id
 
-	Subscribe("hashtag", _hashtagEdit)
+	Session.Subscribe("hashtag", _hashtagEdit)
 	go _hashtagEdit(nil)
 }
 
@@ -118,7 +118,7 @@ func _hashtagEdit(msg *shared.AsyncMessage) {
 		}
 		if msg.Action == "delete" {
 			print("current record has been deleted")
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 			return
 		}
 		print("refresh the display")
@@ -143,7 +143,7 @@ func _hashtagEdit(msg *shared.AsyncMessage) {
 	// Add event handlers
 	form.CancelEvent(func(evt dom.Event) {
 		evt.PreventDefault()
-		Session.Router.Navigate(BackURL)
+		Session.Navigate(BackURL)
 	})
 
 	form.DeleteEvent(func(evt dom.Event) {
@@ -156,7 +156,7 @@ func _hashtagEdit(msg *shared.AsyncMessage) {
 			}
 			done := false
 			rpcClient.Call("TaskRPC.HashtagDelete", data, &done)
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		}()
 	})
 
@@ -170,7 +170,7 @@ func _hashtagEdit(msg *shared.AsyncMessage) {
 		go func() {
 			done := false
 			rpcClient.Call("TaskRPC.HashtagUpdate", data, &done)
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		}()
 	})
 
@@ -179,7 +179,7 @@ func _hashtagEdit(msg *shared.AsyncMessage) {
 
 	// Add an action grid
 	form.ActionGrid("hash-action", "#action-grid", hashtag.ID, func(url string) {
-		Session.Router.Navigate(url)
+		Session.Navigate(url)
 	})
 }
 
@@ -195,7 +195,7 @@ func adminUtils(context *router.Context) {
 	// Add event handlers
 	form.CancelEvent(func(evt dom.Event) {
 		evt.PreventDefault()
-		Session.Router.Navigate(BackURL)
+		Session.Navigate(BackURL)
 	})
 
 	// All done, so render the form
@@ -226,10 +226,10 @@ func adminUtils(context *router.Context) {
 			case "part":
 				rpcClient.Call("UtilRPC.Parts", Session.Channel, &retval)
 			case "sms":
-				Session.Router.Navigate("/sms")
+				Session.Navigate("/sms")
 				return
 			case "hashtag":
-				Session.Router.Navigate("/hashtags")
+				Session.Navigate("/hashtags")
 				return
 			default:
 				print("ERROR - unknown utility", url)

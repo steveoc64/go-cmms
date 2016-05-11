@@ -29,18 +29,18 @@ func classSelect(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		if Session.UserRole == "Admin" {
 			form.NewRowEvent(func(evt dom.Event) {
 				evt.PreventDefault()
-				Session.Router.Navigate("/class/add")
+				Session.Navigate("/class/add")
 			})
 		}
 
 		form.RowEvent(func(key string) {
-			Session.Router.Navigate("/parts/" + key)
+			Session.Navigate("/parts/" + key)
 		})
 
 		form.Render("class-select", "main", data)
@@ -68,7 +68,7 @@ func classAdd(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.SaveEvent(func(evt dom.Event) {
@@ -82,7 +82,7 @@ func classAdd(context *router.Context) {
 				newID := 0
 				rpcClient.Call("PartRPC.InsertClass", data, &newID)
 				print("added class ID", newID)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 
@@ -132,7 +132,7 @@ func partList(context *router.Context) {
 							done := false
 							rpcClient.Call("PartRPC.DeleteClass", data, &done)
 						}()
-						Session.Router.Navigate(BackURL)
+						Session.Navigate(BackURL)
 					})
 				}
 
@@ -172,18 +172,18 @@ func partList(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		if Session.UserRole == "Admin" {
 			form.NewRowEvent(func(evt dom.Event) {
 				evt.PreventDefault()
-				Session.Router.Navigate(fmt.Sprintf("/part/add/%d", class.ID))
+				Session.Navigate(fmt.Sprintf("/part/add/%d", class.ID))
 			})
 		}
 
 		form.RowEvent(func(key string) {
-			Session.Router.Navigate("/part/" + key)
+			Session.Navigate("/part/" + key)
 		})
 
 		form.Render("parts-list", "#parts-list-goes-here", data)
@@ -285,7 +285,7 @@ func partEdit(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.DeleteEvent(func(evt dom.Event) {
@@ -297,7 +297,7 @@ func partEdit(context *router.Context) {
 				}
 				done := false
 				rpcClient.Call("PartRPC.Delete", data, &done)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 
@@ -319,7 +319,7 @@ func partEdit(context *router.Context) {
 					// refresh this screen
 					NewBackURL = fmt.Sprintf("/part/%d", part.ID)
 				}
-				Session.Router.Navigate(NewBackURL)
+				Session.Navigate(NewBackURL)
 			}()
 		})
 
@@ -421,7 +421,7 @@ func partAdd(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.SaveEvent(func(evt dom.Event) {
@@ -436,7 +436,7 @@ func partAdd(context *router.Context) {
 				rpcClient.Call("PartRPC.Insert", data, &newID)
 				print("Added new part", newID)
 				NewBackURL := fmt.Sprintf("/parts/%d", part.Class)
-				Session.Router.Navigate(NewBackURL)
+				Session.Navigate(NewBackURL)
 			}()
 		})
 

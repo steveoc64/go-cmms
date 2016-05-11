@@ -46,16 +46,16 @@ func siteMachineList(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(fmt.Sprintf("/site/%d", id))
+			Session.Navigate(fmt.Sprintf("/site/%d", id))
 		})
 
 		form.NewRowEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(fmt.Sprintf("/site/machine/add/%d", id))
+			Session.Navigate(fmt.Sprintf("/site/machine/add/%d", id))
 		})
 
 		form.RowEvent(func(key string) {
-			Session.Router.Navigate("/machine/" + key)
+			Session.Navigate("/machine/" + key)
 		})
 
 		form.Render("site-machine-list", "main", machines)
@@ -112,7 +112,7 @@ func machineEdit(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.DeleteEvent(func(evt dom.Event) {
@@ -125,7 +125,7 @@ func machineEdit(context *router.Context) {
 				}
 				done := false
 				rpcClient.Call("MachineRPC.Delete", data, &done)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 
@@ -139,7 +139,7 @@ func machineEdit(context *router.Context) {
 				}
 				done := false
 				rpcClient.Call("MachineRPC.Update", data, &done)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 
@@ -148,7 +148,7 @@ func machineEdit(context *router.Context) {
 
 		// And attach actions
 		form.ActionGrid("machine-actions", "#action-grid", machine.ID, func(url string) {
-			Session.Router.Navigate(url)
+			Session.Navigate(url)
 		})
 
 	}()
@@ -187,7 +187,7 @@ func siteMachineAdd(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.SaveEvent(func(evt dom.Event) {
@@ -203,7 +203,7 @@ func siteMachineAdd(context *router.Context) {
 				newID := 0
 				rpcClient.Call("MachineRPC.Insert", data, &newID)
 				print("added machine ID", newID)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 

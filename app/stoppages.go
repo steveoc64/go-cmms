@@ -41,11 +41,11 @@ func stoppageList(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate("/")
+			Session.Navigate("/")
 		})
 
 		form.RowEvent(func(key string) {
-			Session.Router.Navigate("/stoppage/" + key)
+			Session.Navigate("/stoppage/" + key)
 		})
 
 		form.Render("stoppage-list", "main", events)
@@ -71,7 +71,7 @@ func stoppageList(context *router.Context) {
 			cform.Column("Status", "GetStatus")
 
 			cform.RowEvent(func(key string) {
-				Session.Router.Navigate("/stoppage/" + key)
+				Session.Navigate("/stoppage/" + key)
 			})
 
 			w := dom.GetWindow()
@@ -146,7 +146,7 @@ func stoppageEdit(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		// Only Admin has the power to delete, update, or dig deeper on an event
@@ -161,7 +161,7 @@ func stoppageEdit(context *router.Context) {
 					}
 					done := false
 					rpcClient.Call("EventRPC.Delete", data, &done)
-					Session.Router.Navigate(BackURL)
+					Session.Navigate(BackURL)
 				}()
 			})
 
@@ -176,7 +176,7 @@ func stoppageEdit(context *router.Context) {
 					go func() {
 						done := false
 						rpcClient.Call("EventRPC.Update", data, &done)
-						Session.Router.Navigate(BackURL)
+						Session.Navigate(BackURL)
 					}()
 				})
 			}
@@ -192,11 +192,11 @@ func stoppageEdit(context *router.Context) {
 		switch Session.UserRole {
 		case "Admin":
 			form.ActionGrid("event-actions", "#action-grid", event, func(url string) {
-				Session.Router.Navigate(url)
+				Session.Navigate(url)
 			})
 		case "Site Manager":
 			form.ActionGrid("event-sm-actions", "#action-grid", event.ID, func(url string) {
-				Session.Router.Navigate(url)
+				Session.Navigate(url)
 			})
 		}
 
@@ -226,7 +226,7 @@ func stoppageComplete(context *router.Context) {
 		done := false
 		rpcClient.Call("EventRPC.Complete", data, &done)
 		print("Completed Event", id)
-		Session.Router.Navigate("/stoppages")
+		Session.Navigate("/stoppages")
 	}()
 
 }
@@ -296,7 +296,7 @@ func stoppageNewTask(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.SaveEvent(func(evt dom.Event) {
@@ -307,7 +307,7 @@ func stoppageNewTask(context *router.Context) {
 				newID := 0
 				rpcClient.Call("EventRPC.Workorder", assign, &newID)
 				print("new Task raised", newID)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 

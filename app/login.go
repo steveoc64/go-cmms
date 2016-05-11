@@ -51,8 +51,6 @@ func Logout() {
 
 	// loc.pathname =
 	js.Global.Get("location").Call("replace", "/")
-
-	// Session.Router.Navigate("/")
 }
 
 func hideLoginForm() {
@@ -141,6 +139,6 @@ func initLoginForm() {
 
 	doc.QuerySelector("#homepage").AddEventListener("click", false, func(evt dom.Event) {
 		print("clicked on homepage thing")
-		Session.Router.Navigate("/")
+		Session.Navigate("/")
 	})
 }

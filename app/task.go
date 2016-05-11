@@ -117,7 +117,7 @@ func taskEdit(context *router.Context) {
 						go func() {
 							done := false
 							rpcClient.Call("TaskRPC.Complete", data, &done)
-							Session.Router.Navigate(BackURL)
+							Session.Navigate(BackURL)
 						}()
 					}
 				})
@@ -131,7 +131,7 @@ func taskEdit(context *router.Context) {
 						done := false
 						print("calling task.complete ???")
 						rpcClient.Call("TaskRPC.Complete", data, &done)
-						Session.Router.Navigate(BackURL)
+						Session.Navigate(BackURL)
 					}()
 				})
 			}
@@ -233,7 +233,7 @@ func taskEdit(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		if Session.UserRole == "Admin" {
@@ -247,7 +247,7 @@ func taskEdit(context *router.Context) {
 					}
 					done := false
 					rpcClient.Call("TaskRPC.Delete", data, &done)
-					Session.Router.Navigate(BackURL)
+					Session.Navigate(BackURL)
 				}()
 			})
 		}
@@ -280,7 +280,7 @@ func taskEdit(context *router.Context) {
 					go func() {
 						done := false
 						rpcClient.Call("TaskRPC.Update", data, &done)
-						Session.Router.Navigate(RefreshURL)
+						Session.Navigate(RefreshURL)
 					}()
 				})
 			} // switch role
@@ -391,11 +391,11 @@ func taskList(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate("/")
+			Session.Navigate("/")
 		})
 
 		form.RowEvent(func(key string) {
-			Session.Router.Navigate("/task/" + key)
+			Session.Navigate("/task/" + key)
 		})
 
 		form.Render("task-list", "main", tasks)
@@ -423,7 +423,7 @@ func taskList(context *router.Context) {
 		cform.Column("Completed", "GetCompletedDate")
 
 		cform.RowEvent(func(key string) {
-			Session.Router.Navigate("/task/" + key)
+			Session.Navigate("/task/" + key)
 		})
 
 		w := dom.GetWindow()
@@ -473,11 +473,11 @@ func hashtagUsed(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.RowEvent(func(key string) {
-			Session.Router.Navigate("/sched/" + key)
+			Session.Navigate("/sched/" + key)
 		})
 
 		form.Render("hash-sched-list", "main", tasks)
@@ -516,16 +516,16 @@ func machineSchedList(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.NewRowEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(fmt.Sprintf("/machine/sched/add/%d", id))
+			Session.Navigate(fmt.Sprintf("/machine/sched/add/%d", id))
 		})
 
 		form.RowEvent(func(key string) {
-			Session.Router.Navigate("/sched/" + key)
+			Session.Navigate("/sched/" + key)
 		})
 
 		form.Render("machine-sched-list", "main", tasks)
@@ -682,7 +682,7 @@ func schedEdit(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.DeleteEvent(func(evt dom.Event) {
@@ -694,7 +694,7 @@ func schedEdit(context *router.Context) {
 				}
 				done := false
 				rpcClient.Call("TaskRPC.DeleteSched", data, &done)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 
@@ -762,7 +762,7 @@ func schedEdit(context *router.Context) {
 				}
 				done := false
 				rpcClient.Call("TaskRPC.UpdateSched", data, &done)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 
@@ -910,7 +910,7 @@ func schedEdit(context *router.Context) {
 				}
 				form.SetTitle(title)
 			default:
-				Session.Router.Navigate(url)
+				Session.Navigate(url)
 			}
 		})
 
@@ -1031,7 +1031,7 @@ func machineSchedAdd(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.SaveEvent(func(evt dom.Event) {
@@ -1099,7 +1099,7 @@ func machineSchedAdd(context *router.Context) {
 				newID := 0
 				rpcClient.Call("TaskRPC.InsertSched", data, &newID)
 				// print("added task ID", newID)
-				Session.Router.Navigate(fmt.Sprintf("/sched/%d", newID))
+				Session.Navigate(fmt.Sprintf("/sched/%d", newID))
 			}()
 		})
 
@@ -1172,11 +1172,11 @@ func siteTaskList(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.RowEvent(func(key string) {
-			Session.Router.Navigate("/task/" + key)
+			Session.Navigate("/task/" + key)
 		})
 
 		form.Render("site-task-list", "main", tasks)
@@ -1225,11 +1225,11 @@ func stoppageTaskList(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.RowEvent(func(key string) {
-			Session.Router.Navigate("/task/" + key)
+			Session.Navigate("/task/" + key)
 		})
 
 		form.Render("event-task-list", "main", tasks)

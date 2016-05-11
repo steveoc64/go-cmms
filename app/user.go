@@ -129,13 +129,8 @@ func siteUserList(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
-
-		// form.SaveEvent(func(evt dom.Event) {
-		// 	evt.PreventDefault()
-		// 	Session.Router.Navigate(BackURL)
-		// })
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &site)
@@ -208,16 +203,16 @@ func userList(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate("/")
+			Session.Navigate("/")
 		})
 
 		form.NewRowEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate("/user/add")
+			Session.Navigate("/user/add")
 		})
 
 		form.RowEvent(func(key string) {
-			Session.Router.Navigate("/user/" + key)
+			Session.Navigate("/user/" + key)
 		})
 
 		form.Render("user-list", "main", users)
@@ -286,7 +281,7 @@ func userEdit(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.DeleteEvent(func(evt dom.Event) {
@@ -298,7 +293,7 @@ func userEdit(context *router.Context) {
 				}
 				done := false
 				rpcClient.Call("UserRPC.Delete", data, &done)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 
@@ -322,7 +317,7 @@ func userEdit(context *router.Context) {
 			go func() {
 				done := false
 				rpcClient.Call("UserRPC.Update", data, &done)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 
@@ -414,7 +409,7 @@ func userAdd(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.SaveEvent(func(evt dom.Event) {
@@ -428,7 +423,7 @@ func userAdd(context *router.Context) {
 				newID := 0
 				rpcClient.Call("UserRPC.Insert", data, &newID)
 				print("added user", newID)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 

@@ -170,15 +170,16 @@ func processAsync(method string, msg shared.AsyncMessage) {
 		print("Keepalive")
 	default:
 		print("Msg:", method, "Action:", msg.Action, "ID:", msg.ID)
-		if Session.Subscribe == method {
-			go Session.SFn(&msg)
+		fn := Session.Subscriptions[method]
+		if fn != nil {
+			go fn(&msg)
 		}
 	}
 }
 
-func Subscribe(name string, f func(*shared.AsyncMessage)) int {
-	// print("subscribing to ", name)
-	Session.Subscribe = name
-	Session.SFn = f
-	return 0
-}
+// func Subscribe(name string, f func(*shared.AsyncMessage)) int {
+// 	// print("subscribing to ", name)
+// 	Session.Subscribe = name
+// 	Session.SFn = f
+// 	return 0
+// }

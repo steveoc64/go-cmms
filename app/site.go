@@ -48,7 +48,7 @@ func siteMap(context *router.Context) {
 				mbtn.AddEventListener("click", false, func(evt dom.Event) {
 					id := evt.CurrentTarget().GetAttribute("id") // site id is a string
 					evt.PreventDefault()
-					Session.Router.Navigate("/sitemachines/" + id)
+					Session.Navigate("/sitemachines/" + id)
 				})
 			}
 
@@ -69,7 +69,7 @@ func siteMap(context *router.Context) {
 				if url != "" {
 					ai.AddEventListener("click", false, func(evt dom.Event) {
 						url := evt.CurrentTarget().GetAttribute("url")
-						Session.Router.Navigate(url)
+						Session.Navigate(url)
 					})
 				}
 			}
@@ -118,16 +118,16 @@ func siteList(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate("/")
+			Session.Navigate("/")
 		})
 
 		form.NewRowEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate("/site/add")
+			Session.Navigate("/site/add")
 		})
 
 		form.RowEvent(func(key string) {
-			Session.Router.Navigate("/site/" + key)
+			Session.Navigate("/site/" + key)
 		})
 
 		form.Render("site-list", "main", sites)
@@ -183,7 +183,7 @@ func siteAdd(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.SaveEvent(func(evt dom.Event) {
@@ -197,7 +197,7 @@ func siteAdd(context *router.Context) {
 				newID := 0
 				rpcClient.Call("SiteRPC.Insert", data, &newID)
 				print("added site", newID)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 
@@ -259,7 +259,7 @@ func siteEdit(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate(BackURL)
+			Session.Navigate(BackURL)
 		})
 
 		form.DeleteEvent(func(evt dom.Event) {
@@ -272,7 +272,7 @@ func siteEdit(context *router.Context) {
 				}
 				done := false
 				rpcClient.Call("SiteRPC.Delete", data, &done)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 
@@ -286,7 +286,7 @@ func siteEdit(context *router.Context) {
 			go func() {
 				done := false
 				rpcClient.Call("SiteRPC.Update", data, &done)
-				Session.Router.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 
@@ -295,7 +295,7 @@ func siteEdit(context *router.Context) {
 
 		// And attach actions
 		form.ActionGrid("site-actions", "#action-grid", site.ID, func(url string) {
-			Session.Router.Navigate(url)
+			Session.Navigate(url)
 		})
 
 	}()
@@ -343,7 +343,7 @@ func siteMachines(context *router.Context) {
 			doc := w.Document()
 			austmap := doc.GetElementByID("austmap")
 			austmap.AddEventListener("click", false, func(evt dom.Event) {
-				Session.Router.Navigate("/")
+				Session.Navigate("/")
 			})
 
 			switch Session.UserRole {
@@ -445,7 +445,7 @@ func siteMachines(context *router.Context) {
 									newID := 0
 									rpcClient.Call("EventRPC.Raise", d, &newID)
 									print("Raised new event", newID)
-									Session.Router.Navigate(RefreshURL)
+									Session.Navigate(RefreshURL)
 								}()
 								doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
 							})
@@ -530,7 +530,7 @@ func siteMachines(context *router.Context) {
 													newID := 0
 													rpcClient.Call("EventRPC.Raise", d, &newID)
 													print("Raised new event", newID)
-													Session.Router.Navigate(RefreshURL)
+													Session.Navigate(RefreshURL)
 												}()
 												doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
 											})
@@ -581,7 +581,7 @@ func siteMachines(context *router.Context) {
 													newID := 0
 													rpcClient.Call("EventRPC.Raise", d, &newID)
 													print("Raised new event", newID)
-													Session.Router.Navigate(RefreshURL)
+													Session.Navigate(RefreshURL)
 												}()
 												doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
 											})

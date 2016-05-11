@@ -35,17 +35,8 @@ func SMSList(context *router.Context) {
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			Session.Router.Navigate("/util")
+			Session.Navigate("/util")
 		})
-
-		// form.NewRowEvent(func(evt dom.Event) {
-		// 	evt.PreventDefault()
-		// 	Session.Router.Navigate("/site/add")
-		// })
-
-		// form.RowEvent(func(key string) {
-		// 	Session.Router.Navigate("/site/" + key)
-		// })
 
 		form.Render("sms-list", "main", smsTrans)
 		// form.Render("site-list", "main", data)
