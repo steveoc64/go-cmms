@@ -421,8 +421,8 @@ func taskList(context *router.Context) {
 		cform.Column("Description", "Descr")
 		cform.Column("Duration", "DurationDays")
 		cform.Column("Hrs", "LabourHrs")
-		cform.Column("Completed", "CompletedDate")
-		cform.Column("Completed2", "GetCompletedDate")
+		// cform.Column("Completed", "CompletedDate")
+		cform.Column("Completed", "GetCompletedDate")
 
 		cform.RowEvent(func(key string) {
 			Session.Navigate("/task/" + key)
@@ -434,7 +434,7 @@ func taskList(context *router.Context) {
 		div.SetID("ctasks")
 		doc.QuerySelector("main").AppendChild(div)
 
-		cform.Render("task-list", "#ctasks", ctasks)
+		cform.Render("task-clist", "#ctasks", ctasks)
 
 	}()
 }

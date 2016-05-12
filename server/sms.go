@@ -112,6 +112,7 @@ func SendSMS(number string, message string, ref string, user_id int) error {
 				Whitelist("number_to", "number_used", "user_id", "message", "ref", "status", "error").
 				Record(smsTrans).
 				Exec()
+			return nil
 		case "BAD":
 			log.Println("SMS BAD", p[1], "reason", p[2])
 			smsTrans.NumberUsed = p[1]
