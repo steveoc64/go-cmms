@@ -347,6 +347,8 @@ func (t *TaskRPC) Update(data shared.TaskUpdateData, done *bool) error {
 			data.Task.LabourCost, data.Task.MaterialCost, data.Task.LabourHrs, data.Task.Log))
 
 	*done = true
+
+	conn.Broadcast("task", "update", data.Task.ID)
 	return nil
 }
 
@@ -1270,6 +1272,8 @@ func (t *TaskRPC) Complete(data shared.TaskUpdateData, done *bool) error {
 
 	}
 
+	conn.Broadcast("task", "update", data.Task.ID)
+
 	// If the task has a parent event, then clear the event IF there are
 	// no incomplete tasks left against that event.
 
@@ -1287,6 +1291,8 @@ func (t *TaskRPC) Complete(data shared.TaskUpdateData, done *bool) error {
 			DB.SQL(`update event 
 				set completed=now(), status='Complete'
 				where id=$1`, data.Task.EventID).Exec()
+
+			conn.Broadcast("event", "update", data.Task.EventID)
 
 			event := &shared.Event{}
 			id := data.Task.EventID
@@ -1361,6 +1367,7 @@ func (t *TaskRPC) Complete(data shared.TaskUpdateData, done *bool) error {
 
 				if badComps == 0 {
 					DB.SQL("update machine set status='Running' where id=$1", event.MachineID).Exec()
+					conn.Broadcast("machine", "update", event.MachineID)
 				}
 			}
 

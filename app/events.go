@@ -16,33 +16,36 @@ func workOrderList(context *router.Context) {
 }
 
 func SMSList(context *router.Context) {
+	Session.Subscribe("sms", _SMSList)
+	go _SMSList("list", 0)
+}
 
-	go func() {
-		smsTrans := []shared.SMSTrans{}
-		rpcClient.Call("SMSRPC.List", Session.Channel, &smsTrans)
+func _SMSList(action string, id int) {
 
-		form := formulate.ListForm{}
-		form.New("fa-phone", "SMS Traffic Log")
+	smsTrans := []shared.SMSTrans{}
+	rpcClient.Call("SMSRPC.List", Session.Channel, &smsTrans)
 
-		// Define the layout
-		form.Column("Date", "GetDateSent")
-		form.Column("Number", "GetNumber")
-		form.Column("Message", "Message")
-		form.Column("Reference", "Ref")
-		// form.Column("Phone", "Phone")
-		form.Column("Status", "GetStatus")
+	form := formulate.ListForm{}
+	form.New("fa-phone", "SMS Traffic Log")
 
-		// Add event handlers
-		form.CancelEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			Session.Navigate("/util")
-		})
+	// Define the layout
+	form.Column("Date", "GetDateSent")
+	form.Column("Number", "GetNumber")
+	form.Column("Message", "Message")
+	form.Column("Reference", "Ref")
+	// form.Column("Phone", "Phone")
+	form.Column("Status", "GetStatus")
 
-		form.PrintEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			dom.GetWindow().Print()
-		})
+	// Add event handlers
+	form.CancelEvent(func(evt dom.Event) {
+		evt.PreventDefault()
+		Session.Navigate("/util")
+	})
 
-		form.Render("sms-list", "main", smsTrans)
-	}()
+	form.PrintEvent(func(evt dom.Event) {
+		evt.PreventDefault()
+		dom.GetWindow().Print()
+	})
+
+	form.Render("sms-list", "main", smsTrans)
 }

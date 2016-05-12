@@ -42,12 +42,17 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 		Returning("id").
 		QueryScalar(id)
 
+	conn.Broadcast("event", "insert", *id)
+
 	DB.SQL(`update machine 
 			set alert_at=localtimestamp, status=$2 
 			where id=$1`,
 		issue.Machine.ID,
 		`Needs Attention`).
 		Exec()
+
+	conn.Broadcast("machine", "update", issue.Machine.ID)
+	conn.Broadcast("sitestatus", "update", 1)
 
 	// if its a tool, then update the tool record, otherwise update the non-tool field on the machine record
 	if evt.ToolID == 0 {
@@ -291,6 +296,7 @@ func (e *EventRPC) Update(data shared.EventUpdateData, done *bool) error {
 			data.Channel, data.Event.ID, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%s", data.Event.Notes))
 
+	conn.Broadcast("event", "update", data.Event.ID)
 	return nil
 }
 
@@ -380,6 +386,9 @@ func (e *EventRPC) Complete(data shared.EventUpdateData, done *bool) error {
 		fmt.Sprintf("Channel %d, Event %d User %d %s %s",
 			data.Channel, data.Event.ID, conn.UserID, conn.Username, conn.UserRole),
 		"Manually Completed by Admin")
+
+	conn.Broadcast("event", "update", data.Event.ID)
+	conn.Broadcast("sitestatus", "update", 1)
 
 	return nil
 }
@@ -549,5 +558,7 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 			data.Channel, *id, conn.UserID, conn.Username, conn.UserRole),
 		data.Notes)
 
+	conn.Broadcast("task", "insert", task.ID)
+	conn.Broadcast("event", "update", data.Event.ID)
 	return nil
 }

@@ -104,7 +104,6 @@ func userProfile() {
 	}()
 }
 
-//
 func siteUserList(context *router.Context) {
 	id, err := strconv.Atoi(context.Params["id"])
 	if err != nil {

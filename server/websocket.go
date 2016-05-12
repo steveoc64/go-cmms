@@ -98,6 +98,22 @@ type ConnectionsList struct {
 	nextID int
 }
 
+// Send an async message to everyone that is connected
+func (c *ConnectionsList) BroadcastAll(name string, action string, id int) {
+
+	data := shared.AsyncMessage{
+		Action: action,
+		ID:     id,
+	}
+
+	for _, v := range c.conns {
+		if v.UserID != 0 {
+			log.Println("BroadcastAll", name, action, id, "»", v.ID)
+			go v.Send(name, data)
+		}
+	}
+}
+
 var Connections *ConnectionsList
 
 // Find the connection that owns the socket, return nil if not found

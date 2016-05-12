@@ -16,6 +16,7 @@ type GlobalSessionData struct {
 	Router        *router.Router
 	AppFn         map[string]router.Handler
 	Subscriptions map[string]MessageFunction
+	ID            map[string]int
 }
 
 var Session GlobalSessionData

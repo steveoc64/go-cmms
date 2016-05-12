@@ -265,6 +265,7 @@ func (u *UserRPC) SetSite(data shared.UserSiteSetRequest, done *bool) error {
 		fmt.Sprintf("User %d Site %d Role %s %t",
 			data.UserID, data.SiteID, data.Role, data.IsSet))
 
+	conn.Broadcast("usersites", "usersite", data.UserID)
 	*done = true
 	return nil
 }

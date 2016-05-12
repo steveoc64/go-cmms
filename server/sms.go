@@ -100,6 +100,8 @@ func SendSMS(number string, message string, ref string, user_id int) error {
 		Message:  message,
 	}
 
+	transID := 0
+
 	for _, v := range lines {
 		p := strings.Split(v, ":")
 		smsTrans.Status = p[0]
@@ -111,7 +113,9 @@ func SendSMS(number string, message string, ref string, user_id int) error {
 			DB.InsertInto("sms_trans").
 				Whitelist("number_to", "number_used", "user_id", "message", "ref", "status", "error").
 				Record(smsTrans).
-				Exec()
+				Returning("id").
+				QueryScalar(&transID)
+			Connections.BroadcastAll("sms", "new", transID)
 			return nil
 		case "BAD":
 			log.Println("SMS BAD", p[1], "reason", p[2])
@@ -120,7 +124,9 @@ func SendSMS(number string, message string, ref string, user_id int) error {
 			DB.InsertInto("sms_trans").
 				Whitelist("number_to", "number_used", "user_id", "message", "ref", "status", "error").
 				Record(smsTrans).
-				Exec()
+				Returning("id").
+				QueryScalar(&transID)
+			Connections.BroadcastAll("sms", "bad", transID)
 			return errors.New(p[2])
 		case "ERROR":
 			log.Println("SMS ERROR", p[1])
@@ -128,16 +134,18 @@ func SendSMS(number string, message string, ref string, user_id int) error {
 			DB.InsertInto("sms_trans").
 				Whitelist("number_to", "number_used", "user_id", "message", "ref", "status", "error").
 				Record(smsTrans).
-				Exec()
+				Returning("id").
+				QueryScalar(&transID)
+			Connections.BroadcastAll("sms", "error", transID)
 			return errors.New(p[1])
-		// default:
-		// 	log.Println("Unknown SMS Error", p[0])
-		// 	smsTrans.Error = p[1]
-		// 	DB.InsertInto("sms_trans").
-		// 		Whitelist("number_to", "number_used", "user_id", "message", "ref", "status", "error").
-		// 		Record(smsTrans).
-		// 		Exec()
-		// 	return errors.New(p[1])
+			// default:
+			// 	log.Println("Unknown SMS Error", p[0])
+			// 	smsTrans.Error = p[1]
+			// 	DB.InsertInto("sms_trans").
+			// 		Whitelist("number_to", "number_used", "user_id", "message", "ref", "status", "error").
+			// 		Record(smsTrans).
+			// 		Exec()
+			// 	return errors.New(p[1])
 		}
 	}
 	return nil

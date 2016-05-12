@@ -66,6 +66,7 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 			// lr.Menu = getMenu(res.Role)
 			lr.Routes = getRoutes(res.ID, res.Role)
 			lr.Role = res.Role
+			lr.ID = res.ID
 			if res.SiteName.Valid {
 				lr.Site = res.SiteName.String
 			}

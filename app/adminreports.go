@@ -18,7 +18,7 @@ func hashtagList(context *router.Context) {
 
 	// gob.Register(shared.HashtagUpdateData{})
 	Session.Subscribe("hashtag", _hashtagList)
-	go _hashtagList("list",0)
+	go _hashtagList("list", 0)
 }
 
 func _hashtagList(action string, id int) {
@@ -94,18 +94,16 @@ func hashtagAdd(context *router.Context) {
 
 }
 
-var currentHashtag = 0
-
 func hashtagEdit(context *router.Context) {
 	id, err := strconv.Atoi(context.Params["id"])
 	if err != nil {
 		print(err.Error())
 		return
 	}
-	currentHashtag = id
+	Session.ID["hashtag"] = id
 
 	Session.Subscribe("hashtag", _hashtagEdit)
-	go _hashtagEdit("edit",id)
+	go _hashtagEdit("edit", id)
 }
 
 func _hashtagEdit(action string, id int) {
@@ -116,14 +114,14 @@ func _hashtagEdit(action string, id int) {
 	case "edit":
 		print("manually edit")
 	case "delete":
-		if id != currentHashtag {
+		if id != Session.ID["hashtag"] {
 			return
 		}
 		print("current record has been deleted")
 		Session.Navigate(BackURL)
 		return
 	default:
-		if id != currentHashtag {
+		if id != Session.ID["hashtag"] {
 			return
 		}
 	}

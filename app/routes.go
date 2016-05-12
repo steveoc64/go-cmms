@@ -110,10 +110,14 @@ func enableRoutes(Role string) {
 
 func initRouter() {
 	print("initRouter")
+	Session.Subscriptions = make(map[string]MessageFunction)
+	Session.ID = make(map[string]int)
+
 	Session.Router = router.New()
 	Session.Router.ShouldInterceptLinks = true
 	Session.Router.HandleFunc("/", defaultRoute)
 	Session.Router.Start()
+
 }
 
 func defaultRoute(context *router.Context) {
