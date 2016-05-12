@@ -8,10 +8,15 @@
           <span id="titletext">{{.Title}}</span>
         </h3>
         {{if .DeleteCB}}
-        <div class="column col-center">
+        <div class="column col-center no-print">
           <i class="data-del-btn fa fa-minus-circle fa-lg"></i>    
         </div>
         {{end}}
+        {{if .PrintCB}}
+        <div class="column col-center no-print">
+          <i class="data-print-btn fa fa-print fa-lg"></i>    
+        </div>
+        {{end}}        
       </div>
 
       {{range .Rows}}
@@ -118,7 +123,7 @@
       </div>
       {{end}}
     </fieldset>
-    <div class="row">
+    <div class="row no-print">
       <div class="column">
         <div class="button-bar">
           {{if .SaveCB}}
@@ -133,7 +138,7 @@
   </form>
 
 </div>
-<div id="action-grid"></div>
+<div id="action-grid" class="no-print"></div>
 
 {{if .DeleteCB}}
 <div id="confirm-delete" class="md-modal md-effect-1">

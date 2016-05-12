@@ -130,6 +130,10 @@ func siteList(context *router.Context) {
 			Session.Navigate("/site/" + key)
 		})
 
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
 		form.Render("site-list", "main", sites)
 		// form.Render("site-list", "main", data)
 
@@ -288,6 +292,10 @@ func siteEdit(context *router.Context) {
 				rpcClient.Call("SiteRPC.Update", data, &done)
 				Session.Navigate(BackURL)
 			}()
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
 		})
 
 		// All done, so render the form

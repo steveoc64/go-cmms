@@ -1,14 +1,18 @@
 package shared
 
 type User struct {
-	ID       int    `db:"id"`
-	Username string `db:"username"`
-	Name     string `db:"name"`
-	Passwd   string `db:"passwd"`
-	Email    string `db:"email"`
-	Role     string `db:"role"`
-	SMS      string `db:"sms"`
-	Sites    []Site `db:"site"`
+	ID         int     `db:"id"`
+	Username   string  `db:"username"`
+	Name       string  `db:"name"`
+	Address    string  `db:"address"`
+	Passwd     string  `db:"passwd"`
+	Email      string  `db:"email"`
+	Role       string  `db:"role"`
+	SMS        string  `db:"sms"`
+	HourlyRate float64 `db:"hourly_rate"`
+	SiteID     int     `db:"site_id"`
+	Notes      string  `db:"notes"`
+	Sites      []Site  `db:"site"`
 }
 
 type UserUpdateData struct {

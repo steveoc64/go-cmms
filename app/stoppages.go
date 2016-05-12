@@ -48,6 +48,10 @@ func stoppageList(context *router.Context) {
 			Session.Navigate("/stoppage/" + key)
 		})
 
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
 		form.Render("stoppage-list", "main", events)
 
 		// completed events
@@ -147,6 +151,10 @@ func stoppageEdit(context *router.Context) {
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			Session.Navigate(BackURL)
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
 		})
 
 		// Only Admin has the power to delete, update, or dig deeper on an event

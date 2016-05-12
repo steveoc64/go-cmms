@@ -172,7 +172,7 @@ func (p *PartRPC) List(req shared.PartListReq, parts *[]shared.Part) error {
 	logger(start, "Part.List",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			req.Channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("Class %s %d parts", req.Class, len(*parts)))
+		fmt.Sprintf("Class %d %d parts", req.Class, len(*parts)))
 
 	return nil
 }

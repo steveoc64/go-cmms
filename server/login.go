@@ -16,7 +16,7 @@ type dbLoginResponse struct {
 	Username string         `db:"username"`
 	Name     string         `db:"name"`
 	Role     string         `db:"role"`
-	Site_ID  int            `db:"site_id"`
+	SiteID   int            `db:"site_id"`
 	SiteName sql.NullString `db:"sitename"`
 }
 
@@ -34,6 +34,12 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 	if conn != nil {
 		// validate that username and passwd is correct
 		res := &dbLoginResponse{}
+
+		log.Println(`select u.id,u.username,u.name,u.role,u.site_id,s.name as sitename 
+			from users u	
+			left join site s on (s.id = u.site_id) 
+			where lower(u.username) = lower('`, lc.Username, `') and lower(passwd) = lower('`, lc.Password, `')`)
+
 		err := DB.
 			Select("u.id,u.username,u.name,u.role,u.site_id,s.name as sitename").
 			From(`users u
@@ -41,6 +47,7 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 			Where("lower(u.username) = lower($1) and lower(passwd) = lower($2)",
 				lc.Username, lc.Password).
 			QueryStruct(res)
+		log.Println(res)
 
 		if err != nil {
 			log.Println("Login Failed:", err.Error())

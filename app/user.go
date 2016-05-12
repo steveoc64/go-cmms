@@ -132,6 +132,10 @@ func siteUserList(context *router.Context) {
 			Session.Navigate(BackURL)
 		})
 
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
 		// All done, so render the form
 		form.Render("edit-form", "main", &site)
 
@@ -200,6 +204,10 @@ func userList(context *router.Context) {
 		form.Column("Mobile", "SMS")
 		form.Column("Role", "Role")
 
+		if Session.UserRole == "Admin" {
+			form.Column("Hourly Rate", "HourlyRate")
+		}
+
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
@@ -209,6 +217,10 @@ func userList(context *router.Context) {
 		form.NewRowEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			Session.Navigate("/user/add")
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
 		})
 
 		form.RowEvent(func(key string) {
@@ -270,11 +282,14 @@ func userEdit(context *router.Context) {
 			Add(1, "Email", "text", "Email", "").
 			Add(1, "Mobile", "text", "SMS", "")
 
-		form.Row(3).
-			AddSelect(1, "Role", "Role", roles, "ID", "Name", 1, currentRole)
-		// 	Add(1, "Role", "select", "Role", "")
-		// form.SetSelectOptions("Role", roles, "ID", "Name", 1, currentRole)
-
+		if Session.UserRole == "Admin" {
+			form.Row(3).
+				AddSelect(1, "Role", "Role", roles, "ID", "Name", 1, currentRole).
+				AddNumber(1, "Hourly Rate", "HourlyRate", "1")
+		} else {
+			form.Row(3).
+				AddSelect(1, "Role", "Role", roles, "ID", "Name", 1, currentRole)
+		}
 		form.Row(1).
 			Add(1, "Sites to Access", "div", "Sites", "")
 
@@ -319,6 +334,10 @@ func userEdit(context *router.Context) {
 				rpcClient.Call("UserRPC.Update", data, &done)
 				Session.Navigate(BackURL)
 			}()
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
 		})
 
 		// All done, so render the form

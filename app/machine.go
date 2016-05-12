@@ -58,6 +58,10 @@ func siteMachineList(context *router.Context) {
 			Session.Navigate("/machine/" + key)
 		})
 
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
 		form.Render("site-machine-list", "main", machines)
 		// form.Render("site-machine-list", "main", data)
 
@@ -141,6 +145,10 @@ func machineEdit(context *router.Context) {
 				rpcClient.Call("MachineRPC.Update", data, &done)
 				Session.Navigate(BackURL)
 			}()
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
 		})
 
 		// All done, so render the form

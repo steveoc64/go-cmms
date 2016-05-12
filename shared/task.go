@@ -199,8 +199,11 @@ func (t *Task) GetDueDate() string {
 	return t.DueDate.Format(dateDisplayFormat)
 }
 
+func (t *Task) GetLabour() string {
+	return fmt.Sprintf("%.2fHrs  $%d", t.LabourHrs, int(t.LabourCost))
+}
+
 func (t *Task) GetCompletedDate() string {
-	print("get completed date from task", t.CompletedDate)
 	if t.CompletedDate == nil {
 		return ""
 	}

@@ -38,10 +38,11 @@ func SMSList(context *router.Context) {
 			Session.Navigate("/util")
 		})
 
+		form.PrintEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			dom.GetWindow().Print()
+		})
+
 		form.Render("sms-list", "main", smsTrans)
-		// form.Render("site-list", "main", data)
-
-		print("rendered that", form, smsTrans)
-
 	}()
 }

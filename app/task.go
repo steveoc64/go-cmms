@@ -164,9 +164,14 @@ func taskEdit(context *router.Context) {
 			form.Row(1).
 				AddCustom(1, "Notes and CheckLists", "CheckList", "")
 
+			rateStr := ""
+			if task.LabourHrs != 0 {
+				rate := int(task.LabourCost / task.LabourHrs)
+				rateStr = fmt.Sprintf(" @ $%d/hr", rate)
+			}
 			form.Row(4).
 				AddDisplay(2, "Labour Est $", "LabourEst").
-				AddDecimal(1, "Hours", "LabourHrs", 2, "0.5").
+				AddDecimal(1, fmt.Sprintf("Hours%s", rateStr), "LabourHrs", 2, "0.5").
 				AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1")
 
 			form.Row(4).
@@ -206,22 +211,32 @@ func taskEdit(context *router.Context) {
 				AddCustom(1, "Parts Used", "PartList", "")
 
 		case "Technician":
-			form.Row(5).
+			row := form.Row(5).
 				AddDisplay(1, "Start Date", "DisplayStartDate").
 				AddDisplay(1, "Due Date", "DisplayDueDate").
 				// AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1").
 				// AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1").
 				AddDisplay(1, "Actual Material $", "MaterialCost").
-				AddDisplay(1, "Actual Labour $", "LabourCost").
-				AddDecimal(1, "Hours", "LabourHrs", 2, "0.5")
+				AddDisplay(1, "Actual Labour $", "LabourCost")
+
+			if task.CompletedDate == nil {
+				row.AddDecimal(1, "Hours", "LabourHrs", 2, "0.5")
+			} else {
+				row.AddDisplay(1, "Hours", "LabourHrs")
+			}
 
 			form.Row(3).
 				AddDisplay(1, "Site", "SiteName").
 				AddDisplay(1, "Machine", "MachineName").
 				AddDisplay(1, "Component", "Component")
 
-			form.Row(1).
-				AddTextarea(1, "Notes", "Log")
+			if task.CompletedDate == nil {
+				form.Row(1).
+					AddTextarea(1, "Notes", "Log")
+			} else {
+				form.Row(1).
+					AddDisplayArea(1, "Notes", "Log")
+			}
 
 			form.Row(1).
 				AddCustom(1, "Notes and CheckLists", "CheckList", "")
@@ -234,6 +249,10 @@ func taskEdit(context *router.Context) {
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			Session.Navigate(BackURL)
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
 		})
 
 		if Session.UserRole == "Admin" {
@@ -252,38 +271,37 @@ func taskEdit(context *router.Context) {
 			})
 		}
 
-		if task.CompletedDate == nil {
-			switch Session.UserRole {
-			case "Admin", "Technician":
+		if Session.UserRole == "Admin" ||
+			(Session.UserRole == "Technician" && task.CompletedDate == nil) {
 
-				form.SaveEvent(func(evt dom.Event) {
-					evt.PreventDefault()
-					form.Bind(&task)
-					data := shared.TaskUpdateData{
-						Channel: Session.Channel,
-						Task:    &task,
-					}
+			form.SaveEvent(func(evt dom.Event) {
+				evt.PreventDefault()
+				form.Bind(&task)
+				data := shared.TaskUpdateData{
+					Channel: Session.Channel,
+					Task:    &task,
+				}
 
-					w := dom.GetWindow()
-					doc := w.Document()
+				w := dom.GetWindow()
+				doc := w.Document()
 
-					// now get the parts array
-					for i, v := range task.Parts {
-						qtyUsed := doc.QuerySelector(fmt.Sprintf("[name=part-qty-used-%d]", v.PartID)).(*dom.HTMLInputElement)
-						notes := doc.QuerySelector(fmt.Sprintf("[name=part-notes-%d]", v.PartID)).(*dom.HTMLTextAreaElement)
-						print("Part ", v.PartID, "QtyUsed = ", qtyUsed.Value)
-						print("Part ", v.PartID, "Notes = ", notes.Value)
-						task.Parts[i].QtyUsed, _ = strconv.ParseFloat(qtyUsed.Value, 64)
-						task.Parts[i].Notes = notes.Value
-					}
+				// now get the parts array
+				for i, v := range task.Parts {
+					qtyUsed := doc.QuerySelector(fmt.Sprintf("[name=part-qty-used-%d]", v.PartID)).(*dom.HTMLInputElement)
+					notes := doc.QuerySelector(fmt.Sprintf("[name=part-notes-%d]", v.PartID)).(*dom.HTMLTextAreaElement)
+					print("Part ", v.PartID, "QtyUsed = ", qtyUsed.Value)
+					print("Part ", v.PartID, "Notes = ", notes.Value)
+					task.Parts[i].QtyUsed, _ = strconv.ParseFloat(qtyUsed.Value, 64)
+					task.Parts[i].Notes = notes.Value
+				}
 
-					go func() {
-						done := false
-						rpcClient.Call("TaskRPC.Update", data, &done)
-						Session.Navigate(RefreshURL)
-					}()
-				})
-			} // switch role
+				go func() {
+					done := false
+					rpcClient.Call("TaskRPC.Update", data, &done)
+					Session.Navigate(RefreshURL)
+				}()
+			})
+
 		}
 
 		// All done, so render the form
@@ -297,31 +315,28 @@ func taskEdit(context *router.Context) {
 		doc := w.Document()
 
 		// on change of the labour hrs, update the all done flag
-		lh := doc.QuerySelector("[name=LabourHrs]").(*dom.HTMLInputElement)
-		lh.AddEventListener("change", false, func(evt dom.Event) {
-			print("labour hrs has changed")
-			wasDone := task.AllDone
-			task.LabourHrs, _ = strconv.ParseFloat(lh.Value, 64)
-			print("value = ", lh.Value)
-			lh2 := evt.Target().(*dom.HTMLInputElement)
-			lh2v, _ := strconv.ParseFloat(lh2.Value, 64)
-			print("value 2 = ", lh2v)
-			// fire off the change to the backend
-			form.Bind(&task)
-			data := shared.TaskUpdateData{
-				Channel: Session.Channel,
-				Task:    &task,
-			}
-			go func() {
-				done := false
-				rpcClient.Call("TaskRPC.Update", data, &done)
-			}()
+		if Session.UserRole == "Admin" || task.CompletedDate == nil {
+			lh := doc.QuerySelector("[name=LabourHrs]").(*dom.HTMLInputElement)
+			lh.AddEventListener("change", false, func(evt dom.Event) {
+				wasDone := task.AllDone
+				task.LabourHrs, _ = strconv.ParseFloat(lh.Value, 64)
+				// fire off the change to the backend
+				form.Bind(&task)
+				data := shared.TaskUpdateData{
+					Channel: Session.Channel,
+					Task:    &task,
+				}
+				go func() {
+					done := false
+					rpcClient.Call("TaskRPC.Update", data, &done)
+				}()
 
-			task.AllDone = calcAllDone(task)
-			if wasDone != task.AllDone {
-				setActions(2)
-			}
-		})
+				task.AllDone = calcAllDone(task)
+				if wasDone != task.AllDone {
+					setActions(2)
+				}
+			})
+		}
 
 		if el := doc.QuerySelector("[name=CheckList]"); el != nil {
 
@@ -398,6 +413,10 @@ func taskList(context *router.Context) {
 			Session.Navigate("/task/" + key)
 		})
 
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
 		form.Render("task-list", "main", tasks)
 
 		ctasks := []shared.Task{}
@@ -405,7 +424,6 @@ func taskList(context *router.Context) {
 
 		cform := formulate.ListForm{}
 		cform.New("fa-server", "Completed Tasks")
-		print("here !!")
 
 		// Define the layout
 		switch Session.UserRole {
@@ -420,7 +438,14 @@ func taskList(context *router.Context) {
 		cform.Column("Component", "Component")
 		cform.Column("Description", "Descr")
 		cform.Column("Duration", "DurationDays")
-		cform.Column("Hrs", "LabourHrs")
+
+		if Session.UserRole == "Admin" {
+			cform.Column("Hrs", "GetLabour")
+
+		} else {
+			cform.Column("Hrs", "LabourHrs")
+
+		}
 		// cform.Column("Completed", "CompletedDate")
 		cform.Column("Completed", "GetCompletedDate")
 
@@ -524,6 +549,10 @@ func machineSchedList(context *router.Context) {
 		form.NewRowEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			Session.Navigate(fmt.Sprintf("/machine/sched/add/%d", id))
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
 		})
 
 		form.RowEvent(func(key string) {
@@ -698,6 +727,10 @@ func schedEdit(context *router.Context) {
 				rpcClient.Call("TaskRPC.DeleteSched", data, &done)
 				Session.Navigate(BackURL)
 			}()
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
 		})
 
 		form.SaveEvent(func(evt dom.Event) {
@@ -1181,6 +1214,10 @@ func siteTaskList(context *router.Context) {
 			Session.Navigate("/task/" + key)
 		})
 
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
 		form.Render("site-task-list", "main", tasks)
 
 	}()
@@ -1232,6 +1269,10 @@ func stoppageTaskList(context *router.Context) {
 
 		form.RowEvent(func(key string) {
 			Session.Navigate("/task/" + key)
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
 		})
 
 		form.Render("event-task-list", "main", tasks)

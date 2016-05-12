@@ -182,6 +182,10 @@ func partList(context *router.Context) {
 			})
 		}
 
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
 		form.RowEvent(func(key string) {
 			Session.Navigate("/part/" + key)
 		})
@@ -299,6 +303,10 @@ func partEdit(context *router.Context) {
 				rpcClient.Call("PartRPC.Delete", data, &done)
 				Session.Navigate(BackURL)
 			}()
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
 		})
 
 		form.SaveEvent(func(evt dom.Event) {

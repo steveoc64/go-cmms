@@ -13,43 +13,43 @@ type UserRPC struct{}
 ///////////////////////////////////////////////////////////
 // SQL
 const UserGetQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate
 	from users u
 	where id=$1`
 
 const UserListQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate
 	from users u
 	order by u.username`
 
 const TechniciansListQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate
 	from users u
 	left join user_site x on x.user_id=u.id and x.site_id=$1
 	where u.role in ('Worker','Technician') and x.site_id=$1
 	order by u.username`
 
 const ManagersListQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate
 	from users u
 	left join user_site x on x.user_id=u.id and x.site_id=$1
 	where u.role='Site Manager' and x.site_id=$1
 	order by u.username`
 
 const ManagersAllQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate
 	from users u
 	where u.role='Site Manager'
 	order by u.username`
 
 const TechniciansAllQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate
 	from users u
 	where u.role='Technician'
 	order by u.username`
 
 const AdminsListQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate
 	from users u
 	where u.role='Admin'
 	order by u.username`
@@ -130,7 +130,7 @@ func (u *UserRPC) Update(data *shared.UserUpdateData, done *bool) error {
 	conn := Connections.Get(data.Channel)
 
 	DB.Update("users").
-		SetWhitelist(data.User, "username", "name", "passwd", "email", "sms", "role").
+		SetWhitelist(data.User, "username", "name", "passwd", "email", "sms", "role", "hourly_rate").
 		Where("id = $1", data.User.ID).
 		Exec()
 
@@ -152,7 +152,7 @@ func (u *UserRPC) Insert(data *shared.UserUpdateData, id *int) error {
 	conn := Connections.Get(data.Channel)
 
 	DB.InsertInto("users").
-		Whitelist("username", "name", "passwd", "email", "sms").
+		Whitelist("username", "name", "passwd", "email", "sms", "hourly_rate").
 		Record(data.User).
 		Returning("id").
 		QueryScalar(id)

@@ -292,6 +292,9 @@ func (t *TaskRPC) Update(data shared.TaskUpdateData, done *bool) error {
 
 	conn := Connections.Get(data.Channel)
 
+	oldTask := shared.Task{}
+	DB.SQL(`select * from task where id=$1`, data.Task.ID).QueryStruct(&oldTask)
+
 	if conn.UserRole == "Admin" {
 
 		// Admin can re-assing the task to another user
@@ -309,6 +312,23 @@ func (t *TaskRPC) Update(data shared.TaskUpdateData, done *bool) error {
 				"labour_hrs").
 			Where("id = $1", data.Task.ID).
 			Exec()
+	}
+
+	// If assigned to, then re-calc the labour cost if the hours have changed
+	if oldTask.LabourHrs != data.Task.LabourHrs {
+		if data.Task.AssignedTo != nil {
+			user := shared.User{}
+			DB.SQL(`select hourly_rate
+				from users
+				where id=$1`, *data.Task.AssignedTo).
+				QueryStruct(&user)
+
+			data.Task.LabourCost = user.HourlyRate * data.Task.LabourHrs
+			DB.SQL(`update task 
+				set labour_cost=$2 
+				where id=$1`, data.Task.ID, data.Task.LabourCost).
+				Exec()
+		}
 	}
 
 	for _, v := range data.Task.Parts {

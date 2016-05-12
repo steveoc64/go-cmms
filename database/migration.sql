@@ -23,3 +23,11 @@ create table sms_trans (
 	status text not null default '',
 	error text not null default ''
 );
+
+-- 2016-05-12
+-- Modify user to have hourly rate, and seq task IDs by site
+
+alter table users add hourly_rate numeric(12,2) not null default 0;
+alter table users add address text not null default '';
+alter table users add site_id int not null default 0;
+alter table users add notes text not null default '';
