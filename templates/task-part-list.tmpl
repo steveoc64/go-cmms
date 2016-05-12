@@ -1,6 +1,10 @@
 <div class="row row-wrap" style="flex-wrap: wrap">
 	<fieldset>
+		{{$completed := .CompletedDate}}
+		{{$incomplete := not .CompletedDate}}
 		{{range $index,$part := .Parts}}
+		{{$uses_part := ne $part.QtyUsed 0.0}}
+		{{if or $uses_part $incomplete}}
 	  <div data-row-span="7">
 	    <div data-field-span="1">
 		    {{if eq $index 0}}<label for="part-name-{{$part.PartName}}">Part Name</label>{{end}}
@@ -21,9 +25,11 @@
 	    </div>
 	    <div data-field-span="3">
 		    {{if eq $index 0}}<label for="part-notes">Notes</label>{{end}}
-	      <textarea name="part-notes-{{$part.PartID}}" key="{{$part.PartID}}">{{.Notes}}</textarea>
+	      <!-- <textarea name="part-notes-{{$part.PartID}}" key="{{$part.PartID}}">{{.Notes}}</textarea> -->
+	      <input type="text" name="part-notes-{{$part.PartID}}" key="{{$part.PartID}}" value="{{.Notes}}">
 	    </div>
 	  </div>
+	  {{end}}
 	  {{end}}
 	</fieldset>
 </div>

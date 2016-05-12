@@ -38,15 +38,21 @@ func calcAllDone(task shared.Task) bool {
 			return false
 		}
 	}
-	print("Task appears to be complete")
 
 	for _, v := range task.Parts {
-		if v.QtyUsed == 0 && v.Notes == "" {
-			print("Task has an incomplete part record for part", v)
-			return false
+		// check first if there is an expected Qty
+		// if expected Qty == 0, then these are optional parts
+		// as the part list was generated from a stoppage
+		if v.Qty != 0.0 {
+			print("part has qty of", v.Qty)
+			if v.QtyUsed == 0 && v.Notes == "" {
+				print("Task has an incomplete part record for part", v)
+				return false
+			}
 		}
 	}
 
+	print("Task appears to be complete")
 	return true
 }
 
@@ -288,9 +294,9 @@ func taskEdit(context *router.Context) {
 				// now get the parts array
 				for i, v := range task.Parts {
 					qtyUsed := doc.QuerySelector(fmt.Sprintf("[name=part-qty-used-%d]", v.PartID)).(*dom.HTMLInputElement)
-					notes := doc.QuerySelector(fmt.Sprintf("[name=part-notes-%d]", v.PartID)).(*dom.HTMLTextAreaElement)
-					print("Part ", v.PartID, "QtyUsed = ", qtyUsed.Value)
-					print("Part ", v.PartID, "Notes = ", notes.Value)
+					notes := doc.QuerySelector(fmt.Sprintf("[name=part-notes-%d]", v.PartID)).(*dom.HTMLInputElement)
+					// print("Part ", v.PartID, "QtyUsed = ", qtyUsed.Value)
+					// print("Part ", v.PartID, "Notes = ", notes.Value)
 					task.Parts[i].QtyUsed, _ = strconv.ParseFloat(qtyUsed.Value, 64)
 					task.Parts[i].Notes = notes.Value
 				}
@@ -888,7 +894,7 @@ func schedEdit(context *router.Context) {
 								// print("Save the part req")
 
 								qty, _ := strconv.ParseFloat(doc.QuerySelector("#partreq-qty").(*dom.HTMLInputElement).Value, 64)
-								notes := doc.QuerySelector("#partreq-notes").(*dom.HTMLTextAreaElement).Value
+								notes := doc.QuerySelector("#partreq-notes").(*dom.HTMLInputElement).Value
 
 								// print("in save, req still =", req)
 								req.Part.Qty = qty

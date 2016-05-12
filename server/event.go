@@ -491,13 +491,6 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 		DB.SQL(`update task set descr=$1 where id=$2`, descr, task.ID).Exec()
 	}
 
-	// DB.InsertInto("site").
-	// 	Columns("name", "address", "phone", "fax",
-	// 		"parent_site", "stock_site", "notes", "alerts_to", "tasks_to", "manager").
-	// 	Record(data.Site).
-	// 	Returning("id").
-	// 	QueryScalar(id)
-
 	// Now generate an SMS to the technician
 	// smsMsg := fmt.Sprintf("New Workorder at %s for Machine %s : %s",
 	// 	data.SiteName,
@@ -525,6 +518,30 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 		}
 	} else {
 		log.Println("Will send SMS:", smsMsg, "to", phoneNumber)
+	}
+
+	// Now add the parts to the task based on the dataset for the type of machine
+	partClass := 0
+	DB.SQL(`select part_class from machine where id=$1`, task.MachineID).QueryScalar(&partClass)
+	if partClass != 0 {
+		// log.Println("part class =", partClass)
+		parts := []shared.Part{}
+		DB.SQL(`select * from part where class=$1`, partClass).QueryStructs(&parts)
+		for _, v := range parts {
+
+			taskPart := shared.TaskPart{
+				TaskID: task.ID,
+				PartID: v.ID,
+				Qty:    0,
+				Notes:  "",
+			}
+			// log.Println("got part", taskPart)
+
+			DB.InsertInto("task_part").
+				Whitelist("task_id", "part_id", "qty", "notes").
+				Record(taskPart).
+				Exec()
+		}
 	}
 
 	logger(start, "Event.Workorder",

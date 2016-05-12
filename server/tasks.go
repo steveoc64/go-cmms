@@ -332,7 +332,7 @@ func (t *TaskRPC) Update(data shared.TaskUpdateData, done *bool) error {
 	}
 
 	for _, v := range data.Task.Parts {
-		log.Println("part = ", v)
+		// log.Println("part = ", v)
 
 		DB.Update("task_part").
 			SetWhitelist(v, "notes", "qty_used").
