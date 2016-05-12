@@ -405,6 +405,7 @@ func taskList(context *router.Context) {
 
 		cform := formulate.ListForm{}
 		cform.New("fa-server", "Completed Tasks")
+		print("here !!")
 
 		// Define the layout
 		switch Session.UserRole {
@@ -420,7 +421,8 @@ func taskList(context *router.Context) {
 		cform.Column("Description", "Descr")
 		cform.Column("Duration", "DurationDays")
 		cform.Column("Hrs", "LabourHrs")
-		cform.Column("Completed", "GetCompletedDate")
+		cform.Column("Completed", "CompletedDate")
+		cform.Column("Completed2", "GetCompletedDate")
 
 		cform.RowEvent(func(key string) {
 			Session.Navigate("/task/" + key)

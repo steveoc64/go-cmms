@@ -25,11 +25,11 @@ func SMSList(context *router.Context) {
 		form.New("fa-phone", "SMS Traffic Log")
 
 		// Define the layout
-		form.Column("Date", "GetDate")
+		form.Column("Date", "GetDateSent")
 		form.Column("Number", "GetNumber")
 		form.Column("Message", "Message")
 		form.Column("Reference", "Ref")
-		form.Column("Phone", "Phone")
+		// form.Column("Phone", "Phone")
 		form.Column("Status", "GetStatus")
 
 		// Add event handlers
@@ -40,6 +40,8 @@ func SMSList(context *router.Context) {
 
 		form.Render("sms-list", "main", smsTrans)
 		// form.Render("site-list", "main", data)
+
+		print("rendered that", form, smsTrans)
 
 	}()
 }

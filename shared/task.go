@@ -200,6 +200,7 @@ func (t *Task) GetDueDate() string {
 }
 
 func (t *Task) GetCompletedDate() string {
+	print("get completed date from task", t.CompletedDate)
 	if t.CompletedDate == nil {
 		return ""
 	}

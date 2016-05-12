@@ -101,7 +101,7 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 	siteName := ""
 	DB.SQL(`select name from site where id=$1`, issue.Machine.SiteID).QueryScalar(&siteName)
 
-	if false && Config.SMSOn {
+	if Config.SMSOn {
 		//		SendSMS("get the number from the db for the correct person",
 		SendSMS("0417824950", // shane
 			fmt.Sprintf("Alert at Site %s on Machine %s on %s: %s",

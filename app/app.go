@@ -3,10 +3,10 @@ package main
 import (
 	"github.com/go-humble/router"
 	"github.com/steveoc64/formulate"
-	"github.com/steveoc64/go-cmms/shared"
+	// "github.com/steveoc64/go-cmms/shared"
 )
 
-type MessageFunction func(*shared.AsyncMessage)
+type MessageFunction func(string, int)
 
 type GlobalSessionData struct {
 	Username      string

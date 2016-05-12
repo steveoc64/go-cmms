@@ -89,7 +89,9 @@ func main() {
 	autoGenerate()
 
 	e.Get("/ws", standard.WrapHandler(websocket.Handler(webSocket)))
+	// e.Get("/ws", fasthttp.WrapHandler(websocket.Handler(webSocket)))	
 
+		e.SetDebug(true)
 	// e.WebSocket("/ws", webSocket)
 
 	// Start the web server

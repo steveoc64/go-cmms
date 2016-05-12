@@ -129,14 +129,14 @@ func SendSMS(number string, message string, ref string, user_id int) error {
 				Record(smsTrans).
 				Exec()
 			return errors.New(p[1])
-		default:
-			log.Println("Unknown SMS Error", p[0])
-			smsTrans.Error = p[1]
-			DB.InsertInto("sms_trans").
-				Whitelist("number_to", "number_used", "user_id", "message", "ref", "status", "error").
-				Record(smsTrans).
-				Exec()
-			return errors.New(p[1])
+		// default:
+		// 	log.Println("Unknown SMS Error", p[0])
+		// 	smsTrans.Error = p[1]
+		// 	DB.InsertInto("sms_trans").
+		// 		Whitelist("number_to", "number_used", "user_id", "message", "ref", "status", "error").
+		// 		Record(smsTrans).
+		// 		Exec()
+		// 	return errors.New(p[1])
 		}
 	}
 	return nil

@@ -18,10 +18,10 @@ func hashtagList(context *router.Context) {
 
 	// gob.Register(shared.HashtagUpdateData{})
 	Session.Subscribe("hashtag", _hashtagList)
-	go _hashtagList(nil)
+	go _hashtagList("list",0)
 }
 
-func _hashtagList(msg *shared.AsyncMessage) {
+func _hashtagList(action string, id int) {
 	hashtags := []shared.Hashtag{}
 	rpcClient.Call("TaskRPC.HashtagList", Session.Channel, &hashtags)
 
@@ -105,26 +105,28 @@ func hashtagEdit(context *router.Context) {
 	currentHashtag = id
 
 	Session.Subscribe("hashtag", _hashtagEdit)
-	go _hashtagEdit(nil)
+	go _hashtagEdit("edit",id)
 }
 
-func _hashtagEdit(msg *shared.AsyncMessage) {
+func _hashtagEdit(action string, id int) {
 
 	BackURL := "/hashtags"
 
-	if msg != nil {
-		if msg.ID != currentHashtag {
+	switch action {
+	case "edit":
+		print("manually edit")
+	case "delete":
+		if id != currentHashtag {
 			return
 		}
-		if msg.Action == "delete" {
-			print("current record has been deleted")
-			Session.Navigate(BackURL)
+		print("current record has been deleted")
+		Session.Navigate(BackURL)
+		return
+	default:
+		if id != currentHashtag {
 			return
 		}
-		print("refresh the display")
 	}
-	id := currentHashtag
-
 	hashtag := shared.Hashtag{}
 	rpcClient.Call("TaskRPC.HashtagGet", id, &hashtag)
 

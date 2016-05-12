@@ -319,7 +319,7 @@ func (s *SiteRPC) StatusReport(channel int, retval *shared.SiteStatusReport) err
 		from machine m
 		left join site s on (s.id = m.site_id)
 		where m.status = 'Stopped' 
-		and s.name = 'Minto'`).QueryScalar(&i)
+		and s.name like 'Minto%'`).QueryScalar(&i)
 	if i > 0 {
 		retval.Minto = "Stopped"
 	} else {
@@ -327,7 +327,7 @@ func (s *SiteRPC) StatusReport(channel int, retval *shared.SiteStatusReport) err
 			from machine m
 			left join site s on (s.id = m.site_id)
 			where m.status = 'Needs Attention' 
-			and s.name = 'Minto'`).QueryScalar(&i)
+			and s.name like 'Minto%'`).QueryScalar(&i)
 		if i > 0 {
 			retval.Minto = "Needs Attention"
 		}
@@ -339,7 +339,7 @@ func (s *SiteRPC) StatusReport(channel int, retval *shared.SiteStatusReport) err
 		from machine m
 		left join site s on (s.id = m.site_id)
 		where m.status = 'Stopped' 
-		and s.name = 'Tomago'`).QueryScalar(&i)
+		and s.name like 'Tomago%'`).QueryScalar(&i)
 	if i > 0 {
 		retval.Tomago = "Stopped"
 	} else {
@@ -347,7 +347,7 @@ func (s *SiteRPC) StatusReport(channel int, retval *shared.SiteStatusReport) err
 			from machine m
 			left join site s on (s.id = m.site_id)
 			where m.status = 'Needs Attention' 
-			and s.name = 'Tomago'`).QueryScalar(&i)
+			and s.name like 'Tomago%'`).QueryScalar(&i)
 		if i > 0 {
 			retval.Tomago = "Needs Attention"
 		}
@@ -359,7 +359,7 @@ func (s *SiteRPC) StatusReport(channel int, retval *shared.SiteStatusReport) err
 		from machine m
 		left join site s on (s.id = m.site_id)
 		where m.status = 'Stopped' 
-		and s.name = 'Chinderah'`).QueryScalar(&i)
+		and s.name like 'Chinderah%'`).QueryScalar(&i)
 	if i > 0 {
 		retval.Chinderah = "Stopped"
 	} else {
@@ -367,7 +367,7 @@ func (s *SiteRPC) StatusReport(channel int, retval *shared.SiteStatusReport) err
 			from machine m
 			left join site s on (s.id = m.site_id)
 			where m.status = 'Needs Attention' 
-			and s.name = 'Chinderah'`).QueryScalar(&i)
+			and s.name like 'Chinderah%'`).QueryScalar(&i)
 		if i > 0 {
 			retval.Chinderah = "Needs Attention"
 		}
