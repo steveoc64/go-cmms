@@ -1249,6 +1249,100 @@ func (t *TaskRPC) Complete(data shared.TaskUpdateData, done *bool) error {
 	// If the task has a parent event, then clear the event IF there are
 	// no incomplete tasks left against that event.
 
+	if data.Task.EventID != 0 {
+
+		// are there any incomplete tasks still attached to this event ?
+		numTasks := 0
+		DB.SQL(`select count(*) 
+			from task 
+			where event_id=$1 and completed_date is null`, data.Task.EventID).
+			QueryScalar(&numTasks)
+
+		if numTasks == 0 {
+			// Mark the event as complete
+			DB.SQL(`update event 
+				set completed=now(), status='Complete'
+				where id=$1`, data.Task.EventID).Exec()
+
+			event := &shared.Event{}
+			id := data.Task.EventID
+			DB.SQL(`select
+				e.*,m.name as machine_name,s.name as site_name,u.username as username
+				from event e
+					left join machine m on m.id=e.machine_id
+					left join site s on s.id=m.site_id
+					left join users u on u.id=e.created_by
+				where e.id=$1`, id).QueryStruct(event)
+
+			// fetch all assignments
+			DB.SQL(`select u.username
+				from task t
+				left join users u on u.id=t.assigned_to
+				where t.event_id=$1`, id).
+				QueryStructs(&event.AssignedTo)
+
+			// Reset the affected component - this code is the reverse of
+			// the code in the RaiseEvent function above
+			if event.ToolID == 0 {
+				// Reset the status of the basic component on this machine
+				fieldName := ""
+				switch event.ToolType {
+				case "Electrical":
+					fieldName = "electrical"
+				case "Hydraulic":
+					fieldName = "hydraulic"
+				case "Lube":
+					fieldName = "lube"
+				case "Printer":
+					fieldName = "printer"
+				case "Console":
+					fieldName = "console"
+				case "Uncoiler":
+					fieldName = "uncoiler"
+				case "Rollbed":
+					fieldName = "rollbed"
+				}
+				if fieldName != "" {
+					DB.SQL(fmt.Sprintf("update machine set %s='Running' where id=$1", fieldName), event.MachineID).Exec()
+				}
+			} else {
+				// is a tool
+				DB.SQL(`update component
+					set status='Running'
+					where id=$1`, event.ToolID).
+					Exec()
+			}
+
+			// Reset the whole machine if clear
+			machineIsClear := true
+			machine := shared.Machine{}
+			DB.SQL(`select * from machine where id=$1`, event.MachineID).QueryStruct(&machine)
+
+			if machine.Electrical != "Running" ||
+				machine.Hydraulic != "Running" ||
+				machine.Printer != "Running" ||
+				machine.Console != "Running" ||
+				machine.Rollbed != "Running" ||
+				machine.Uncoiler != "Running" ||
+				machine.Lube != "Running" {
+				machineIsClear = false
+			}
+
+			if machineIsClear {
+				badComps := 0
+				DB.SQL(`select count(*) 
+					from component 
+					where status != 'Running' and machine_id=$1`, machine.ID).
+					QueryScalar(&badComps)
+
+				if badComps == 0 {
+					DB.SQL("update machine set status='Running' where id=$1", event.MachineID).Exec()
+				}
+			}
+
+		} // after clearing this task, there are no more tasks attached to the stoppage
+	} // Task is linked to a stoppage
+
 	logger(start, "Task.Complete",
 		fmt.Sprintf("Channel %d, Task %d User %d %s %s",
 			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
