@@ -1,5 +1,13 @@
 -- DB Migration Script
 
+-- To Reset all the events and tasks, and clean out all the schedules
+TRUNCATE event RESTART IDENTITY;
+TRUNCATE task RESTART IDENTITY;
+TRUNCATE task_check RESTART IDENTITY;
+TRUNCATE task_part RESTART IDENTITY;
+TRUNCATE sched_task RESTART IDENTITY;
+TRUNCATE sched_task_part RESTART IDENTITY;
+
 
 -- 2016-05-11  
 -- Modify task part records

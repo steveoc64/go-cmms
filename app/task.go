@@ -144,6 +144,13 @@ func taskEdit(context *router.Context) {
 		}
 
 		// Layout the fields
+		partsTitle := ""
+		if task.SchedID != 0 {
+			partsTitle = "Parts Used - as specified on the maintenance schedule - all parts must have a Qty Used, or a note"
+		} else {
+			partsTitle = "Parts Used - record qty for each part used - or leave blank if part was not needed on this job"
+		}
+
 		switch Session.UserRole {
 		case "Admin":
 
@@ -185,7 +192,7 @@ func taskEdit(context *router.Context) {
 				AddDecimal(2, "Actual Material $", "MaterialCost", 2, "1")
 
 			form.Row(1).
-				AddCustom(1, "Parts Used", "PartList", "")
+				AddCustom(1, partsTitle, "PartList", "")
 
 		case "Site Manager":
 			form.Row(3).
@@ -214,7 +221,7 @@ func taskEdit(context *router.Context) {
 				AddDecimal(2, "Actual Material $", "MaterialCost", 2, "1")
 
 			form.Row(1).
-				AddCustom(1, "Parts Used", "PartList", "")
+				AddCustom(1, partsTitle, "PartList", "")
 
 		case "Technician":
 			row := form.Row(5).
@@ -248,7 +255,7 @@ func taskEdit(context *router.Context) {
 				AddCustom(1, "Notes and CheckLists", "CheckList", "")
 
 			form.Row(1).
-				AddCustom(1, "Parts Used", "PartList", "")
+				AddCustom(1, partsTitle, "PartList", "")
 		}
 
 		// Add event handlers
@@ -461,7 +468,13 @@ func taskList(context *router.Context) {
 
 		w := dom.GetWindow()
 		doc := w.Document()
-		div := doc.CreateElement("div").(*dom.HTMLDivElement)
+
+		// force a page break for printing
+		div := doc.CreateElement("div")
+		div.Class().Add("page-break")
+		doc.QuerySelector("main").AppendChild(div)
+
+		div = doc.CreateElement("div").(*dom.HTMLDivElement)
 		div.SetID("ctasks")
 		doc.QuerySelector("main").AppendChild(div)
 
@@ -894,7 +907,7 @@ func schedEdit(context *router.Context) {
 								// print("Save the part req")
 
 								qty, _ := strconv.ParseFloat(doc.QuerySelector("#partreq-qty").(*dom.HTMLInputElement).Value, 64)
-								notes := doc.QuerySelector("#partreq-notes").(*dom.HTMLInputElement).Value
+								notes := doc.QuerySelector("#partreq-notes").(*dom.HTMLTextAreaElement).Value
 
 								// print("in save, req still =", req)
 								req.Part.Qty = qty

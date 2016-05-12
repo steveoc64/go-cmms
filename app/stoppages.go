@@ -80,7 +80,13 @@ func stoppageList(context *router.Context) {
 
 			w := dom.GetWindow()
 			doc := w.Document()
-			div := doc.CreateElement("div").(*dom.HTMLDivElement)
+
+			// force a page break for printing
+			div := doc.CreateElement("div")
+			div.Class().Add("page-break")
+			doc.QuerySelector("main").AppendChild(div)
+
+			div = doc.CreateElement("div").(*dom.HTMLDivElement)
 			div.SetID("cevent")
 			doc.QuerySelector("main").AppendChild(div)
 			cform.Render("stoppage-list", "#cevent", cevents)

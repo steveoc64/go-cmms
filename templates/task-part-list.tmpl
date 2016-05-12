@@ -1,35 +1,34 @@
-<div class="row row-wrap" style="flex-wrap: wrap">
-	<fieldset>
+<div>
 		{{$completed := .CompletedDate}}
+		{{$has_stoppage := ne 0 .EventID}}
 		{{$incomplete := not .CompletedDate}}
 		{{range $index,$part := .Parts}}
 		{{$uses_part := ne $part.QtyUsed 0.0}}
 		{{if or $uses_part $incomplete}}
-	  <div data-row-span="7">
-	    <div data-field-span="1">
+	  <div data-row-span="12">
+	    <div data-field-span="2">
 		    {{if eq $index 0}}<label for="part-name-{{$part.PartName}}">Part Name</label>{{end}}
 	      <input type="text" value="{{$part.PartName}}" readonly>
 	    </div>
-	    <div data-field-span="1">
+	    <div data-field-span="2">
 		    {{if eq $index 0}}<label for="stockcode-{{$part.StockCode}}">Stock Code</label>{{end}}
 	      <input type="text" value="{{$part.StockCode}}" readonly>
 	    </div>
+	    {{if not $has_stoppage}}
 	    <div data-field-span="1">
 		    {{if eq $index 0}}<label for="part-qty-{{$part.PartID}}">Est. Qty</label>{{end}}
 	      <input type="number" name="part-qty-{{$part.PartID}}" value="{{$part.Qty}}" key="{{$part.PartID}}" readonly>
-
 	    </div>
-	    <div data-field-span="1">
-		    <label for="part-qty-{{$part.PartID}}">Actual Qty ({{$part.QtyType}})</label>
+	    {{end}}
+	    <div data-field-span="2">
+		    {{if eq $index 0}}<label for="part-qty-{{$part.PartID}}">Qty ({{$part.QtyType}})</label>{{end}}
 	      <input type="number" name="part-qty-used-{{$part.PartID}}" value="{{$part.QtyUsed}}" key="{{$part.PartID}}" step="1">
 	    </div>
-	    <div data-field-span="3">
+	    <div data-field-span="5">
 		    {{if eq $index 0}}<label for="part-notes">Notes</label>{{end}}
-	      <!-- <textarea name="part-notes-{{$part.PartID}}" key="{{$part.PartID}}">{{.Notes}}</textarea> -->
 	      <input type="text" name="part-notes-{{$part.PartID}}" key="{{$part.PartID}}" value="{{.Notes}}">
 	    </div>
 	  </div>
 	  {{end}}
 	  {{end}}
-	</fieldset>
 </div>

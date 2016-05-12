@@ -904,6 +904,10 @@ func genTask(st shared.SchedTask, task *shared.Task, startDate time.Time, dueDat
 		userID = userIDs.MachineUser
 	}
 
+	if st.UserID != 0 {
+		userID = st.UserID
+	}
+
 	escDate := startDate.AddDate(0, 1, 0)
 
 	task.MachineID = st.MachineID
