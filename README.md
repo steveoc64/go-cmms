@@ -1,8 +1,8 @@
 # go-cmms
-An implementation of CMMS written entirely in Golang (front and back)
 
-## Whats a CMMS you ask ?
-CMMS == Computerised Maintenance Management System
+An implementation of CMMS for iTrak
+
+This includes the following functions :
 
 Work orders
  - Scheduling jobs
