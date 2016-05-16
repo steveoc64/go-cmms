@@ -247,13 +247,13 @@ func _taskEdit(action string, id int) {
 			AddCustom(1, partsTitle, "PartList", "")
 
 	case "Technician":
-		row := form.Row(5).
+		row := form.Row(4).
 			AddDisplay(1, "Start Date", "DisplayStartDate").
 			AddDisplay(1, "Due Date", "DisplayDueDate").
 			// AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1").
 			// AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1").
-			AddDisplay(1, "Actual Material $", "MaterialCost").
-			AddDisplay(1, "Actual Labour $", "LabourCost")
+			AddDisplay(1, "Actual Material $", "MaterialCost")
+			// AddDisplay(1, "Actual Labour $", "LabourCost")
 
 		if task.CompletedDate == nil {
 			row.AddDecimal(1, "Hours", "LabourHrs", 2, "0.5")
