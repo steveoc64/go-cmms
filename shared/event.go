@@ -58,8 +58,9 @@ type AssignEvent struct {
 	Notes       string
 }
 
-type EventUpdateData struct {
+type EventRPCData struct {
 	Channel int
+	ID      int
 	Event   *Event
 }
 

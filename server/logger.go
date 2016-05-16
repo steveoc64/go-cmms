@@ -6,21 +6,27 @@ import (
 	"time"
 )
 
-func logger(start time.Time, from string, in string, out string) {
+func logger(start time.Time, function string, in string, out string,
+	channel int, user_id int, entity string, entity_id int, is_update bool) {
 
 	ms := time.Since(start) / 100
 	d := fmt.Sprintf("%s", time.Since(start))
-	s1 := fmt.Sprintf(`%-20s %10s`, from, d)
+	s1 := fmt.Sprintf(`%-20s %10s`, function, d)
 	log.Printf(`%-35s » %-50s « %s`, s1, in, out)
 
 	DB.SQL(`insert 
-		into user_log (duration,ms,func,input,output) 
+		into user_log (duration,ms,func,input,output,channel,user_id,entity,entity_id,is_update) 
 		values ($1,$2,$3,$4,$5)`,
 		d,
 		ms,
-		from,
+		function,
 		in,
-		out).Exec()
+		out,
+		channel,
+		user_id,
+		entity,
+		entity_id,
+		is_update).Exec()
 }
 
 // Site.UserList             -> 1.364043ms     » Channel 1, User 45 testw1 Worker         « 2 Sites

@@ -45,8 +45,9 @@ type Machine struct {
 	PartClass  int         `db:"part_class"`
 }
 
-type MachineUpdateData struct {
+type MachineRPCData struct {
 	Channel int
+	ID      int
 	Machine *Machine
 }
 

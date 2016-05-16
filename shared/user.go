@@ -15,8 +15,9 @@ type User struct {
 	Sites      []Site  `db:"site"`
 }
 
-type UserUpdateData struct {
+type UserRPCData struct {
 	Channel int
+	ID      int
 	User    *User
 }
 

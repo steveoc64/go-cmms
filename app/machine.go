@@ -80,8 +80,12 @@ func machineEdit(context *router.Context) {
 		users := []shared.User{}
 		technicians := []shared.User{}
 		classes := []shared.PartClass{}
+		data := shared.MachineRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}
 
-		rpcClient.Call("MachineRPC.Get", id, &machine)
+		rpcClient.Call("MachineRPC.Get", data, &machine)
 		rpcClient.Call("UserRPC.GetManagers", Session.Channel, &users)
 		rpcClient.Call("UserRPC.GetTechnicians", machine.SiteID, &technicians)
 		rpcClient.Call("PartRPC.ClassList", Session.Channel, &classes)
@@ -123,7 +127,7 @@ func machineEdit(context *router.Context) {
 			evt.PreventDefault()
 			machine.ID = id
 			go func() {
-				data := shared.MachineUpdateData{
+				data := shared.MachineRPCData{
 					Channel: Session.Channel,
 					Machine: &machine,
 				}
@@ -137,7 +141,7 @@ func machineEdit(context *router.Context) {
 			evt.PreventDefault()
 			form.Bind(&machine)
 			go func() {
-				data := shared.MachineUpdateData{
+				data := shared.MachineRPCData{
 					Channel: Session.Channel,
 					Machine: &machine,
 				}
@@ -204,7 +208,7 @@ func siteMachineAdd(context *router.Context) {
 			machine.SiteID = site.ID
 			machine.Status = "Running"
 			go func() {
-				data := shared.MachineUpdateData{
+				data := shared.MachineRPCData{
 					Channel: Session.Channel,
 					Machine: &machine,
 				}

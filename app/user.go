@@ -301,7 +301,7 @@ func userEdit(context *router.Context) {
 		form.DeleteEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			go func() {
-				data := shared.UserUpdateData{
+				data := shared.UserRPCData{
 					Channel: Session.Channel,
 					User:    &user,
 				}
@@ -324,7 +324,7 @@ func userEdit(context *router.Context) {
 				}
 			}
 
-			data := shared.UserUpdateData{
+			data := shared.UserRPCData{
 				Channel: Session.Channel,
 				User:    &user,
 			}
@@ -433,7 +433,7 @@ func userAdd(context *router.Context) {
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&user)
-			data := shared.UserUpdateData{
+			data := shared.UserRPCData{
 				Channel: Session.Channel,
 				User:    &user,
 			}

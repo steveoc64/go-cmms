@@ -35,10 +35,10 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 		// validate that username and passwd is correct
 		res := &dbLoginResponse{}
 
-		log.Println(`select u.id,u.username,u.name,u.role,u.site_id,s.name as sitename 
-			from users u	
-			left join site s on (s.id = u.site_id) 
-			where lower(u.username) = lower('`, lc.Username, `') and lower(passwd) = lower('`, lc.Password, `')`)
+		// log.Println(`select u.id,u.username,u.name,u.role,u.site_id,s.name as sitename
+		// 	from users u
+		// 	left join site s on (s.id = u.site_id)
+		// 	where lower(u.username) = lower('`, lc.Username, `') and lower(passwd) = lower('`, lc.Password, `')`)
 
 		err := DB.
 			Select("u.id,u.username,u.name,u.role,u.site_id,s.name as sitename").
@@ -47,7 +47,7 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 			Where("lower(u.username) = lower($1) and lower(passwd) = lower($2)",
 				lc.Username, lc.Password).
 			QueryStruct(res)
-		log.Println(res)
+		// log.Println(res)
 
 		if err != nil {
 			log.Println("Login Failed:", err.Error())
@@ -77,7 +77,8 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 
 	logger(start, "Login.Login",
 		fmt.Sprintf("%s,%s,%t,%d", lc.Username, lc.Password, lc.RememberMe, lc.Channel),
-		fmt.Sprintf("%s,%s,%s", lr.Result, lr.Role, lr.Site))
+		fmt.Sprintf("%s,%s,%s", lr.Result, lr.Role, lr.Site),
+		lc.Channel, lr.ID, "users", lr.ID, false)
 
 	return nil
 }

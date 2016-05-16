@@ -28,8 +28,9 @@ func (s *Site) GetDisplay() string {
 
 }
 
-type SiteUpdateData struct {
+type SiteRPCData struct {
 	Channel int
+	ID      int
 	Site    *Site
 }
 

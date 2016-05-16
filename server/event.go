@@ -101,7 +101,8 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 	logger(start, "Event.Raise",
 		fmt.Sprintf("Channel %d, Machine %d, User %d %s %s",
 			issue.Channel, issue.Machine.ID, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("Event %d Tool %d:%s Desc %s", *id, evt.ToolID, ToolName, evt.Notes))
+		fmt.Sprintf("Event %d Tool %d:%s Desc %s", *id, evt.ToolID, ToolName, evt.Notes),
+		issue.Channel, conn.UserID, "event", *id, true)
 
 	siteName := ""
 	DB.SQL(`select name from site where id=$1`, issue.Machine.SiteID).QueryScalar(&siteName)
@@ -185,7 +186,8 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 	logger(start, "Event.List",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d Events", len(*events)))
+		fmt.Sprintf("%d Events", len(*events)),
+		channel, conn.UserID, "event", 0, false)
 
 	return nil
 }
@@ -246,13 +248,17 @@ func (e *EventRPC) ListCompleted(channel int, events *[]shared.Event) error {
 	logger(start, "Event.ListCompleted",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d Events", len(*events)))
+		fmt.Sprintf("%d Events", len(*events)),
+		channel, conn.UserID, "event", 0, false)
 
 	return nil
 }
 
-func (e *EventRPC) Get(id int, event *shared.Event) error {
+func (e *EventRPC) Get(data shared.EventRPCData, event *shared.Event) error {
 	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+	id := data.ID
 
 	// Read the sites that this user has access to
 	err := DB.SQL(`select
@@ -276,12 +282,13 @@ func (e *EventRPC) Get(id int, event *shared.Event) error {
 
 	logger(start, "Event.Get",
 		fmt.Sprintf("ID %d", id),
-		event.Notes)
+		event.Notes,
+		data.Channel, conn.UserID, "event", id, false)
 
 	return nil
 }
 
-func (e *EventRPC) Update(data shared.EventUpdateData, done *bool) error {
+func (e *EventRPC) Update(data shared.EventRPCData, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -294,13 +301,14 @@ func (e *EventRPC) Update(data shared.EventUpdateData, done *bool) error {
 	logger(start, "Event.Update",
 		fmt.Sprintf("Channel %d, Event %d User %d %s %s",
 			data.Channel, data.Event.ID, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%s", data.Event.Notes))
+		fmt.Sprintf("%s", data.Event.Notes),
+		data.Channel, conn.UserID, "event", data.Event.ID, true)
 
 	conn.Broadcast("event", "update", data.Event.ID)
 	return nil
 }
 
-func (e *EventRPC) Complete(data shared.EventUpdateData, done *bool) error {
+func (e *EventRPC) Complete(data shared.EventRPCData, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -385,7 +393,8 @@ func (e *EventRPC) Complete(data shared.EventUpdateData, done *bool) error {
 	logger(start, "Event.Complete",
 		fmt.Sprintf("Channel %d, Event %d User %d %s %s",
 			data.Channel, data.Event.ID, conn.UserID, conn.Username, conn.UserRole),
-		"Manually Completed by Admin")
+		"Manually Completed by Admin",
+		data.Channel, conn.UserID, "event", data.Event.ID, true)
 
 	conn.Broadcast("event", "update", data.Event.ID)
 	conn.Broadcast("sitestatus", "update", 1)
@@ -556,7 +565,8 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 	logger(start, "Event.Workorder",
 		fmt.Sprintf("Channel %d, Event %d, User %d %s %s",
 			data.Channel, *id, conn.UserID, conn.Username, conn.UserRole),
-		data.Notes)
+		data.Notes,
+		data.Channel, conn.UserID, "event", data.Event.ID, true)
 
 	conn.Broadcast("task", "insert", task.ID)
 	conn.Broadcast("event", "update", data.Event.ID)
