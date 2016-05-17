@@ -16,7 +16,7 @@ func logger(start time.Time, function string, in string, out string,
 
 	DB.SQL(`insert 
 		into user_log (duration,ms,func,input,output,channel,user_id,entity,entity_id,is_update) 
-		values ($1,$2,$3,$4,$5)`,
+		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
 		d,
 		ms,
 		function,

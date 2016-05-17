@@ -93,7 +93,7 @@ func _stoppageList(action string, id int) {
 		div = doc.CreateElement("div").(*dom.HTMLDivElement)
 		div.SetID("cevent")
 		doc.QuerySelector("main").AppendChild(div)
-		cform.Render("stoppage-list", "#cevent", cevents)
+		cform.Render("cstoppage-list", "#cevent", cevents)
 	}
 
 }
@@ -131,12 +131,11 @@ func _stoppageEdit(action string, id int) {
 	}
 
 	event := shared.Event{}
-	data := shared.EventRPCData{
+
+	rpcClient.Call("EventRPC.Get", shared.EventRPCData{
 		Channel: Session.Channel,
 		ID:      id,
-	}
-
-	rpcClient.Call("EventRPC.Get", data, &event)
+	}, &event)
 
 	title := fmt.Sprintf("Stoppage Details - %06d", id)
 	form := formulate.EditForm{}
@@ -198,12 +197,11 @@ func _stoppageEdit(action string, id int) {
 			evt.PreventDefault()
 			event.ID = id
 			go func() {
-				data := shared.EventRPCData{
+				done := false
+				rpcClient.Call("EventRPC.Delete", shared.EventRPCData{
 					Channel: Session.Channel,
 					Event:   &event,
-				}
-				done := false
-				rpcClient.Call("EventRPC.Delete", data, &done)
+				}, &done)
 				Session.Navigate(BackURL)
 			}()
 		})
@@ -212,13 +210,12 @@ func _stoppageEdit(action string, id int) {
 			form.SaveEvent(func(evt dom.Event) {
 				evt.PreventDefault()
 				form.Bind(&event)
-				data := shared.EventRPCData{
-					Channel: Session.Channel,
-					Event:   &event,
-				}
 				go func() {
 					done := false
-					rpcClient.Call("EventRPC.Update", data, &done)
+					rpcClient.Call("EventRPC.Update", shared.EventRPCData{
+						Channel: Session.Channel,
+						Event:   &event,
+					}, &done)
 					Session.Navigate(BackURL)
 				}()
 			})
@@ -260,12 +257,11 @@ func stoppageComplete(context *router.Context) {
 	go func() {
 		event := shared.Event{}
 		event.ID = id
-		data := shared.EventRPCData{
+		done := false
+		rpcClient.Call("EventRPC.Complete", shared.EventRPCData{
 			Channel: Session.Channel,
 			Event:   &event,
-		}
-		done := false
-		rpcClient.Call("EventRPC.Complete", data, &done)
+		}, &done)
 		print("Completed Event", id)
 		Session.Navigate("/stoppages")
 	}()
@@ -287,8 +283,14 @@ func stoppageNewTask(context *router.Context) {
 		event := shared.Event{}
 		techs := []shared.User{}
 
-		rpcClient.Call("EventRPC.Get", id, &event)
-		rpcClient.Call("UserRPC.GetTechnicians", 0, &techs)
+		rpcClient.Call("EventRPC.Get", shared.EventRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &event)
+		rpcClient.Call("UserRPC.GetTechnicians", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      0,
+		}, &techs)
 
 		now1 := time.Now()
 		now2 := time.Now()

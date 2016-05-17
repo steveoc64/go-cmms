@@ -75,13 +75,12 @@ func hashtagAdd(context *router.Context) {
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&hashtag)
-			data := shared.HashtagRPCData{
-				Channel: Session.Channel,
-				Hashtag: &hashtag,
-			}
 			go func() {
 				newID := 0
-				rpcClient.Call("TaskRPC.HashtagInsert", data, &newID)
+				rpcClient.Call("TaskRPC.HashtagInsert", shared.HashtagRPCData{
+					Channel: Session.Channel,
+					Hashtag: &hashtag,
+				}, &newID)
 				print("added hashtag", newID)
 				Session.Navigate(BackURL)
 			}()
@@ -153,12 +152,11 @@ func _hashtagEdit(action string, id int) {
 		evt.PreventDefault()
 		hashtag.ID = id
 		go func() {
-			data := shared.HashtagRPCData{
+			done := false
+			rpcClient.Call("TaskRPC.HashtagDelete", shared.HashtagRPCData{
 				Channel: Session.Channel,
 				Hashtag: &hashtag,
-			}
-			done := false
-			rpcClient.Call("TaskRPC.HashtagDelete", data, &done)
+			}, &done)
 			Session.Navigate(BackURL)
 		}()
 	})
@@ -166,13 +164,12 @@ func _hashtagEdit(action string, id int) {
 	form.SaveEvent(func(evt dom.Event) {
 		evt.PreventDefault()
 		form.Bind(&hashtag)
-		data := shared.HashtagRPCData{
-			Channel: Session.Channel,
-			Hashtag: &hashtag,
-		}
 		go func() {
 			done := false
-			rpcClient.Call("TaskRPC.HashtagUpdate", data, &done)
+			rpcClient.Call("TaskRPC.HashtagUpdate", shared.HashtagRPCData{
+				Channel: Session.Channel,
+				Hashtag: &hashtag,
+			}, &done)
 			Session.Navigate(BackURL)
 		}()
 	})

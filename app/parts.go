@@ -75,12 +75,11 @@ func classAdd(context *router.Context) {
 			evt.PreventDefault()
 			form.Bind(&partClass)
 			go func() {
-				data := shared.PartClassRPCData{
+				newID := 0
+				rpcClient.Call("PartRPC.InsertClass", shared.PartClassRPCData{
 					Channel:   Session.Channel,
 					PartClass: &partClass,
-				}
-				newID := 0
-				rpcClient.Call("PartRPC.InsertClass", data, &newID)
+				}, &newID)
 				print("added class ID", newID)
 				Session.Navigate(BackURL)
 			}()
@@ -101,17 +100,15 @@ func partList(context *router.Context) {
 
 	go func() {
 		data := []shared.Part{}
-		req := shared.PartListReq{
-			Channel: Session.Channel,
-			Class:   partClass,
-		}
 		class := shared.PartClass{}
-		rpcClient.Call("PartRPC.List", req, &data)
-		q := shared.PartClassRPCData{
+		rpcClient.Call("PartRPC.List", shared.PartRPCData{
 			Channel: Session.Channel,
 			ID:      partClass,
-		}
-		rpcClient.Call("PartRPC.GetClass", q, &class)
+		}, &data)
+		rpcClient.Call("PartRPC.GetClass", shared.PartClassRPCData{
+			Channel: Session.Channel,
+			ID:      partClass,
+		}, &class)
 
 		BackURL := "/class/select"
 		Title := fmt.Sprintf("Parts of type - %s", class.Name)
@@ -129,12 +126,11 @@ func partList(context *router.Context) {
 				if el := doc.QuerySelector(".md-confirm-del"); el != nil {
 					el.AddEventListener("click", false, func(evt dom.Event) {
 						go func() {
-							data := shared.PartClassRPCData{
+							done := false
+							rpcClient.Call("PartRPC.DeleteClass", shared.PartClassRPCData{
 								Channel:   Session.Channel,
 								PartClass: &class,
-							}
-							done := false
-							rpcClient.Call("PartRPC.DeleteClass", data, &done)
+							}, &done)
 						}()
 						Session.Navigate(BackURL)
 					})
@@ -204,24 +200,22 @@ func partList(context *router.Context) {
 			print("TODO - Name has changed")
 			go func() {
 				class.Name = doc.QuerySelector("#class-name").(*dom.HTMLInputElement).Value
-				data := shared.PartClassRPCData{
+				done := false
+				rpcClient.Call("PartRPC.UpdateClass", shared.PartClassRPCData{
 					Channel:   Session.Channel,
 					PartClass: &class,
-				}
-				done := false
-				rpcClient.Call("PartRPC.UpdateClass", data, &done)
+				}, &done)
 			}()
 		})
 		doc.QuerySelector("#class-descr").AddEventListener("change", false, func(evt dom.Event) {
 			print("TODO - Description has changed")
 			go func() {
 				class.Descr = doc.QuerySelector("#class-descr").(*dom.HTMLInputElement).Value
-				data := shared.PartClassRPCData{
+				done := false
+				rpcClient.Call("PartRPC.UpdateClass", shared.PartClassRPCData{
 					Channel:   Session.Channel,
 					PartClass: &class,
-				}
-				done := false
-				rpcClient.Call("PartRPC.UpdateClass", data, &done)
+				}, &done)
 			}()
 		})
 
@@ -303,12 +297,11 @@ func partEdit(context *router.Context) {
 		form.DeleteEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			go func() {
-				data := shared.PartRPCData{
+				done := false
+				rpcClient.Call("PartRPC.Delete", shared.PartRPCData{
 					Channel: Session.Channel,
 					Part:    &part,
-				}
-				done := false
-				rpcClient.Call("PartRPC.Delete", data, &done)
+				}, &done)
 				Session.Navigate(BackURL)
 			}()
 		})
@@ -321,12 +314,11 @@ func partEdit(context *router.Context) {
 			evt.PreventDefault()
 			form.Bind(&part)
 			go func() {
-				data := shared.PartRPCData{
+				done := false
+				rpcClient.Call("PartRPC.Update", shared.PartRPCData{
 					Channel: Session.Channel,
 					Part:    &part,
-				}
-				done := false
-				rpcClient.Call("PartRPC.Update", data, &done)
+				}, &done)
 				NewBackURL := ""
 				if done {
 					// Go back to parts list
@@ -402,7 +394,10 @@ func partAdd(context *router.Context) {
 		part.Class = id
 		classes := []shared.PartClass{}
 		class := shared.PartClass{}
-		rpcClient.Call("PartRPC.GetClass", id, &class)
+		rpcClient.Call("PartRPC.GetClass", shared.PartClassRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &class)
 		rpcClient.Call("PartRPC.ClassList", Session.Channel, &classes)
 
 		BackURL := fmt.Sprintf("/parts/%d", part.Class)
@@ -444,12 +439,11 @@ func partAdd(context *router.Context) {
 			evt.PreventDefault()
 			form.Bind(&part)
 			go func() {
-				data := shared.PartRPCData{
+				newID := 0
+				rpcClient.Call("PartRPC.Insert", shared.PartRPCData{
 					Channel: Session.Channel,
 					Part:    &part,
-				}
-				newID := 0
-				rpcClient.Call("PartRPC.Insert", data, &newID)
+				}, &newID)
 				print("Added new part", newID)
 				NewBackURL := fmt.Sprintf("/parts/%d", part.Class)
 				Session.Navigate(NewBackURL)

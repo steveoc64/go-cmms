@@ -11,7 +11,7 @@ import (
 
 type EventRPC struct{}
 
-// Get all the tasks for the given machine
+// Raise a new event
 func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 	start := time.Now()
 
@@ -444,7 +444,8 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 	DB.InsertInto("task").
 		Whitelist("machine_id", "sched_id", "event_id", "comp_type", "tool_id", "component",
 			"descr", "startdate", "due_date", "escalate_date",
-			"assigned_to", "assigned_date", "labour_est", "material_est").
+			"assigned_by", "assigned_to", "assigned_date",
+			"labour_est", "material_est").
 		Record(&task).
 		Returning("id").
 		QueryScalar(&task.ID)

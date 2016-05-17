@@ -163,25 +163,27 @@ func (m *PartRPC) ClassList(channel int, classes *[]shared.PartClass) error {
 	return nil
 }
 
-// Get all the parts for the given class
-func (p *PartRPC) List(req shared.PartListReq, parts *[]shared.Part) error {
+// Get all the parts for the given class, which is passed in as the ID
+// or leave the ID 0 to get all parts
+func (p *PartRPC) List(data shared.PartRPCData, parts *[]shared.Part) error {
 	start := time.Now()
 
-	conn := Connections.Get(req.Channel)
+	conn := Connections.Get(data.Channel)
 
 	// Read the sites that this user has access to
-	err := DB.SQL(`select * from part 
-		where class=$1
-		order by name`, req.Class).QueryStructs(parts)
-
-	if err != nil {
-		log.Println(err.Error())
+	if data.ID == 0 {
+		DB.SQL(`select * from part order by name`).QueryStructs(parts)
+	} else {
+		DB.SQL(`select * from part
+			where class=$1
+			order by name`, data.ID).
+			QueryStructs(parts)
 	}
 
 	logger(start, "Part.List",
 		"",
-		fmt.Sprintf("Class %d %d parts", req.Class, len(*parts)),
-		req.Channel, conn.UserID, "parts", 0, false)
+		fmt.Sprintf("Class %d %d parts", data.ID, len(*parts)),
+		data.Channel, conn.UserID, "parts", data.ID, false)
 
 	return nil
 }

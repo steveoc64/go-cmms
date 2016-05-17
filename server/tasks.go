@@ -183,19 +183,17 @@ func (t *TaskRPC) SchedPart(data shared.PartReqEdit, ok *bool) error {
 		Notes:  data.Part.Notes,
 	}
 
-	id := 0
 	DB.InsertInto("sched_task_part").
 		Whitelist("task_id", "part_id", "qty", "notes").
 		Record(record).
-		Returning("id").
-		QueryScalar(&id)
+		Exec()
 
 	logger(start, "Task.SchedPart",
 		fmt.Sprintf("Channel %d, Task %d, User %d %s %s",
 			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("Part %d Qty %f Notes %s",
 			data.Part.PartID, data.Part.Qty, data.Part.Notes),
-		data.Channel, conn.UserID, "sched_task_part", id, true)
+		data.Channel, conn.UserID, "sched_task_part", 0, true)
 
 	*ok = true
 
@@ -305,7 +303,7 @@ func (t *TaskRPC) InsertSched(data shared.SchedTaskRPCData, id *int) error {
 	return nil
 }
 
-func (t *TaskRPC) Update(data shared.TaskRPCData, done *bool) error {
+func (t *TaskRPC) Update(data shared.TaskRPCData, updatedTask *shared.Task) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -315,7 +313,7 @@ func (t *TaskRPC) Update(data shared.TaskRPCData, done *bool) error {
 
 	if conn.UserRole == "Admin" {
 
-		// Admin can re-assing the task to another user
+		// Admin can re-assign the task to another user
 		DB.Update("task").
 			SetWhitelist(data.Task,
 				"log", "assigned_to",
@@ -365,7 +363,7 @@ func (t *TaskRPC) Update(data shared.TaskRPCData, done *bool) error {
 			data.Task.LabourCost, data.Task.MaterialCost, data.Task.LabourHrs, data.Task.Log),
 		data.Channel, conn.UserID, "task", data.Task.ID, true)
 
-	*done = true
+	DB.SQL(`select * from task where id=$1`, data.Task.ID).QueryStruct(updatedTask)
 
 	conn.Broadcast("task", "update", data.Task.ID)
 	return nil
@@ -391,7 +389,7 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
 		where t.assigned_to=$1 and completed_date is null
-		order by t.startdate`, conn.UserID).
+		order by t.startdate desc`, conn.UserID).
 			QueryStructs(tasks)
 		if err != nil {
 			log.Println(err.Error())
@@ -409,7 +407,7 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
 		where m.site_id in $1 and completed_date is null
-		order by t.startdate`, sites).
+		order by t.startdate desc`, sites).
 			QueryStructs(tasks)
 		if err != nil {
 			log.Println(err.Error())
@@ -422,7 +420,7 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
 		where completed_date is null
-		order by t.startdate`).
+		order by t.startdate desc`).
 			QueryStructs(tasks)
 		if err != nil {
 			log.Println(err.Error())
@@ -463,7 +461,7 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
 		where t.assigned_to=$1 and completed_date is not null
-		order by t.startdate`, conn.UserID).
+		order by t.startdate desc`, conn.UserID).
 			QueryStructs(tasks)
 		if err != nil {
 			log.Println(err.Error())
@@ -481,7 +479,7 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
 		where m.site_id in $1 and completed_date is not null
-		order by t.startdate`, sites).
+		order by t.startdate desc`, sites).
 			QueryStructs(tasks)
 		if err != nil {
 			log.Println(err.Error())
@@ -494,7 +492,7 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
 		where completed_date is not null
-		order by t.startdate`).
+		order by t.startdate desc`).
 			QueryStructs(tasks)
 		if err != nil {
 			log.Println(err.Error())
@@ -549,9 +547,9 @@ func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 	DB.SQL(`select * from task_check where task_id=$1`, data.ID).QueryStructs(&task.Checks)
 
 	logger(start, "Task.Get",
-		fmt.Sprintf("ID %d", data.Task.ID),
+		fmt.Sprintf("ID %d", data.ID),
 		task.Descr,
-		data.Channel, conn.UserID, "task", data.Task.ID, false)
+		data.Channel, conn.UserID, "task", data.ID, false)
 
 	return nil
 }
@@ -1408,6 +1406,60 @@ func (t *TaskRPC) Complete(data shared.TaskRPCData, done *bool) error {
 
 		} // after clearing this task, there are no more tasks attached to the stoppage
 	} // Task is linked to a stoppage
+
+	// 2 SMS's to generate :
+	// - 1 to the person that allocated the task to the tech
+	// - 1 to the person that raised the original alert
+	// Note that Scheduled Tasks will generate neither
+
+	machine := shared.Machine{}
+	DB.SQL(`select * from machine where id=$1`, data.Task.MachineID).QueryStruct(&machine)
+
+	if data.Task.AssignedBy != nil {
+		smsMsg := fmt.Sprintf("Task %06d Completed:\n %s - %s",
+			data.Task.ID,
+			machine.Name,
+			data.Task.Component)
+
+		phoneNumber := ""
+		DB.SQL(`select sms from users where id=$1`, data.Task.AssignedBy).QueryScalar(&phoneNumber)
+
+		if Config.SMSOn {
+
+			if phoneNumber != "" {
+				SendSMS(phoneNumber, smsMsg, fmt.Sprintf("%d", data.Task.ID), *data.Task.AssignedBy)
+			} else {
+				log.Println("No Phone Number for SMS:", smsMsg)
+			}
+		} else {
+			log.Println("Will send SMS:", smsMsg, "to", phoneNumber)
+		}
+	}
+
+	if data.Task.EventID != 0 {
+		smsMsg := fmt.Sprintf("Task %06d Completed:\n %s - %s",
+			data.Task.ID,
+			machine.Name,
+			data.Task.Component)
+
+		event := shared.Event{}
+		DB.SQL(`select * from event where id=$1`, data.Task.EventID).QueryStruct(&event)
+
+		phoneNumber := ""
+		DB.SQL(`select sms from users where id=$1`, event.CreatedBy).QueryScalar(&phoneNumber)
+
+		if Config.SMSOn {
+
+			if phoneNumber != "" {
+				SendSMS(phoneNumber, smsMsg, fmt.Sprintf("%d", data.Task.ID), event.CreatedBy)
+			} else {
+				log.Println("No Phone Number for SMS:", smsMsg)
+			}
+		} else {
+			log.Println("Will send SMS:", smsMsg, "to", phoneNumber)
+		}
+
+	}
 
 	logger(start, "Task.Complete",
 		fmt.Sprintf("Channel %d, Task %d User %d %s %s",

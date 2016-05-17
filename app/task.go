@@ -142,27 +142,25 @@ func _taskEdit(action string, id int) {
 						stoppageEdit(c)
 					}
 				} else {
-					data := shared.TaskRPCData{
-						Channel: Session.Channel,
-						Task:    &task,
-					}
 					go func() {
 						done := false
-						rpcClient.Call("TaskRPC.Complete", data, &done)
+						rpcClient.Call("TaskRPC.Complete", shared.TaskRPCData{
+							Channel: Session.Channel,
+							Task:    &task,
+						}, &done)
 						Session.Navigate(BackURL)
 					}()
 				}
 			})
 		case "Technician":
 			form.ActionGrid("task-actions", "#action-grid", task, func(url string) {
-				data := shared.TaskRPCData{
-					Channel: Session.Channel,
-					Task:    &task,
-				}
 				go func() {
 					done := false
 					print("calling task.complete ???")
-					rpcClient.Call("TaskRPC.Complete", data, &done)
+					rpcClient.Call("TaskRPC.Complete", shared.TaskRPCData{
+						Channel: Session.Channel,
+						Task:    &task,
+					}, &done)
 					Session.Navigate(BackURL)
 				}()
 			})
@@ -181,7 +179,10 @@ func _taskEdit(action string, id int) {
 	case "Admin":
 
 		techs := []shared.User{}
-		rpcClient.Call("UserRPC.GetTechnicians", 0, &techs)
+		rpcClient.Call("UserRPC.GetTechnicians", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      0,
+		}, &techs)
 		assignedTo := 0
 		if task.AssignedTo != nil {
 			assignedTo = *task.AssignedTo
@@ -299,12 +300,11 @@ func _taskEdit(action string, id int) {
 			evt.PreventDefault()
 			task.ID = id
 			go func() {
-				data := shared.TaskRPCData{
+				done := false
+				rpcClient.Call("TaskRPC.Delete", shared.TaskRPCData{
 					Channel: Session.Channel,
 					Task:    &task,
-				}
-				done := false
-				rpcClient.Call("TaskRPC.Delete", data, &done)
+				}, &done)
 				Session.Navigate(BackURL)
 			}()
 		})
@@ -316,10 +316,6 @@ func _taskEdit(action string, id int) {
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&task)
-			data := shared.TaskRPCData{
-				Channel: Session.Channel,
-				Task:    &task,
-			}
 
 			w := dom.GetWindow()
 			doc := w.Document()
@@ -336,7 +332,10 @@ func _taskEdit(action string, id int) {
 
 			go func() {
 				done := false
-				rpcClient.Call("TaskRPC.Update", data, &done)
+				rpcClient.Call("TaskRPC.Update", shared.TaskRPCData{
+					Channel: Session.Channel,
+					Task:    &task,
+				}, &done)
 				Session.Navigate(RefreshURL)
 			}()
 		})
@@ -361,13 +360,18 @@ func _taskEdit(action string, id int) {
 			task.LabourHrs, _ = strconv.ParseFloat(lh.Value, 64)
 			// fire off the change to the backend
 			form.Bind(&task)
-			data := shared.TaskRPCData{
-				Channel: Session.Channel,
-				Task:    &task,
-			}
 			go func() {
-				done := false
-				rpcClient.Call("TaskRPC.Update", data, &done)
+				updatedTask := shared.Task{}
+				rpcClient.Call("TaskRPC.Update", shared.TaskRPCData{
+					Channel: Session.Channel,
+					Task:    &task,
+				}, &updatedTask)
+				if Session.UserRole == "Admin" {
+					w := dom.GetWindow()
+					doc := w.Document()
+					doc.QuerySelector("[name=LabourCost").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", updatedTask.LabourCost)
+					print("updated =", updatedTask.LabourCost)
+				}
 			}()
 
 			task.AllDone = calcAllDone(task)
@@ -396,11 +400,10 @@ func _taskEdit(action string, id int) {
 				// save to the backend
 				go func() {
 					done := false
-					data := shared.TaskCheckUpdate{
+					rpcClient.Call("TaskRPC.Check", shared.TaskCheckUpdate{
 						Channel:   Session.Channel,
 						TaskCheck: &task.Checks[key-1],
-					}
-					rpcClient.Call("TaskRPC.Check", data, &done)
+					}, &done)
 				}()
 				loadTemplate("task-check-list", "[name=CheckList]", task)
 				setActions(3)
@@ -525,11 +528,12 @@ func hashtagUsed(context *router.Context) {
 	go func() {
 		hashtag := shared.Hashtag{}
 		tasks := []shared.SchedTask{}
-		rpcClient.Call("TaskRPC.HashtagGet", id, &hashtag)
-		rpcClient.Call("TaskRPC.ListHashSched", shared.HashtagRPCData{
+		data := shared.HashtagRPCData{
 			Channel: Session.Channel,
 			ID:      id,
-		}, &tasks)
+		}
+		rpcClient.Call("TaskRPC.HashtagGet", data, &hashtag)
+		rpcClient.Call("TaskRPC.ListHashSched", data, &tasks)
 
 		BackURL := fmt.Sprintf("/hashtag/%d", id)
 
@@ -571,11 +575,12 @@ func machineSchedList(context *router.Context) {
 	go func() {
 		machine := shared.Machine{}
 		tasks := []shared.SchedTask{}
-		rpcClient.Call("MachineRPC.Get", id, &machine)
-		rpcClient.Call("TaskRPC.ListMachineSched", shared.MachineRPCData{
+		data := shared.MachineRPCData{
 			Channel: Session.Channel,
 			ID:      id,
-		}, &tasks)
+		}
+		rpcClient.Call("MachineRPC.Get", data, &machine)
+		rpcClient.Call("TaskRPC.ListMachineSched", data, &tasks)
 
 		BackURL := fmt.Sprintf("/machine/%d", id)
 
@@ -719,7 +724,7 @@ func schedEdit(context *router.Context) {
 
 		compTools := []formulate.SelectOption{}
 		for i, comp := range machine.Components {
-			newOpt := formulate.SelectOption{i + 1, comp.Name}
+			newOpt := formulate.SelectOption{ID: i + 1, Name: comp.Name}
 			compTools = append(compTools, newOpt)
 		}
 
@@ -781,12 +786,11 @@ func schedEdit(context *router.Context) {
 		form.DeleteEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			go func() {
-				data := shared.SchedTaskRPCData{
+				done := false
+				rpcClient.Call("TaskRPC.DeleteSched", shared.SchedTaskRPCData{
 					Channel:   Session.Channel,
 					SchedTask: &task,
-				}
-				done := false
-				rpcClient.Call("TaskRPC.DeleteSched", data, &done)
+				}, &done)
 				Session.Navigate(BackURL)
 			}()
 		})
@@ -853,12 +857,11 @@ func schedEdit(context *router.Context) {
 			}
 
 			go func() {
-				data := shared.SchedTaskRPCData{
+				done := false
+				rpcClient.Call("TaskRPC.UpdateSched", shared.SchedTaskRPCData{
 					Channel:   Session.Channel,
 					SchedTask: &task,
-				}
-				done := false
-				rpcClient.Call("TaskRPC.UpdateSched", data, &done)
+				}, &done)
 				Session.Navigate(BackURL)
 			}()
 		})
@@ -1063,8 +1066,14 @@ func machineSchedAdd(context *router.Context) {
 		machine := shared.Machine{}
 		task := shared.SchedTask{}
 		technicians := []shared.User{}
-		rpcClient.Call("MachineRPC.Get", id, &machine)
-		rpcClient.Call("UserRPC.GetTechnicians", machine.SiteID, &technicians)
+		rpcClient.Call("MachineRPC.Get", shared.MachineRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &machine)
+		rpcClient.Call("UserRPC.GetTechnicians", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      machine.SiteID,
+		}, &technicians)
 
 		BackURL := fmt.Sprintf("/machine/sched/%d", machine.ID)
 		title := fmt.Sprintf("Add Sched Maint Task for - %s - %s", machine.Name, *machine.SiteName)
@@ -1098,7 +1107,7 @@ func machineSchedAdd(context *router.Context) {
 
 		compTools := []formulate.SelectOption{}
 		for i, comp := range machine.Components {
-			newOpt := formulate.SelectOption{i + 1, comp.Name}
+			newOpt := formulate.SelectOption{ID: i + 1, Name: comp.Name}
 			compTools = append(compTools, newOpt)
 		}
 
@@ -1195,12 +1204,11 @@ func machineSchedAdd(context *router.Context) {
 			}
 
 			go func() {
-				data := shared.SchedTaskRPCData{
+				newID := 0
+				rpcClient.Call("TaskRPC.InsertSched", shared.SchedTaskRPCData{
 					Channel:   Session.Channel,
 					SchedTask: &task,
-				}
-				newID := 0
-				rpcClient.Call("TaskRPC.InsertSched", data, &newID)
+				}, &newID)
 				// print("added task ID", newID)
 				Session.Navigate(fmt.Sprintf("/sched/%d", newID))
 			}()
