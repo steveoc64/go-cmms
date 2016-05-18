@@ -18,11 +18,13 @@ m.*,s.name as site_name,x.span as span
 where m.id = $1`
 
 // Get the details for a given machine
-func (m *MachineRPC) Get(machineID int, machine *shared.Machine) error {
+func (m *MachineRPC) Get(data shared.MachineRPCData, machine *shared.Machine) error {
 	start := time.Now()
 
+	conn := Connections.Get(data.Channel)
+
 	// Read the sites that this user has access to
-	err := DB.SQL(MachineQuery, machineID).QueryStruct(machine)
+	err := DB.SQL(MachineQuery, data.ID).QueryStruct(machine)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -31,19 +33,20 @@ func (m *MachineRPC) Get(machineID int, machine *shared.Machine) error {
 	// fetch all components
 	err = DB.Select("*").
 		From("component").
-		Where("machine_id = $1", machineID).
+		Where("machine_id = $1", data.ID).
 		OrderBy("position,zindex,lower(name)").
 		QueryStructs(&machine.Components)
 
 	logger(start, "Machine.Get",
-		fmt.Sprintf("Machine %d", machineID),
-		machine.Name)
+		fmt.Sprintf("%d", data.ID),
+		machine.Name,
+		data.Channel, conn.UserID, "machine", data.ID, false)
 
 	return nil
 }
 
 // Update a Machine
-func (m *MachineRPC) Update(data shared.MachineUpdateData, ok *bool) error {
+func (m *MachineRPC) Update(data shared.MachineRPCData, ok *bool) error {
 	start := time.Now()
 
 	// log.Println("here", data)
@@ -59,14 +62,15 @@ func (m *MachineRPC) Update(data shared.MachineUpdateData, ok *bool) error {
 	logger(start, "Machine.Update",
 		fmt.Sprintf("Channel %d, Machine %d, User %d %s %s",
 			data.Channel, data.Machine.ID, conn.UserID, conn.Username, conn.UserRole),
-		data.Machine.Name)
+		data.Machine.Name,
+		data.Channel, conn.UserID, "machine", data.Machine.ID, true)
 
 	*ok = true
 	return nil
 }
 
 // Insert a machine
-func (m *MachineRPC) Insert(data shared.MachineUpdateData, id *int) error {
+func (m *MachineRPC) Insert(data shared.MachineRPCData, id *int) error {
 	start := time.Now()
 
 	// log.Println("here", data)
@@ -84,13 +88,14 @@ func (m *MachineRPC) Insert(data shared.MachineUpdateData, id *int) error {
 	logger(start, "Machine.Insert",
 		fmt.Sprintf("Channel %d, Machine %d, User %d %s %s",
 			data.Channel, *id, conn.UserID, conn.Username, conn.UserRole),
-		data.Machine.Name)
+		data.Machine.Name,
+		data.Channel, conn.UserID, "machine", *id, true)
 
 	return nil
 }
 
 // Delete a machine
-func (m *MachineRPC) Delete(data shared.MachineUpdateData, ok *bool) error {
+func (m *MachineRPC) Delete(data shared.MachineRPCData, ok *bool) error {
 	start := time.Now()
 
 	// log.Println("here", data)
@@ -106,7 +111,8 @@ func (m *MachineRPC) Delete(data shared.MachineUpdateData, ok *bool) error {
 	logger(start, "Machine.Delete",
 		fmt.Sprintf("Channel %d, Machine %d, User %d %s %s",
 			data.Channel, id, conn.UserID, conn.Username, conn.UserRole),
-		data.Machine.Name)
+		data.Machine.Name,
+		data.Channel, conn.UserID, "machine", id, true)
 
 	*ok = true
 	return nil

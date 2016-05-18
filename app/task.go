@@ -90,7 +90,10 @@ func _taskEdit(action string, id int) {
 
 	task := shared.Task{}
 
-	rpcClient.Call("TaskRPC.Get", id, &task)
+	rpcClient.Call("TaskRPC.Get", shared.TaskRPCData{
+		Channel: Session.Channel,
+		ID:      id,
+	}, &task)
 
 	task.AllDone = calcAllDone(task)
 	// print("task with parts and checks attached =", task)
@@ -139,7 +142,7 @@ func _taskEdit(action string, id int) {
 						stoppageEdit(c)
 					}
 				} else {
-					data := shared.TaskUpdateData{
+					data := shared.TaskRPCData{
 						Channel: Session.Channel,
 						Task:    &task,
 					}
@@ -152,7 +155,7 @@ func _taskEdit(action string, id int) {
 			})
 		case "Technician":
 			form.ActionGrid("task-actions", "#action-grid", task, func(url string) {
-				data := shared.TaskUpdateData{
+				data := shared.TaskRPCData{
 					Channel: Session.Channel,
 					Task:    &task,
 				}
@@ -296,7 +299,7 @@ func _taskEdit(action string, id int) {
 			evt.PreventDefault()
 			task.ID = id
 			go func() {
-				data := shared.TaskUpdateData{
+				data := shared.TaskRPCData{
 					Channel: Session.Channel,
 					Task:    &task,
 				}
@@ -313,7 +316,7 @@ func _taskEdit(action string, id int) {
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&task)
-			data := shared.TaskUpdateData{
+			data := shared.TaskRPCData{
 				Channel: Session.Channel,
 				Task:    &task,
 			}
@@ -358,7 +361,7 @@ func _taskEdit(action string, id int) {
 			task.LabourHrs, _ = strconv.ParseFloat(lh.Value, 64)
 			// fire off the change to the backend
 			form.Bind(&task)
-			data := shared.TaskUpdateData{
+			data := shared.TaskRPCData{
 				Channel: Session.Channel,
 				Task:    &task,
 			}
@@ -523,7 +526,10 @@ func hashtagUsed(context *router.Context) {
 		hashtag := shared.Hashtag{}
 		tasks := []shared.SchedTask{}
 		rpcClient.Call("TaskRPC.HashtagGet", id, &hashtag)
-		rpcClient.Call("TaskRPC.ListHashSched", id, &tasks)
+		rpcClient.Call("TaskRPC.ListHashSched", shared.HashtagRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &tasks)
 
 		BackURL := fmt.Sprintf("/hashtag/%d", id)
 
@@ -566,7 +572,10 @@ func machineSchedList(context *router.Context) {
 		machine := shared.Machine{}
 		tasks := []shared.SchedTask{}
 		rpcClient.Call("MachineRPC.Get", id, &machine)
-		rpcClient.Call("TaskRPC.ListMachineSched", id, &tasks)
+		rpcClient.Call("TaskRPC.ListMachineSched", shared.MachineRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &tasks)
 
 		BackURL := fmt.Sprintf("/machine/%d", id)
 
@@ -640,9 +649,20 @@ func schedEdit(context *router.Context) {
 		task := shared.SchedTask{}
 		technicians := []shared.User{}
 
-		rpcClient.Call("TaskRPC.GetSched", id, &task)
-		rpcClient.Call("MachineRPC.Get", task.MachineID, &machine)
-		rpcClient.Call("UserRPC.GetTechnicians", machine.SiteID, &technicians)
+		rpcClient.Call("TaskRPC.GetSched", shared.TaskRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &task)
+
+		rpcClient.Call("MachineRPC.Get", shared.MachineRPCData{
+			Channel: Session.Channel,
+			ID:      task.MachineID,
+		}, &machine)
+
+		rpcClient.Call("UserRPC.GetTechnicians", shared.UserRPCData{
+			Channel: Session.Channel,
+			ID:      machine.SiteID,
+		}, &technicians)
 
 		BackURL := context.Params["back"]
 		if BackURL == "" {
@@ -761,7 +781,7 @@ func schedEdit(context *router.Context) {
 		form.DeleteEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			go func() {
-				data := shared.SchedTaskUpdateData{
+				data := shared.SchedTaskRPCData{
 					Channel:   Session.Channel,
 					SchedTask: &task,
 				}
@@ -833,7 +853,7 @@ func schedEdit(context *router.Context) {
 			}
 
 			go func() {
-				data := shared.SchedTaskUpdateData{
+				data := shared.SchedTaskRPCData{
 					Channel:   Session.Channel,
 					SchedTask: &task,
 				}
@@ -964,7 +984,10 @@ func schedEdit(context *router.Context) {
 			done := false
 			switch url {
 			case "play":
-				go rpcClient.Call("TaskRPC.SchedPlay", task.ID, &done)
+				go rpcClient.Call("TaskRPC.SchedPlay", shared.SchedTaskRPCData{
+					Channel: Session.Channel,
+					ID:      task.ID,
+				}, &done)
 				task.Paused = false
 				doc.QuerySelector("#playtask").Class().Add("action-hidden")
 				doc.QuerySelector("#pausetask").Class().Remove("action-hidden")
@@ -977,7 +1000,10 @@ func schedEdit(context *router.Context) {
 			default:
 
 			case "pause":
-				go rpcClient.Call("TaskRPC.SchedPause", task.ID, &done)
+				go rpcClient.Call("TaskRPC.SchedPause", shared.SchedTaskRPCData{
+					Channel: Session.Channel,
+					ID:      task.ID,
+				}, &done)
 				task.Paused = true
 				doc.QuerySelector("#pausetask").Class().Add("action-hidden")
 				doc.QuerySelector("#playtask").Class().Remove("action-hidden")
@@ -1169,7 +1195,7 @@ func machineSchedAdd(context *router.Context) {
 			}
 
 			go func() {
-				data := shared.SchedTaskUpdateData{
+				data := shared.SchedTaskRPCData{
 					Channel:   Session.Channel,
 					SchedTask: &task,
 				}
@@ -1223,8 +1249,14 @@ func siteTaskList(context *router.Context) {
 	go func() {
 		site := shared.Site{}
 		tasks := []shared.Task{}
-		rpcClient.Call("SiteRPC.Get", id, &site)
-		rpcClient.Call("TaskRPC.SiteList", id, &tasks)
+		rpcClient.Call("SiteRPC.Get", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &site)
+		rpcClient.Call("TaskRPC.SiteList", shared.TaskRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &tasks)
 
 		BackURL := fmt.Sprintf("/site/%d", id)
 		form := formulate.ListForm{}
@@ -1284,8 +1316,14 @@ func stoppageTaskList(context *router.Context) {
 	go func() {
 		tasks := []shared.Task{}
 		event := shared.Event{}
-		rpcClient.Call("EventRPC.Get", id, &event)
-		rpcClient.Call("TaskRPC.StoppageList", id, &tasks)
+		rpcClient.Call("EventRPC.Get", shared.EventRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &event)
+		rpcClient.Call("TaskRPC.StoppageList", shared.TaskRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &tasks)
 
 		BackURL := fmt.Sprintf("/stoppage/%d", id)
 

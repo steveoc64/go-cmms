@@ -56,7 +56,8 @@ func (s *SiteRPC) SiteCount(channel int, count *int) error {
 	logger(start, "Site.SiteCount",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d Sites", count))
+		fmt.Sprintf("%d Sites", count),
+		channel, conn.UserID, "user_site", conn.UserID, false)
 
 	return nil
 }
@@ -81,7 +82,8 @@ func (s *SiteRPC) UserList(channel int, sites *[]shared.Site) error {
 	logger(start, "Site.UserList",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d Sites", len(*sites)))
+		fmt.Sprintf("%d Sites", len(*sites)),
+		channel, conn.UserID, "user_site", conn.UserID, false)
 
 	return nil
 }
@@ -102,17 +104,20 @@ func (s *SiteRPC) List(channel int, sites *[]shared.Site) error {
 	logger(start, "Site.List",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d Sites", len(*sites)))
+		fmt.Sprintf("%d Sites", len(*sites)),
+		channel, conn.UserID, "site", 0, false)
 
 	return nil
 }
 
 // Get the details for a given site
-func (s *SiteRPC) Get(siteID int, site *shared.Site) error {
+func (s *SiteRPC) Get(data shared.SiteRPCData, site *shared.Site) error {
 	start := time.Now()
 
+	conn := Connections.Get(data.Channel)
+
 	// Read the sites that this user has access to
-	err := DB.SQL(SiteQueryBySite, siteID).QueryStruct(site)
+	err := DB.SQL(SiteQueryBySite, data.ID).QueryStruct(site)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -120,15 +125,16 @@ func (s *SiteRPC) Get(siteID int, site *shared.Site) error {
 
 	// bar := "==============================================\n"
 	logger(start, "Site.Get",
-		fmt.Sprintf("Site %d", siteID),
-		site.Name)
+		fmt.Sprintf("Site %d", data.ID),
+		site.Name,
+		data.Channel, conn.UserID, "site", data.ID, false)
 	// fmt.Sprintf("%s\n%s%#v\n%s", site.Name, bar, site, bar))
 
 	return nil
 }
 
 // Save a site
-func (s *SiteRPC) Update(data shared.SiteUpdateData, retval *bool) error {
+func (s *SiteRPC) Update(data shared.SiteRPCData, retval *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -142,14 +148,15 @@ func (s *SiteRPC) Update(data shared.SiteUpdateData, retval *bool) error {
 	logger(start, "Site.Update",
 		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
 			data.Channel, data.Site.ID, conn.UserID, conn.Username, conn.UserRole),
-		data.Site.Name)
+		data.Site.Name,
+		data.Channel, conn.UserID, "site", data.Site.ID, true)
 
 	*retval = true
 	return nil
 }
 
 // Add a site
-func (s *SiteRPC) Insert(data shared.SiteUpdateData, id *int) error {
+func (s *SiteRPC) Insert(data shared.SiteRPCData, id *int) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -165,13 +172,14 @@ func (s *SiteRPC) Insert(data shared.SiteUpdateData, id *int) error {
 	logger(start, "Site.Insert",
 		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
 			data.Channel, *id, conn.UserID, conn.Username, conn.UserRole),
-		data.Site.Name)
+		data.Site.Name,
+		data.Channel, conn.UserID, "site", *id, true)
 
 	return nil
 }
 
 // Delete a site
-func (s *SiteRPC) Delete(data shared.SiteUpdateData, ok *bool) error {
+func (s *SiteRPC) Delete(data shared.SiteRPCData, ok *bool) error {
 	start := time.Now()
 
 	// log.Println("here", data)
@@ -179,15 +187,15 @@ func (s *SiteRPC) Delete(data shared.SiteUpdateData, ok *bool) error {
 	// log.Println("conn", conn)
 
 	*ok = false
-	id := data.Site.ID
 	DB.DeleteFrom("site").
-		Where("id=$1", id).
+		Where("id=$1", data.Site.ID).
 		Exec()
 
 	logger(start, "Site.Delete",
 		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
-			data.Channel, id, conn.UserID, conn.Username, conn.UserRole),
-		data.Site.Name)
+			data.Channel, data.Site.ID, conn.UserID, conn.Username, conn.UserRole),
+		data.Site.Name,
+		data.Channel, conn.UserID, "site", data.Site.ID, true)
 
 	*ok = true
 	return nil
@@ -212,7 +220,8 @@ func (s *SiteRPC) GetHome(channel int, site *shared.Site) error {
 	logger(start, "Site.GetHome",
 		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
 			channel, siteID, conn.UserID, conn.Username, conn.UserRole),
-		site.Name)
+		site.Name,
+		channel, conn.UserID, "site", siteID, false)
 
 	return nil
 }
@@ -242,7 +251,8 @@ func (s *SiteRPC) MachineList(req *shared.MachineReq, machines *[]shared.Machine
 	logger(start, "Site.MachineList",
 		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
 			req.Channel, req.SiteID, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d machines", len(*machines)))
+		fmt.Sprintf("%d machines", len(*machines)),
+		req.Channel, conn.UserID, "machine", 0, false)
 
 	return nil
 }
@@ -276,7 +286,8 @@ func (s *SiteRPC) HomeMachineList(channel int, machines *[]shared.Machine) error
 	logger(start, "Site.HomeMachineList",
 		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
 			channel, siteID, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d machines", len(*machines)))
+		fmt.Sprintf("%d machines", len(*machines)),
+		channel, conn.UserID, "machine", 0, false)
 
 	return nil
 }
@@ -380,7 +391,8 @@ func (s *SiteRPC) StatusReport(channel int, retval *shared.SiteStatusReport) err
 			retval.Edinburgh,
 			retval.Minto,
 			retval.Tomago,
-			retval.Chinderah))
+			retval.Chinderah),
+		channel, conn.UserID, "site", 0, false)
 
 	return nil
 }

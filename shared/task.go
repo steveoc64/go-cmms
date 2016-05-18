@@ -31,8 +31,9 @@ type SchedTask struct {
 	PartsRequired []PartReq  `db:"parts_required"`
 }
 
-type SchedTaskUpdateData struct {
+type SchedTaskRPCData struct {
 	Channel   int
+	ID        int
 	SchedTask *SchedTask
 }
 
@@ -172,8 +173,9 @@ type Task struct {
 	AllDone           bool        `db:"all_done"`
 }
 
-type TaskUpdateData struct {
+type TaskRPCData struct {
 	Channel int
+	ID      int
 	Task    *Task
 }
 
@@ -238,7 +240,8 @@ func (h *Hashtag) HashName() string {
 	return "#" + h.Name
 }
 
-type HashtagUpdateData struct {
+type HashtagRPCData struct {
 	Channel int
+	ID      int
 	Hashtag *Hashtag
 }

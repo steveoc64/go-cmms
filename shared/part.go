@@ -12,8 +12,9 @@ type PartClass struct {
 	Count int    `db:"count"`
 }
 
-type PartClassUpdateData struct {
+type PartClassRPCData struct {
 	Channel   int
+	ID        int
 	PartClass *PartClass
 }
 
@@ -41,8 +42,9 @@ type Part struct {
 	Notes                string     `db:"notes"`
 }
 
-type PartUpdateData struct {
+type PartRPCData struct {
 	Channel int
+	ID      int
 	Part    *Part
 }
 

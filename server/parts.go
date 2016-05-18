@@ -11,26 +11,33 @@ import (
 type PartRPC struct{}
 
 // Get the details for a given part
-func (p *PartRPC) Get(partID int, part *shared.Part) error {
+func (p *PartRPC) Get(data shared.PartRPCData, part *shared.Part) error {
 	start := time.Now()
 
+	conn := Connections.Get(data.Channel)
+
 	// Read the sites that this user has access to
-	err := DB.SQL(`select * from part where id=$1`, partID).QueryStruct(part)
+	err := DB.SQL(`select * from part where id=$1`, data.ID).QueryStruct(part)
 
 	if err != nil {
 		log.Println(err.Error())
 	}
 
 	logger(start, "Part.Get",
-		fmt.Sprintf("Part %d", partID),
-		part.Name)
+		fmt.Sprintf("%d", data.ID),
+		part.Name,
+		data.Channel, conn.UserID, "part", data.ID, false)
 
 	return nil
 }
 
 // Get the details for a given part class
-func (p *PartRPC) GetClass(id int, partClass *shared.PartClass) error {
+func (p *PartRPC) GetClass(data shared.PartClassRPCData, partClass *shared.PartClass) error {
 	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	id := data.ID
 
 	if id == 0 {
 		*partClass = shared.PartClass{
@@ -48,14 +55,15 @@ func (p *PartRPC) GetClass(id int, partClass *shared.PartClass) error {
 	}
 
 	logger(start, "Part.GetClass",
-		fmt.Sprintf("Class %d", id),
-		partClass.Name)
+		fmt.Sprintf("%d", id),
+		partClass.Name,
+		data.Channel, conn.UserID, "part_class", id, false)
 
 	return nil
 }
 
 // Add a new part class
-func (p *PartRPC) InsertClass(data shared.PartClassUpdateData, id *int) error {
+func (p *PartRPC) InsertClass(data shared.PartClassRPCData, id *int) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -68,15 +76,15 @@ func (p *PartRPC) InsertClass(data shared.PartClassUpdateData, id *int) error {
 		QueryScalar(id)
 
 	logger(start, "Part.InsertClass",
-		fmt.Sprintf("Channel %d, Class %d, User %d %s %s",
-			data.Channel, *id, conn.UserID, conn.Username, conn.UserRole),
-		data.PartClass.Name)
+		data.PartClass.Name,
+		"",
+		data.Channel, conn.UserID, "part_class", *id, true)
 
 	return nil
 }
 
 // Delete the class
-func (p *PartRPC) DeleteClass(data shared.PartClassUpdateData, done *bool) error {
+func (p *PartRPC) DeleteClass(data shared.PartClassRPCData, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -88,7 +96,8 @@ func (p *PartRPC) DeleteClass(data shared.PartClassUpdateData, done *bool) error
 	logger(start, "Part.DeleteClass",
 		fmt.Sprintf("Channel %d, Class %d, User %d %s %s",
 			data.Channel, data.PartClass.ID, conn.UserID, conn.Username, conn.UserRole),
-		data.PartClass.Name)
+		data.PartClass.Name,
+		data.Channel, conn.UserID, "part_class", data.PartClass.ID, true)
 
 	*done = true
 
@@ -96,7 +105,7 @@ func (p *PartRPC) DeleteClass(data shared.PartClassUpdateData, done *bool) error
 }
 
 // Update the class
-func (p *PartRPC) UpdateClass(data shared.PartClassUpdateData, done *bool) error {
+func (p *PartRPC) UpdateClass(data shared.PartClassRPCData, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -107,9 +116,9 @@ func (p *PartRPC) UpdateClass(data shared.PartClassUpdateData, done *bool) error
 		Exec()
 
 	logger(start, "Part.UpdateClass",
-		fmt.Sprintf("Channel %d, Class %d, User %d %s %s",
-			data.Channel, data.PartClass.ID, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%s : %s", data.PartClass.Name, data.PartClass.Descr))
+		fmt.Sprintf("%s : %s", data.PartClass.Name, data.PartClass.Descr),
+		"",
+		data.Channel, conn.UserID, "part_class", data.PartClass.ID, true)
 
 	*done = true
 
@@ -147,9 +156,9 @@ func (m *PartRPC) ClassList(channel int, classes *[]shared.PartClass) error {
 	}
 
 	logger(start, "Part.ClassList",
-		fmt.Sprintf("Channel %d, User %d %s %s",
-			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d Classes", len(*classes)))
+		"",
+		fmt.Sprintf("%d Classes", len(*classes)),
+		channel, conn.UserID, "part_class", 0, false)
 
 	return nil
 }
@@ -170,15 +179,15 @@ func (p *PartRPC) List(req shared.PartListReq, parts *[]shared.Part) error {
 	}
 
 	logger(start, "Part.List",
-		fmt.Sprintf("Channel %d, User %d %s %s",
-			req.Channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("Class %d %d parts", req.Class, len(*parts)))
+		"",
+		fmt.Sprintf("Class %d %d parts", req.Class, len(*parts)),
+		req.Channel, conn.UserID, "parts", 0, false)
 
 	return nil
 }
 
 // Update the part
-func (p *PartRPC) Update(data shared.PartUpdateData, done *bool) error {
+func (p *PartRPC) Update(data shared.PartRPCData, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -229,15 +238,15 @@ func (p *PartRPC) Update(data shared.PartUpdateData, done *bool) error {
 	}
 
 	logger(start, "Part.Update",
-		fmt.Sprintf("Channel %d, Part %d, User %d %s %s",
-			data.Channel, data.Part.ID, conn.UserID, conn.Username, conn.UserRole),
-		data.Part.Name)
+		data.Part.Name,
+		"",
+		data.Channel, conn.UserID, "part", data.Part.ID, true)
 
 	return nil
 }
 
 // Insert a new part
-func (p *PartRPC) Insert(data shared.PartUpdateData, id *int) error {
+func (p *PartRPC) Insert(data shared.PartRPCData, id *int) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -272,15 +281,15 @@ func (p *PartRPC) Insert(data shared.PartUpdateData, id *int) error {
 		Exec()
 
 	logger(start, "Part.Insert",
-		fmt.Sprintf("Channel %d, User %d %s %s",
-			data.Channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("New Part %d", *id))
+		data.Part.Name,
+		fmt.Sprintf("%d", *id),
+		data.Channel, conn.UserID, "part", *id, true)
 
 	return nil
 }
 
 // Delete a new part
-func (p *PartRPC) Delete(data shared.PartUpdateData, done *bool) error {
+func (p *PartRPC) Delete(data shared.PartRPCData, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -294,24 +303,26 @@ func (p *PartRPC) Delete(data shared.PartUpdateData, done *bool) error {
 		Exec()
 
 	logger(start, "Part.Delete",
-		fmt.Sprintf("Channel %d, Part %d, User %d %s %s",
-			data.Channel, data.Part.ID, conn.UserID, conn.Username, conn.UserRole),
-		data.Part.Name)
+		fmt.Sprintf("%d", data.Part.ID),
+		data.Part.Name,
+		data.Channel, conn.UserID, "part", data.Part.ID, true)
 
 	*done = true
 	return nil
 }
 
 // Get a list of stock records for a part
-func (p *PartRPC) StockList(id int, stocks *[]shared.PartStock) error {
+func (p *PartRPC) StockList(data shared.PartRPCData, stocks *[]shared.PartStock) error {
 	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
 
 	// Read the stock records for this part in reverse date order
 	err := DB.SQL(`select * 
 		from part_stock 
 		where part_id=$1 
 		order by datefrom desc
-		limit 5`, id).
+		limit 5`, data.ID).
 		QueryStructs(stocks)
 
 	if err != nil {
@@ -319,22 +330,25 @@ func (p *PartRPC) StockList(id int, stocks *[]shared.PartStock) error {
 	}
 
 	logger(start, "Part.StockList",
-		fmt.Sprintf("Part %d", id),
-		fmt.Sprintf("%d stock records", len(*stocks)))
+		fmt.Sprintf("%d", data.ID),
+		fmt.Sprintf("%d stock records", len(*stocks)),
+		data.Channel, conn.UserID, "part_stock", 0, false)
 
 	return nil
 }
 
 // Get a list of price records for a part
-func (p *PartRPC) PriceList(id int, prices *[]shared.PartPrice) error {
+func (p *PartRPC) PriceList(data shared.PartRPCData, prices *[]shared.PartPrice) error {
 	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
 
 	// Read the stock records for this part in reverse date order
 	err := DB.SQL(`select * 
 		from part_price 
 		where part_id=$1 
 		order by datefrom desc
-		limit 5`, id).
+		limit 5`, data.ID).
 		QueryStructs(prices)
 
 	if err != nil {
@@ -342,8 +356,9 @@ func (p *PartRPC) PriceList(id int, prices *[]shared.PartPrice) error {
 	}
 
 	logger(start, "Part.PriceList",
-		fmt.Sprintf("Part %d", id),
-		fmt.Sprintf("%d price records", len(*prices)))
+		fmt.Sprintf("%d", data.ID),
+		fmt.Sprintf("%d price records", len(*prices)),
+		data.Channel, conn.UserID, "part_price", 0, false)
 
 	return nil
 }

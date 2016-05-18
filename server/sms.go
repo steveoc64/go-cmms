@@ -168,7 +168,8 @@ func (s *SMSRPC) List(channel int, smsTrans *[]shared.SMSTrans) error {
 	logger(start, "SMS.List",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d Messages", len(*smsTrans)))
+		fmt.Sprintf("%d Messages", len(*smsTrans)),
+		channel, conn.UserID, "sms_trans", 0, false)
 
 	return nil
 }

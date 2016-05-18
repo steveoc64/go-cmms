@@ -39,3 +39,15 @@ alter table users add hourly_rate numeric(12,2) not null default 0;
 alter table users add address text not null default '';
 alter table users add site_id int not null default 0;
 alter table users add notes text not null default '';
+
+-- 2016-05-16
+-- Syslog has a more useful fields
+
+alter table user_log 
+add channel int not null default 0,
+add user_id int not null default 0,
+add entity text not null default '',
+add entity_id int not null default 0,
+add error text not null default '',
+add is_update bool not null default false;
+

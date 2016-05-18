@@ -131,8 +131,12 @@ func _stoppageEdit(action string, id int) {
 	}
 
 	event := shared.Event{}
+	data := shared.EventRPCData{
+		Channel: Session.Channel,
+		ID:      id,
+	}
 
-	rpcClient.Call("EventRPC.Get", id, &event)
+	rpcClient.Call("EventRPC.Get", data, &event)
 
 	title := fmt.Sprintf("Stoppage Details - %06d", id)
 	form := formulate.EditForm{}
@@ -194,7 +198,7 @@ func _stoppageEdit(action string, id int) {
 			evt.PreventDefault()
 			event.ID = id
 			go func() {
-				data := shared.EventUpdateData{
+				data := shared.EventRPCData{
 					Channel: Session.Channel,
 					Event:   &event,
 				}
@@ -208,7 +212,7 @@ func _stoppageEdit(action string, id int) {
 			form.SaveEvent(func(evt dom.Event) {
 				evt.PreventDefault()
 				form.Bind(&event)
-				data := shared.EventUpdateData{
+				data := shared.EventRPCData{
 					Channel: Session.Channel,
 					Event:   &event,
 				}
@@ -256,7 +260,7 @@ func stoppageComplete(context *router.Context) {
 	go func() {
 		event := shared.Event{}
 		event.ID = id
-		data := shared.EventUpdateData{
+		data := shared.EventRPCData{
 			Channel: Session.Channel,
 			Event:   &event,
 		}

@@ -1,16 +1,14 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/jung-kurt/gofpdf"
+	// "github.com/jung-kurt/gofpdf"
 	"github.com/steveoc64/go-cmms/shared"
 	// "github.com/jung-kurt/gofpdf"
 	// "github.com/signintech/gopdf"
@@ -24,29 +22,34 @@ const (
 type TaskRPC struct{}
 
 // Get all the tasks for the given machine
-func (t *TaskRPC) ListMachineSched(machineID int, tasks *[]shared.SchedTask) error {
+func (t *TaskRPC) ListMachineSched(data shared.MachineRPCData, tasks *[]shared.SchedTask) error {
 	start := time.Now()
 
+	conn := Connections.Get(data.Channel)
+
 	// Read the sites that this user has access to
-	err := DB.SQL(`select * from sched_task where machine_id=$1 order by id`, machineID).QueryStructs(tasks)
+	err := DB.SQL(`select * from sched_task where machine_id=$1 order by id`, data.ID).QueryStructs(tasks)
 
 	if err != nil {
 		log.Println(err.Error())
 	}
 
 	logger(start, "Task.ListMachineSched",
-		fmt.Sprintf("Machine %d", machineID),
-		fmt.Sprintf("%d tasks", len(*tasks)))
+		fmt.Sprintf("Machine %d", data.ID),
+		fmt.Sprintf("%d tasks", len(*tasks)),
+		data.Channel, conn.UserID, "machine", 0, false)
 
 	return nil
 }
 
 // Get all the tasks that contain the given hash
-func (t *TaskRPC) ListHashSched(id int, tasks *[]shared.SchedTask) error {
+func (t *TaskRPC) ListHashSched(data shared.HashtagRPCData, tasks *[]shared.SchedTask) error {
 	start := time.Now()
 
+	conn := Connections.Get(data.Channel)
+
 	hashname := ""
-	err := DB.SQL(`select name from hashtag where id=$1`, id).QueryScalar(&hashname)
+	err := DB.SQL(`select name from hashtag where id=$1`, data.ID).QueryScalar(&hashname)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -64,16 +67,19 @@ func (t *TaskRPC) ListHashSched(id int, tasks *[]shared.SchedTask) error {
 	}
 
 	logger(start, "Task.ListHashSched",
-		fmt.Sprintf("Hash %d", id),
-		fmt.Sprintf("%d tasks", len(*tasks)))
+		fmt.Sprintf("Hash %d", data.ID),
+		fmt.Sprintf("%d tasks", len(*tasks)),
+		data.Channel, conn.UserID, "sched_task", 0, false)
 
 	return nil
 }
 
-func (t *TaskRPC) GetSched(id int, task *shared.SchedTask) error {
+func (t *TaskRPC) GetSched(data shared.TaskRPCData, task *shared.SchedTask) error {
 	start := time.Now()
 
-	err := DB.SQL(`select * from sched_task where id=$1`, id).QueryStruct(task)
+	conn := Connections.Get(data.Channel)
+
+	err := DB.SQL(`select * from sched_task where id=$1`, data.ID).QueryStruct(task)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -111,13 +117,14 @@ func (t *TaskRPC) GetSched(id int, task *shared.SchedTask) error {
 	}
 
 	logger(start, "Task.GetSched",
-		fmt.Sprintf("Sched %d", id),
-		fmt.Sprintf("%s %s", task.Freq, task.Descr))
+		fmt.Sprintf("Sched %d", data.ID),
+		fmt.Sprintf("%s %s", task.Freq, task.Descr),
+		data.Channel, conn.UserID, "sched_task", data.ID, false)
 
 	return nil
 }
 
-func (t *TaskRPC) UpdateSched(data *shared.SchedTaskUpdateData, ok *bool) error {
+func (t *TaskRPC) UpdateSched(data shared.SchedTaskRPCData, ok *bool) error {
 	start := time.Now()
 
 	if data.SchedTask.Freq == "Every N Days" {
@@ -150,12 +157,13 @@ func (t *TaskRPC) UpdateSched(data *shared.SchedTaskUpdateData, ok *bool) error 
 			data.Channel, data.SchedTask.ID, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d %s %d %s %s",
 			data.SchedTask.MachineID, data.SchedTask.CompType,
-			data.SchedTask.ToolID, data.SchedTask.Component, data.SchedTask.Descr))
+			data.SchedTask.ToolID, data.SchedTask.Component, data.SchedTask.Descr),
+		data.Channel, conn.UserID, "sched_task", data.SchedTask.ID, true)
 
 	*ok = true
 
 	newTasks := 0
-	schedTaskScan(time.Now(), &newTasks)
+	schedTaskScan(data.Channel, conn.UserID, time.Now(), &newTasks)
 	return nil
 }
 
@@ -175,54 +183,62 @@ func (t *TaskRPC) SchedPart(data shared.PartReqEdit, ok *bool) error {
 		Notes:  data.Part.Notes,
 	}
 
+	id := 0
 	DB.InsertInto("sched_task_part").
 		Whitelist("task_id", "part_id", "qty", "notes").
 		Record(record).
-		Exec()
+		Returning("id").
+		QueryScalar(&id)
 
 	logger(start, "Task.SchedPart",
 		fmt.Sprintf("Channel %d, Task %d, User %d %s %s",
 			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("Part %d Qty %f Notes %s",
-			data.Part.PartID, data.Part.Qty, data.Part.Notes))
+			data.Part.PartID, data.Part.Qty, data.Part.Notes),
+		data.Channel, conn.UserID, "sched_task_part", id, true)
 
 	*ok = true
 
 	return nil
 }
 
-func (t *TaskRPC) SchedPlay(id int, ok *bool) error {
+func (t *TaskRPC) SchedPlay(data shared.SchedTaskRPCData, ok *bool) error {
 	start := time.Now()
 
-	DB.SQL(`update sched_task set paused=false,last_generated=now() where id=$1`, id).Exec()
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`update sched_task set paused=false,last_generated=now() where id=$1`, data.ID).Exec()
 
 	logger(start, "Task.SchedPlay",
-		fmt.Sprintf("Sched %d", id),
-		"Now Running")
+		fmt.Sprintf("Sched %d", data.ID),
+		"Now Running",
+		data.Channel, conn.UserID, "sched_task", data.ID, true)
 
 	*ok = true
 
 	newTasks := 0
-	schedTaskScan(time.Now(), &newTasks)
+	schedTaskScan(data.Channel, conn.UserID, time.Now(), &newTasks)
 
 	return nil
 }
 
-func (t *TaskRPC) SchedPause(id int, ok *bool) error {
+func (t *TaskRPC) SchedPause(data shared.SchedTaskRPCData, ok *bool) error {
 	start := time.Now()
 
-	DB.SQL(`update sched_task set paused=true where id=$1`, id).Exec()
+	conn := Connections.Get(data.Channel)
+	DB.SQL(`update sched_task set paused=true where id=$1`, data.ID).Exec()
 
 	logger(start, "Task.SchedPause",
-		fmt.Sprintf("Sched %d", id),
-		"Now Paused")
+		fmt.Sprintf("Sched %d", data.ID),
+		"Now Paused",
+		data.Channel, conn.UserID, "sched_task", data.ID, true)
 
 	*ok = true
 
 	return nil
 }
 
-func (t *TaskRPC) DeleteSched(data *shared.SchedTaskUpdateData, ok *bool) error {
+func (t *TaskRPC) DeleteSched(data shared.SchedTaskRPCData, ok *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -236,13 +252,14 @@ func (t *TaskRPC) DeleteSched(data *shared.SchedTaskUpdateData, ok *bool) error 
 			data.Channel, data.SchedTask.ID, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d %s %d %s %s",
 			data.SchedTask.MachineID, data.SchedTask.CompType,
-			data.SchedTask.ToolID, data.SchedTask.Component, data.SchedTask.Descr))
+			data.SchedTask.ToolID, data.SchedTask.Component, data.SchedTask.Descr),
+		data.Channel, conn.UserID, "sched_task", data.SchedTask.ID, true)
 
 	*ok = true
 	return nil
 }
 
-func (t *TaskRPC) InsertSched(data *shared.SchedTaskUpdateData, id *int) error {
+func (t *TaskRPC) InsertSched(data shared.SchedTaskRPCData, id *int) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -279,15 +296,16 @@ func (t *TaskRPC) InsertSched(data *shared.SchedTaskUpdateData, id *int) error {
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d %d %s %d %s %s",
 			*id, data.SchedTask.MachineID, data.SchedTask.CompType,
-			data.SchedTask.ToolID, data.SchedTask.Component, data.SchedTask.Descr))
+			data.SchedTask.ToolID, data.SchedTask.Component, data.SchedTask.Descr),
+		data.Channel, conn.UserID, "sched_task", *id, true)
 
 	newTasks := 0
-	schedTaskScan(time.Now(), &newTasks)
+	schedTaskScan(data.Channel, conn.UserID, time.Now(), &newTasks)
 
 	return nil
 }
 
-func (t *TaskRPC) Update(data shared.TaskUpdateData, done *bool) error {
+func (t *TaskRPC) Update(data shared.TaskRPCData, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -344,7 +362,8 @@ func (t *TaskRPC) Update(data shared.TaskUpdateData, done *bool) error {
 		fmt.Sprintf("Channel %d, Task %d, User %d %s %s",
 			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%f %f %f %s",
-			data.Task.LabourCost, data.Task.MaterialCost, data.Task.LabourHrs, data.Task.Log))
+			data.Task.LabourCost, data.Task.MaterialCost, data.Task.LabourHrs, data.Task.Log),
+		data.Channel, conn.UserID, "task", data.Task.ID, true)
 
 	*done = true
 
@@ -352,7 +371,7 @@ func (t *TaskRPC) Update(data shared.TaskUpdateData, done *bool) error {
 	return nil
 }
 
-func (t *TaskRPC) Delete(data shared.TaskUpdateData, done *bool) error {
+func (t *TaskRPC) Delete(data shared.TaskRPCData, done *bool) error {
 	log.Printf("TODO TaskRPC.Delete")
 	return nil
 }
@@ -423,7 +442,8 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 	logger(start, "Task.List",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d Tasks", len(*tasks)))
+		fmt.Sprintf("%d Tasks", len(*tasks)),
+		channel, conn.UserID, "task", 0, false)
 
 	return nil
 }
@@ -494,13 +514,16 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 	logger(start, "Task.ListCompleted",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d Tasks", len(*tasks)))
+		fmt.Sprintf("%d Tasks", len(*tasks)),
+		channel, conn.UserID, "task", 0, false)
 
 	return nil
 }
 
-func (t *TaskRPC) Get(id int, task *shared.Task) error {
+func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
 
 	err := DB.SQL(`select 
 		t.*,m.name as machine_name,s.name as site_name,u.username as username
@@ -508,7 +531,7 @@ func (t *TaskRPC) Get(id int, task *shared.Task) error {
 			left join machine m on m.id=t.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
-		where t.id=$1`, id).
+		where t.id=$1`, data.ID).
 		QueryStruct(task)
 
 	if err != nil {
@@ -520,14 +543,15 @@ func (t *TaskRPC) Get(id int, task *shared.Task) error {
 		t.*,p.name as part_name,p.stock_code as stock_code,p.qty_type as qty_type
 		from task_part t
 		left join part p on p.id=t.part_id
-		where t.task_id=$1`, id).QueryStructs(&task.Parts)
+		where t.task_id=$1`, data.ID).QueryStructs(&task.Parts)
 
 	// Now get all the checks for this task
-	DB.SQL(`select * from task_check where task_id=$1`, id).QueryStructs(&task.Checks)
+	DB.SQL(`select * from task_check where task_id=$1`, data.ID).QueryStructs(&task.Checks)
 
 	logger(start, "Task.Get",
-		fmt.Sprintf("ID %d", id),
-		task.Descr)
+		fmt.Sprintf("ID %d", data.Task.ID),
+		task.Descr,
+		data.Channel, conn.UserID, "task", data.Task.ID, false)
 
 	return nil
 }
@@ -547,16 +571,17 @@ func (t *TaskRPC) Check(data shared.TaskCheckUpdate, done *bool) error {
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("Task %d Seq %d Checked",
-			data.TaskCheck.TaskID, data.TaskCheck.Seq))
+			data.TaskCheck.TaskID, data.TaskCheck.Seq),
+		data.Channel, conn.UserID, "task_check", data.TaskCheck.TaskID, true)
 
 	*done = true
 	return nil
 }
 
-func (t *TaskRPC) SiteList(id int, tasks *[]shared.Task) error {
+func (t *TaskRPC) SiteList(data shared.TaskRPCData, tasks *[]shared.Task) error {
 	start := time.Now()
 
-	// conn := Connections.Get(channel)
+	conn := Connections.Get(data.Channel)
 
 	// Read the sites that this user has access to
 	err := DB.SQL(`select 
@@ -569,7 +594,7 @@ func (t *TaskRPC) SiteList(id int, tasks *[]shared.Task) error {
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
 		where s.id=$1
-		order by t.startdate`, id).
+		order by t.startdate`, data.ID).
 		QueryStructs(tasks)
 
 	if err != nil {
@@ -581,16 +606,17 @@ func (t *TaskRPC) SiteList(id int, tasks *[]shared.Task) error {
 	// 		channel, id, conn.UserID, conn.Username, conn.UserRole),
 	// 	fmt.Sprintf("%d Tasks", len(*tasks)))
 	logger(start, "Task.SiteList",
-		fmt.Sprintf("Site %d", id),
-		fmt.Sprintf("%d Tasks", len(*tasks)))
+		fmt.Sprintf("Site %d", data.ID),
+		fmt.Sprintf("%d Tasks", len(*tasks)),
+		data.Channel, conn.UserID, "task", 0, false)
 
 	return nil
 }
 
-func (t *TaskRPC) StoppageList(id int, tasks *[]shared.Task) error {
+func (t *TaskRPC) StoppageList(data shared.TaskRPCData, tasks *[]shared.Task) error {
 	start := time.Now()
 
-	// conn := Connections.Get(channel)
+	conn := Connections.Get(data.Channel)
 
 	// Read the sites that this user has access to
 	err := DB.SQL(`select 
@@ -603,7 +629,7 @@ func (t *TaskRPC) StoppageList(id int, tasks *[]shared.Task) error {
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
 		where t.event_id=$1
-		order by t.startdate`, id).
+		order by t.startdate`, data.ID).
 		QueryStructs(tasks)
 
 	if err != nil {
@@ -615,14 +641,15 @@ func (t *TaskRPC) StoppageList(id int, tasks *[]shared.Task) error {
 	// 		channel, id, conn.UserID, conn.Username, conn.UserRole),
 	// 	fmt.Sprintf("%d Tasks", len(*tasks)))
 	logger(start, "Task.StoppageList",
-		fmt.Sprintf("Stoppage Event %d", id),
-		fmt.Sprintf("%d Tasks", len(*tasks)))
+		fmt.Sprintf("Stoppage Event %d", data.ID),
+		fmt.Sprintf("%d Tasks", len(*tasks)),
+		data.Channel, conn.UserID, "task", 0, false)
 
 	return nil
 }
 
 func (t *TaskRPC) Generate(runDate time.Time, count *int) error {
-	return schedTaskScan(runDate, count)
+	return schedTaskScan(0, 0, runDate, count)
 }
 
 var GenerateMutex sync.Mutex
@@ -637,7 +664,7 @@ func autoGenerate() {
 		hours := time.Now().Hour()
 
 		for {
-			schedTaskScan(time.Now(), &newTasks)
+			schedTaskScan(0, 0, time.Now(), &newTasks)
 			time.Sleep(1 * time.Hour)
 
 			hours++
@@ -655,7 +682,7 @@ func autoGenerate() {
 	}()
 }
 
-func schedTaskScan(runDate time.Time, count *int) error {
+func schedTaskScan(channel int, user_id int, runDate time.Time, count *int) error {
 
 	GenerateMutex.Lock()
 	defer GenerateMutex.Unlock()
@@ -878,7 +905,8 @@ func schedTaskScan(runDate time.Time, count *int) error {
 	*count = numTasks
 	logger(start, "Task.Generate",
 		fmt.Sprintf("As of date %s", runDate.Format(rfc3339DateLayout)),
-		fmt.Sprintf("%d New Tasks Generated", *count))
+		fmt.Sprintf("%d New Tasks Generated", *count),
+		channel, user_id, "task", 0, true)
 
 	return nil
 }
@@ -1023,24 +1051,28 @@ func (t *TaskRPC) HashtagList(channel int, hashtags *[]shared.Hashtag) error {
 	logger(start, "Task.HashtagList",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d Hashtags", len(*hashtags)))
+		fmt.Sprintf("%d Hashtags", len(*hashtags)),
+		channel, conn.UserID, "hashtag", 0, false)
 
 	return nil
 }
 
-func (t *TaskRPC) HashtagGet(id int, hashtag *shared.Hashtag) error {
+func (t *TaskRPC) HashtagGet(data shared.HashtagRPCData, hashtag *shared.Hashtag) error {
 	start := time.Now()
 
-	DB.SQL(`select * from hashtag where id=$1`, id).QueryStruct(hashtag)
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`select * from hashtag where id=$1`, data.ID).QueryStruct(hashtag)
 
 	logger(start, "Task.HashtagGet",
-		fmt.Sprintf("ID %d", id),
-		fmt.Sprintf("Name %s", hashtag.Name))
+		fmt.Sprintf("ID %d", data.ID),
+		fmt.Sprintf("Name %s", hashtag.Name),
+		data.Channel, conn.UserID, "hashtag", data.ID, false)
 
 	return nil
 }
 
-func (t *TaskRPC) HashtagInsert(data shared.HashtagUpdateData, id *int) error {
+func (t *TaskRPC) HashtagInsert(data shared.HashtagRPCData, id *int) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -1055,13 +1087,14 @@ func (t *TaskRPC) HashtagInsert(data shared.HashtagUpdateData, id *int) error {
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("ID %d Name %s",
-			data.Hashtag.ID, data.Hashtag.Name))
+			data.Hashtag.ID, data.Hashtag.Name),
+		data.Channel, conn.UserID, "hashtag", *id, true)
 
 	conn.Broadcast("hashtag", "insert", *id)
 	return nil
 }
 
-func (t *TaskRPC) HashtagDelete(data shared.HashtagUpdateData, done *bool) error {
+func (t *TaskRPC) HashtagDelete(data shared.HashtagRPCData, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -1072,7 +1105,8 @@ func (t *TaskRPC) HashtagDelete(data shared.HashtagUpdateData, done *bool) error
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("ID %d Name %s",
-			data.Hashtag.ID, data.Hashtag.Name))
+			data.Hashtag.ID, data.Hashtag.Name),
+		data.Channel, conn.UserID, "hashtag", data.Hashtag.ID, true)
 
 	*done = true
 	conn.Broadcast("hashtag", "delete", data.Hashtag.ID)
@@ -1080,7 +1114,7 @@ func (t *TaskRPC) HashtagDelete(data shared.HashtagUpdateData, done *bool) error
 	return nil
 }
 
-func (t *TaskRPC) HashtagUpdate(data shared.HashtagUpdateData, done *bool) error {
+func (t *TaskRPC) HashtagUpdate(data shared.HashtagRPCData, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -1092,7 +1126,8 @@ func (t *TaskRPC) HashtagUpdate(data shared.HashtagUpdateData, done *bool) error
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("ID %d Name %s",
-			data.Hashtag.ID, data.Hashtag.Name))
+			data.Hashtag.ID, data.Hashtag.Name),
+		data.Channel, conn.UserID, "hashtag", data.Hashtag.ID, true)
 
 	*done = true
 
@@ -1111,142 +1146,142 @@ func strDelimit(str string, sepstr string, sepcount int) string {
 	return str
 }
 
-func (t *TaskRPC) Diary(channel int, done *bool) error {
+// func (t *TaskRPC) Diary(channel int, done *bool) error {
 
-	os.Mkdir("public/pdf", 0700)
+// 	os.Mkdir("public/pdf", 0700)
 
-	pdf := gofpdf.New("P", "mm", "A4", "")
-	pdf.AddPage()
-	pdf.SetFont("Arial", "B", 16)
-	pdf.Cell(40, 10, "Technicians Weekly Task List")
-	// fileStr := example.Filename("basic")
-	err := pdf.OutputFileAndClose("public/pdf/diary.pdf")
-	if err != nil {
-		log.Println("PDF Err", err.Error())
-	}
+// 	pdf := gofpdf.New("P", "mm", "A4", "")
+// 	pdf.AddPage()
+// 	pdf.SetFont("Arial", "B", 16)
+// 	pdf.Cell(40, 10, "Technicians Weekly Task List")
+// 	// fileStr := example.Filename("basic")
+// 	err := pdf.OutputFileAndClose("public/pdf/diary.pdf")
+// 	if err != nil {
+// 		log.Println("PDF Err", err.Error())
+// 	}
 
-	pdf = gofpdf.New("P", "mm", "A4", "")
-	type countryType struct {
-		nameStr, capitalStr, areaStr, popStr string
-	}
-	countryList := make([]countryType, 0, 8)
-	header := []string{"Country", "Capital", "Area (sq km)", "Pop. (thousands)"}
-	loadData := func(fileStr string) {
-		fl, err := os.Open(fileStr)
-		if err == nil {
-			scanner := bufio.NewScanner(fl)
-			var c countryType
-			for scanner.Scan() {
-				// Austria;Vienna;83859;8075
-				lineStr := scanner.Text()
-				list := strings.Split(lineStr, ";")
-				if len(list) == 4 {
-					c.nameStr = list[0]
-					c.capitalStr = list[1]
-					c.areaStr = list[2]
-					c.popStr = list[3]
-					countryList = append(countryList, c)
-				} else {
-					err = fmt.Errorf("error tokenizing %s", lineStr)
-				}
-			}
-			fl.Close()
-			if len(countryList) == 0 {
-				err = fmt.Errorf("error loading data from %s", fileStr)
-			}
-		}
-		if err != nil {
-			pdf.SetError(err)
-		}
-	}
-	// Simple table
-	basicTable := func() {
-		for _, str := range header {
-			pdf.CellFormat(40, 7, str, "1", 0, "", false, 0, "")
-		}
-		pdf.Ln(-1)
-		for _, c := range countryList {
-			pdf.CellFormat(40, 6, c.nameStr, "1", 0, "", false, 0, "")
-			pdf.CellFormat(40, 6, c.capitalStr, "1", 0, "", false, 0, "")
-			pdf.CellFormat(40, 6, c.areaStr, "1", 0, "", false, 0, "")
-			pdf.CellFormat(40, 6, c.popStr, "1", 0, "", false, 0, "")
-			pdf.Ln(-1)
-		}
-	}
-	// Better table
-	improvedTable := func() {
-		// Column widths
-		w := []float64{40.0, 35.0, 40.0, 45.0}
-		wSum := 0.0
-		for _, v := range w {
-			wSum += v
-		}
-		// 	Header
-		for j, str := range header {
-			pdf.CellFormat(w[j], 7, str, "1", 0, "C", false, 0, "")
-		}
-		pdf.Ln(-1)
-		// Data
-		for _, c := range countryList {
-			pdf.CellFormat(w[0], 6, c.nameStr, "LR", 0, "", false, 0, "")
-			pdf.CellFormat(w[1], 6, c.capitalStr, "LR", 0, "", false, 0, "")
-			pdf.CellFormat(w[2], 6, strDelimit(c.areaStr, ",", 3),
-				"LR", 0, "R", false, 0, "")
-			pdf.CellFormat(w[3], 6, strDelimit(c.popStr, ",", 3),
-				"LR", 0, "R", false, 0, "")
-			pdf.Ln(-1)
-		}
-		pdf.CellFormat(wSum, 0, "", "T", 0, "", false, 0, "")
-	}
-	// Colored table
-	fancyTable := func() {
-		// Colors, line width and bold font
-		pdf.SetFillColor(0, 64, 96)
-		pdf.SetTextColor(255, 255, 255)
-		pdf.SetDrawColor(0, 64, 96)
-		pdf.SetLineWidth(.3)
-		pdf.SetFont("", "B", 0)
-		// 	Header
-		w := []float64{40, 35, 40, 45}
-		wSum := 0.0
-		for _, v := range w {
-			wSum += v
-		}
-		for j, str := range header {
-			pdf.CellFormat(w[j], 7, str, "1", 0, "C", true, 0, "")
-		}
-		pdf.Ln(-1)
-		// Color and font restoration
-		pdf.SetFillColor(224, 235, 255)
-		pdf.SetTextColor(0, 0, 0)
-		pdf.SetFont("", "", 0)
-		// 	Data
-		fill := false
-		for _, c := range countryList {
-			pdf.CellFormat(w[0], 6, c.nameStr, "LR", 0, "", fill, 0, "")
-			pdf.CellFormat(w[1], 6, c.capitalStr, "LR", 0, "", fill, 0, "")
-			pdf.CellFormat(w[2], 6, strDelimit(c.areaStr, ",", 3),
-				"LR", 0, "R", fill, 0, "")
-			pdf.CellFormat(w[3], 6, strDelimit(c.popStr, ",", 3),
-				"LR", 0, "R", fill, 0, "")
-			pdf.Ln(-1)
-			fill = !fill
-		}
-		pdf.CellFormat(wSum, 0, "", "T", 0, "", false, 0, "")
-	}
-	loadData("countries.txt")
-	pdf.SetFont("Arial", "", 14)
-	pdf.AddPage()
-	basicTable()
-	pdf.AddPage()
-	improvedTable()
-	pdf.AddPage()
-	fancyTable()
-	err = pdf.OutputFileAndClose("public/pdf/countries.pdf")
-	return nil
-}
+// 	pdf = gofpdf.New("P", "mm", "A4", "")
+// 	type countryType struct {
+// 		nameStr, capitalStr, areaStr, popStr string
+// 	}
+// 	countryList := make([]countryType, 0, 8)
+// 	header := []string{"Country", "Capital", "Area (sq km)", "Pop. (thousands)"}
+// 	loadData := func(fileStr string) {
+// 		fl, err := os.Open(fileStr)
+// 		if err == nil {
+// 			scanner := bufio.NewScanner(fl)
+// 			var c countryType
+// 			for scanner.Scan() {
+// 				// Austria;Vienna;83859;8075
+// 				lineStr := scanner.Text()
+// 				list := strings.Split(lineStr, ";")
+// 				if len(list) == 4 {
+// 					c.nameStr = list[0]
+// 					c.capitalStr = list[1]
+// 					c.areaStr = list[2]
+// 					c.popStr = list[3]
+// 					countryList = append(countryList, c)
+// 				} else {
+// 					err = fmt.Errorf("error tokenizing %s", lineStr)
+// 				}
+// 			}
+// 			fl.Close()
+// 			if len(countryList) == 0 {
+// 				err = fmt.Errorf("error loading data from %s", fileStr)
+// 			}
+// 		}
+// 		if err != nil {
+// 			pdf.SetError(err)
+// 		}
+// 	}
+// 	// Simple table
+// 	basicTable := func() {
+// 		for _, str := range header {
+// 			pdf.CellFormat(40, 7, str, "1", 0, "", false, 0, "")
+// 		}
+// 		pdf.Ln(-1)
+// 		for _, c := range countryList {
+// 			pdf.CellFormat(40, 6, c.nameStr, "1", 0, "", false, 0, "")
+// 			pdf.CellFormat(40, 6, c.capitalStr, "1", 0, "", false, 0, "")
+// 			pdf.CellFormat(40, 6, c.areaStr, "1", 0, "", false, 0, "")
+// 			pdf.CellFormat(40, 6, c.popStr, "1", 0, "", false, 0, "")
+// 			pdf.Ln(-1)
+// 		}
+// 	}
+// 	// Better table
+// 	improvedTable := func() {
+// 		// Column widths
+// 		w := []float64{40.0, 35.0, 40.0, 45.0}
+// 		wSum := 0.0
+// 		for _, v := range w {
+// 			wSum += v
+// 		}
+// 		// 	Header
+// 		for j, str := range header {
+// 			pdf.CellFormat(w[j], 7, str, "1", 0, "C", false, 0, "")
+// 		}
+// 		pdf.Ln(-1)
+// 		// Data
+// 		for _, c := range countryList {
+// 			pdf.CellFormat(w[0], 6, c.nameStr, "LR", 0, "", false, 0, "")
+// 			pdf.CellFormat(w[1], 6, c.capitalStr, "LR", 0, "", false, 0, "")
+// 			pdf.CellFormat(w[2], 6, strDelimit(c.areaStr, ",", 3),
+// 				"LR", 0, "R", false, 0, "")
+// 			pdf.CellFormat(w[3], 6, strDelimit(c.popStr, ",", 3),
+// 				"LR", 0, "R", false, 0, "")
+// 			pdf.Ln(-1)
+// 		}
+// 		pdf.CellFormat(wSum, 0, "", "T", 0, "", false, 0, "")
+// 	}
+// 	// Colored table
+// 	fancyTable := func() {
+// 		// Colors, line width and bold font
+// 		pdf.SetFillColor(0, 64, 96)
+// 		pdf.SetTextColor(255, 255, 255)
+// 		pdf.SetDrawColor(0, 64, 96)
+// 		pdf.SetLineWidth(.3)
+// 		pdf.SetFont("", "B", 0)
+// 		// 	Header
+// 		w := []float64{40, 35, 40, 45}
+// 		wSum := 0.0
+// 		for _, v := range w {
+// 			wSum += v
+// 		}
+// 		for j, str := range header {
+// 			pdf.CellFormat(w[j], 7, str, "1", 0, "C", true, 0, "")
+// 		}
+// 		pdf.Ln(-1)
+// 		// Color and font restoration
+// 		pdf.SetFillColor(224, 235, 255)
+// 		pdf.SetTextColor(0, 0, 0)
+// 		pdf.SetFont("", "", 0)
+// 		// 	Data
+// 		fill := false
+// 		for _, c := range countryList {
+// 			pdf.CellFormat(w[0], 6, c.nameStr, "LR", 0, "", fill, 0, "")
+// 			pdf.CellFormat(w[1], 6, c.capitalStr, "LR", 0, "", fill, 0, "")
+// 			pdf.CellFormat(w[2], 6, strDelimit(c.areaStr, ",", 3),
+// 				"LR", 0, "R", fill, 0, "")
+// 			pdf.CellFormat(w[3], 6, strDelimit(c.popStr, ",", 3),
+// 				"LR", 0, "R", fill, 0, "")
+// 			pdf.Ln(-1)
+// 			fill = !fill
+// 		}
+// 		pdf.CellFormat(wSum, 0, "", "T", 0, "", false, 0, "")
+// 	}
+// 	loadData("countries.txt")
+// 	pdf.SetFont("Arial", "", 14)
+// 	pdf.AddPage()
+// 	basicTable()
+// 	pdf.AddPage()
+// 	improvedTable()
+// 	pdf.AddPage()
+// 	fancyTable()
+// 	err = pdf.OutputFileAndClose("public/pdf/countries.pdf")
+// 	return nil
+// }
 
-func (t *TaskRPC) Complete(data shared.TaskUpdateData, done *bool) error {
+func (t *TaskRPC) Complete(data shared.TaskRPCData, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -1377,7 +1412,8 @@ func (t *TaskRPC) Complete(data shared.TaskUpdateData, done *bool) error {
 	logger(start, "Task.Complete",
 		fmt.Sprintf("Channel %d, Task %d User %d %s %s",
 			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
-		"Task marked as complete")
+		"Task marked as complete",
+		data.Channel, conn.UserID, "task", data.Task.ID, true)
 
 	*done = true
 	return nil

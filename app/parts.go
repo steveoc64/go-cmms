@@ -75,7 +75,7 @@ func classAdd(context *router.Context) {
 			evt.PreventDefault()
 			form.Bind(&partClass)
 			go func() {
-				data := shared.PartClassUpdateData{
+				data := shared.PartClassRPCData{
 					Channel:   Session.Channel,
 					PartClass: &partClass,
 				}
@@ -107,7 +107,11 @@ func partList(context *router.Context) {
 		}
 		class := shared.PartClass{}
 		rpcClient.Call("PartRPC.List", req, &data)
-		rpcClient.Call("PartRPC.GetClass", partClass, &class)
+		q := shared.PartClassRPCData{
+			Channel: Session.Channel,
+			ID:      partClass,
+		}
+		rpcClient.Call("PartRPC.GetClass", q, &class)
 
 		BackURL := "/class/select"
 		Title := fmt.Sprintf("Parts of type - %s", class.Name)
@@ -125,7 +129,7 @@ func partList(context *router.Context) {
 				if el := doc.QuerySelector(".md-confirm-del"); el != nil {
 					el.AddEventListener("click", false, func(evt dom.Event) {
 						go func() {
-							data := shared.PartClassUpdateData{
+							data := shared.PartClassRPCData{
 								Channel:   Session.Channel,
 								PartClass: &class,
 							}
@@ -200,7 +204,7 @@ func partList(context *router.Context) {
 			print("TODO - Name has changed")
 			go func() {
 				class.Name = doc.QuerySelector("#class-name").(*dom.HTMLInputElement).Value
-				data := shared.PartClassUpdateData{
+				data := shared.PartClassRPCData{
 					Channel:   Session.Channel,
 					PartClass: &class,
 				}
@@ -212,7 +216,7 @@ func partList(context *router.Context) {
 			print("TODO - Description has changed")
 			go func() {
 				class.Descr = doc.QuerySelector("#class-descr").(*dom.HTMLInputElement).Value
-				data := shared.PartClassUpdateData{
+				data := shared.PartClassRPCData{
 					Channel:   Session.Channel,
 					PartClass: &class,
 				}
@@ -236,11 +240,15 @@ func partEdit(context *router.Context) {
 		classes := []shared.PartClass{}
 		stocks := []shared.PartStock{}
 		prices := []shared.PartPrice{}
+		data := shared.PartRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}
 
-		rpcClient.Call("PartRPC.Get", id, &part)
-		rpcClient.Call("PartRPC.ClassList", Session.Channel, &classes)
-		rpcClient.Call("PartRPC.StockList", id, &stocks)
-		rpcClient.Call("PartRPC.PriceList", id, &prices)
+		rpcClient.Call("PartRPC.Get", data, &part)
+		rpcClient.Call("PartRPC.ClassList", data, &classes)
+		rpcClient.Call("PartRPC.StockList", data, &stocks)
+		rpcClient.Call("PartRPC.PriceList", data, &prices)
 
 		BackURL := fmt.Sprintf("/parts/%d", part.Class)
 		title := fmt.Sprintf("Part Details - %s - %s", part.Name, part.StockCode)
@@ -295,7 +303,7 @@ func partEdit(context *router.Context) {
 		form.DeleteEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			go func() {
-				data := shared.PartUpdateData{
+				data := shared.PartRPCData{
 					Channel: Session.Channel,
 					Part:    &part,
 				}
@@ -313,7 +321,7 @@ func partEdit(context *router.Context) {
 			evt.PreventDefault()
 			form.Bind(&part)
 			go func() {
-				data := shared.PartUpdateData{
+				data := shared.PartRPCData{
 					Channel: Session.Channel,
 					Part:    &part,
 				}
@@ -436,7 +444,7 @@ func partAdd(context *router.Context) {
 			evt.PreventDefault()
 			form.Bind(&part)
 			go func() {
-				data := shared.PartUpdateData{
+				data := shared.PartRPCData{
 					Channel: Session.Channel,
 					Part:    &part,
 				}

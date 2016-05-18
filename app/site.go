@@ -201,7 +201,7 @@ func siteAdd(context *router.Context) {
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&site)
-			data := shared.SiteUpdateData{
+			data := shared.SiteRPCData{
 				Channel: Session.Channel,
 				Site:    &site,
 			}
@@ -278,7 +278,7 @@ func siteEdit(context *router.Context) {
 			evt.PreventDefault()
 			site.ID = id
 			go func() {
-				data := shared.SiteUpdateData{
+				data := shared.SiteRPCData{
 					Channel: Session.Channel,
 					Site:    &site,
 				}
@@ -291,7 +291,7 @@ func siteEdit(context *router.Context) {
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&site)
-			data := shared.SiteUpdateData{
+			data := shared.SiteRPCData{
 				Channel: Session.Channel,
 				Site:    &site,
 			}
