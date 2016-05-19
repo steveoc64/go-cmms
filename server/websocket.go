@@ -71,7 +71,10 @@ func (c *Connection) KeepAlive(sec time.Duration) {
 	c.ticker = time.NewTicker(time.Second * sec)
 	for range c.ticker.C {
 		// log.Println("sending ping to client", c.ID)
-		c.Send("Ping", data)
+		err := c.Send("Ping", data)
+		if err != nil {
+			log.Println("Send error on", c.ID, err.Error())
+		}
 	}
 }
 
