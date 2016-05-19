@@ -23,17 +23,17 @@ func siteMachineList(context *router.Context) {
 	}
 
 	go func() {
-		req := shared.MachineReq{
-			Channel: Session.Channel,
-			SiteID:  id,
-		}
-		// data := SiteMachineData{}
-
 		site := shared.Site{}
 		machines := []shared.Machine{}
 
-		rpcClient.Call("SiteRPC.Get", id, &site)
-		rpcClient.Call("SiteRPC.MachineList", &req, &machines)
+		rpcClient.Call("SiteRPC.Get", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &site)
+		rpcClient.Call("SiteRPC.MachineList", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &machines)
 
 		form := formulate.ListForm{}
 		form.New("fa-cogs", "Machine List for - "+site.Name)
@@ -80,14 +80,19 @@ func machineEdit(context *router.Context) {
 		users := []shared.User{}
 		technicians := []shared.User{}
 		classes := []shared.PartClass{}
-		data := shared.MachineRPCData{
+
+		rpcClient.Call("MachineRPC.Get", shared.MachineRPCData{
 			Channel: Session.Channel,
 			ID:      id,
-		}
-
-		rpcClient.Call("MachineRPC.Get", data, &machine)
-		rpcClient.Call("UserRPC.GetManagers", Session.Channel, &users)
-		rpcClient.Call("UserRPC.GetTechnicians", machine.SiteID, &technicians)
+		}, &machine)
+		rpcClient.Call("UserRPC.GetManagers", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      machine.SiteID,
+		}, &users)
+		rpcClient.Call("UserRPC.GetTechnicians", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      machine.SiteID,
+		}, &technicians)
 		rpcClient.Call("PartRPC.ClassList", Session.Channel, &classes)
 
 		BackURL := fmt.Sprintf("/site/machine/%d", machine.SiteID)
@@ -127,12 +132,11 @@ func machineEdit(context *router.Context) {
 			evt.PreventDefault()
 			machine.ID = id
 			go func() {
-				data := shared.MachineRPCData{
+				done := false
+				rpcClient.Call("MachineRPC.Delete", shared.MachineRPCData{
 					Channel: Session.Channel,
 					Machine: &machine,
-				}
-				done := false
-				rpcClient.Call("MachineRPC.Delete", data, &done)
+				}, &done)
 				Session.Navigate(BackURL)
 			}()
 		})
@@ -141,12 +145,11 @@ func machineEdit(context *router.Context) {
 			evt.PreventDefault()
 			form.Bind(&machine)
 			go func() {
-				data := shared.MachineRPCData{
+				done := false
+				rpcClient.Call("MachineRPC.Update", shared.MachineRPCData{
 					Channel: Session.Channel,
 					Machine: &machine,
-				}
-				done := false
-				rpcClient.Call("MachineRPC.Update", data, &done)
+				}, &done)
 				Session.Navigate(BackURL)
 			}()
 		})
@@ -177,7 +180,10 @@ func siteMachineAdd(context *router.Context) {
 	go func() {
 		machine := shared.Machine{}
 		site := shared.Site{}
-		rpcClient.Call("SiteRPC.Get", id, &site)
+		rpcClient.Call("SiteRPC.Get", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &site)
 		BackURL := fmt.Sprintf("/site/machine/%d", site.ID)
 		title := fmt.Sprintf("Add Machine for Site - %s", site.Name)
 		form := formulate.EditForm{}
@@ -208,12 +214,11 @@ func siteMachineAdd(context *router.Context) {
 			machine.SiteID = site.ID
 			machine.Status = "Running"
 			go func() {
-				data := shared.MachineRPCData{
+				newID := 0
+				rpcClient.Call("MachineRPC.Insert", shared.MachineRPCData{
 					Channel: Session.Channel,
 					Machine: &machine,
-				}
-				newID := 0
-				rpcClient.Call("MachineRPC.Insert", data, &newID)
+				}, &newID)
 				print("added machine ID", newID)
 				Session.Navigate(BackURL)
 			}()

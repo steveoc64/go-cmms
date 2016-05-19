@@ -1,0 +1,17 @@
+/* Minimal css for clickable pure CSS collapsible tree menu */
+/* As specific as possible to prevent interference with other code */
+
+#menutree li
+	list-style: none
+
+li .menu_label + input[type=checkbox]
+	opacity: 0
+
+li .menu_label 
+	cursor: pointer
+
+li .menu_label + input[type=checkbox] + ol > li
+  display: none
+
+li .menu_label + input[type=checkbox]:checked + ol > li
+	display: block

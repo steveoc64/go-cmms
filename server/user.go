@@ -68,7 +68,8 @@ func (u *UserRPC) List(channel int, profs *[]shared.User) error {
 	logger(start, "User.List",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%d Users", len(*profs)))
+		fmt.Sprintf("%d Users", len(*profs)),
+		channel, conn.UserID, "users", 0, false)
 
 	return nil
 }
@@ -84,26 +85,30 @@ func (u *UserRPC) Me(channel int, prof *shared.User) error {
 	logger(start, "User.Me",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%s %s %s", prof.Email, prof.SMS, prof.Name))
+		fmt.Sprintf("%s %s %s", prof.Email, prof.SMS, prof.Name),
+		channel, conn.UserID, "users", 0, false)
 
 	return nil
 }
 
 // Get the user for the given id
-func (u *UserRPC) Get(id int, prof *shared.User) error {
+func (u *UserRPC) Get(data shared.UserRPCData, prof *shared.User) error {
 	start := time.Now()
 
-	DB.SQL(UserGetQuery, id).QueryStruct(prof)
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(UserGetQuery, data.ID).QueryStruct(prof)
 
 	logger(start, "User.Get",
-		fmt.Sprintf("%d", id),
-		fmt.Sprintf("%s %s %s", prof.Email, prof.SMS, prof.Name))
+		fmt.Sprintf("%d", data.ID),
+		fmt.Sprintf("%s %s %s", prof.Email, prof.SMS, prof.Name),
+		data.Channel, conn.UserID, "users", data.ID, false)
 
 	return nil
 }
 
 // Set the user profile from the popdown list at the top
-func (u *UserRPC) Set(req *shared.UserUpdate, done *bool) error {
+func (u *UserRPC) Set(req shared.UserUpdate, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(req.Channel)
@@ -116,7 +121,8 @@ func (u *UserRPC) Set(req *shared.UserUpdate, done *bool) error {
 	logger(start, "User.Set",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			req.Channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("%s %s %s %s", req.Email, req.SMS, req.Name, req.Passwd))
+		fmt.Sprintf("%s %s %s %s", req.Email, req.SMS, req.Name, req.Passwd),
+		req.Channel, conn.UserID, "users", req.ID, true)
 
 	// *done = true
 
@@ -124,7 +130,7 @@ func (u *UserRPC) Set(req *shared.UserUpdate, done *bool) error {
 }
 
 // Full update of user record, including username
-func (u *UserRPC) Update(data *shared.UserUpdateData, done *bool) error {
+func (u *UserRPC) Update(data shared.UserRPCData, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -138,7 +144,9 @@ func (u *UserRPC) Update(data *shared.UserUpdateData, done *bool) error {
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d Role %s Uname %s Eml %s SMS %s Name %s PW %s",
-			data.User.ID, data.User.Role, data.User.Username, data.User.Email, data.User.SMS, data.User.Name, data.User.Passwd))
+			data.User.ID, data.User.Role, data.User.Username, data.User.Email,
+			data.User.SMS, data.User.Name, data.User.Passwd),
+		data.Channel, conn.UserID, "users", data.User.ID, true)
 
 	*done = true
 
@@ -146,7 +154,7 @@ func (u *UserRPC) Update(data *shared.UserUpdateData, done *bool) error {
 }
 
 // Add a new user record
-func (u *UserRPC) Insert(data *shared.UserUpdateData, id *int) error {
+func (u *UserRPC) Insert(data shared.UserRPCData, id *int) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -161,13 +169,14 @@ func (u *UserRPC) Insert(data *shared.UserUpdateData, id *int) error {
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d %s %s %s %s %s",
-			*id, data.User.Username, data.User.Email, data.User.SMS, data.User.Name, data.User.Passwd))
+			*id, data.User.Username, data.User.Email, data.User.SMS, data.User.Name, data.User.Passwd),
+		data.Channel, conn.UserID, "users", *id, true)
 
 	return nil
 }
 
 // Delete a user
-func (u *UserRPC) Delete(data *shared.UserUpdateData, ok *bool) error {
+func (u *UserRPC) Delete(data shared.UserRPCData, ok *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -182,7 +191,8 @@ func (u *UserRPC) Delete(data *shared.UserUpdateData, ok *bool) error {
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d %s %s %s %s %s",
-			id, data.User.Username, data.User.Email, data.User.SMS, data.User.Name, data.User.Passwd))
+			id, data.User.Username, data.User.Email, data.User.SMS, data.User.Name, data.User.Passwd),
+		data.Channel, conn.UserID, "users", id, true)
 
 	return nil
 }
@@ -206,7 +216,8 @@ func (u *UserRPC) GetSites(data shared.UserSiteRequest, userSites *[]shared.User
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("User %d - %d Sites",
-			data.User.ID, len(*userSites)))
+			data.User.ID, len(*userSites)),
+		data.Channel, conn.UserID, "users", 0, false)
 
 	return nil
 }
@@ -230,7 +241,8 @@ func (u *UserRPC) GetSiteUsers(data shared.UserSiteRequest, siteUsers *[]shared.
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("Site %d - %d Users",
-			data.Site.ID, len(*siteUsers)))
+			data.Site.ID, len(*siteUsers)),
+		data.Channel, conn.UserID, "users", 0, false)
 
 	return nil
 }
@@ -263,7 +275,8 @@ func (u *UserRPC) SetSite(data shared.UserSiteSetRequest, done *bool) error {
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("User %d Site %d Role %s %t",
-			data.UserID, data.SiteID, data.Role, data.IsSet))
+			data.UserID, data.SiteID, data.Role, data.IsSet),
+		data.Channel, conn.UserID, "user_site", data.UserID, true)
 
 	conn.Broadcast("usersites", "usersite", data.UserID)
 	*done = true
@@ -271,10 +284,13 @@ func (u *UserRPC) SetSite(data shared.UserSiteSetRequest, done *bool) error {
 }
 
 // Get a list of technicians by Site
-func (u *UserRPC) GetTechnicians(site_id int, users *[]shared.User) error {
+func (u *UserRPC) GetTechnicians(data shared.SiteRPCData, users *[]shared.User) error {
 	start := time.Now()
 
+	conn := Connections.Get(data.Channel)
+
 	// log.Println(TechniciansListQuery)
+	site_id := data.ID
 	if site_id == 0 {
 		DB.SQL(TechniciansAllQuery).QueryStructs(users)
 
@@ -285,16 +301,20 @@ func (u *UserRPC) GetTechnicians(site_id int, users *[]shared.User) error {
 
 	logger(start, "User.GetTechnicians",
 		fmt.Sprintf("Site %d", site_id),
-		fmt.Sprintf("%d Techs", len(*users)))
+		fmt.Sprintf("%d Techs", len(*users)),
+		data.Channel, conn.UserID, "users", 0, false)
 
 	return nil
 }
 
 // Get a list of technicians by Site
-func (u *UserRPC) GetManagers(site_id int, users *[]shared.User) error {
+func (u *UserRPC) GetManagers(data shared.SiteRPCData, users *[]shared.User) error {
 	start := time.Now()
 
+	conn := Connections.Get(data.Channel)
+
 	// log.Println(ManagersListQuery)
+	site_id := data.ID
 	if site_id == 0 {
 		DB.SQL(ManagersAllQuery).QueryStructs(users)
 	} else {
@@ -306,7 +326,8 @@ func (u *UserRPC) GetManagers(site_id int, users *[]shared.User) error {
 
 	logger(start, "User.GetManagers",
 		fmt.Sprintf("Site %d", site_id),
-		fmt.Sprintf("%d Mananges", len(*users)))
+		fmt.Sprintf("%d Mananges", len(*users)),
+		data.Channel, conn.UserID, "users", 0, false)
 
 	return nil
 }

@@ -257,7 +257,10 @@ func userEdit(context *router.Context) {
 
 	go func() {
 		user := shared.User{}
-		rpcClient.Call("UserRPC.Get", id, &user)
+		rpcClient.Call("UserRPC.Get", shared.UserRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &user)
 
 		BackURL := "/users"
 		form := formulate.EditForm{}

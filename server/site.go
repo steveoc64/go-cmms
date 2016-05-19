@@ -227,13 +227,13 @@ func (s *SiteRPC) GetHome(channel int, site *shared.Site) error {
 }
 
 // Get all machines for the given site
-func (s *SiteRPC) MachineList(req *shared.MachineReq, machines *[]shared.Machine) error {
+func (s *SiteRPC) MachineList(data shared.SiteRPCData, machines *[]shared.Machine) error {
 	start := time.Now()
 
-	conn := Connections.Get(req.Channel)
+	conn := Connections.Get(data.Channel)
 
 	// Read the machines for the given site
-	err := DB.SQL(MachinesBySite, req.SiteID).QueryStructs(machines)
+	err := DB.SQL(MachinesBySite, data.ID).QueryStructs(machines)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -250,9 +250,9 @@ func (s *SiteRPC) MachineList(req *shared.MachineReq, machines *[]shared.Machine
 
 	logger(start, "Site.MachineList",
 		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
-			req.Channel, req.SiteID, conn.UserID, conn.Username, conn.UserRole),
+			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d machines", len(*machines)),
-		req.Channel, conn.UserID, "machine", 0, false)
+		data.Channel, conn.UserID, "machine", 0, false)
 
 	return nil
 }

@@ -201,13 +201,12 @@ func siteAdd(context *router.Context) {
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&site)
-			data := shared.SiteRPCData{
-				Channel: Session.Channel,
-				Site:    &site,
-			}
 			go func() {
 				newID := 0
-				rpcClient.Call("SiteRPC.Insert", data, &newID)
+				rpcClient.Call("SiteRPC.Insert", shared.SiteRPCData{
+					Channel: Session.Channel,
+					Site:    &site,
+				}, &newID)
 				print("added site", newID)
 				Session.Navigate(BackURL)
 			}()
@@ -235,11 +234,23 @@ func siteEdit(context *router.Context) {
 		managers := []shared.User{}
 		technicians := []shared.User{}
 
-		rpcClient.Call("SiteRPC.Get", id, &site)
+		rpcClient.Call("SiteRPC.Get", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &site)
 		rpcClient.Call("SiteRPC.List", Session.Channel, &sites)
-		rpcClient.Call("UserRPC.GetManagers", 0, &allManagers)
-		rpcClient.Call("UserRPC.GetManagers", id, &managers)
-		rpcClient.Call("UserRPC.GetTechnicians", id, &technicians)
+		rpcClient.Call("UserRPC.GetManagers", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      0,
+		}, &allManagers)
+		rpcClient.Call("UserRPC.GetManagers", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &managers)
+		rpcClient.Call("UserRPC.GetTechnicians", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &technicians)
 
 		BackURL := "/sites"
 		title := fmt.Sprintf("Site Details - %s", site.Name)
@@ -278,12 +289,11 @@ func siteEdit(context *router.Context) {
 			evt.PreventDefault()
 			site.ID = id
 			go func() {
-				data := shared.SiteRPCData{
+				done := false
+				rpcClient.Call("SiteRPC.Delete", shared.SiteRPCData{
 					Channel: Session.Channel,
 					Site:    &site,
-				}
-				done := false
-				rpcClient.Call("SiteRPC.Delete", data, &done)
+				}, &done)
 				Session.Navigate(BackURL)
 			}()
 		})
@@ -291,13 +301,12 @@ func siteEdit(context *router.Context) {
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&site)
-			data := shared.SiteRPCData{
-				Channel: Session.Channel,
-				Site:    &site,
-			}
 			go func() {
 				done := false
-				rpcClient.Call("SiteRPC.Update", data, &done)
+				rpcClient.Call("SiteRPC.Update", shared.SiteRPCData{
+					Channel: Session.Channel,
+					Site:    &site,
+				}, &done)
 				Session.Navigate(BackURL)
 			}()
 		})
@@ -364,10 +373,6 @@ func _siteMachines(action string, id int) {
 	}
 
 	// Get a list of machines at this site
-	req := shared.MachineReq{
-		Channel: Session.Channel,
-		SiteID:  id,
-	}
 	data := SiteMachineData{}
 
 	nonTools := []string{
@@ -377,10 +382,16 @@ func _siteMachines(action string, id int) {
 	RefreshURL := fmt.Sprintf("/sitemachines/%d", id)
 
 	data.MultiSite = true
-	rpcClient.Call("SiteRPC.Get", id, &data.Site)
+	rpcClient.Call("SiteRPC.Get", shared.SiteRPCData{
+		Channel: Session.Channel,
+		ID:      id,
+	}, &data.Site)
 	// print("Site =", data.Site)
 
-	err := rpcClient.Call("SiteRPC.MachineList", &req, &data.Machines)
+	err := rpcClient.Call("SiteRPC.MachineList", shared.SiteRPCData{
+		Channel: Session.Channel,
+		ID:      id,
+	}, &data.Machines)
 	if err != nil {
 		print("RPC error", err.Error())
 	} else {

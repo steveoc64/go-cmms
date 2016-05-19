@@ -31,7 +31,8 @@ func (u *UtilRPC) Backup(channel int, result *string) error {
 	logger(start, "Util.Backup",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		*result)
+		*result,
+		channel, conn.UserID, "", 0, false)
 
 	return nil
 }
@@ -56,7 +57,8 @@ func (u *UtilRPC) Top(channel int, result *string) error {
 	logger(start, "Util.Top",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		"top")
+		"top",
+		channel, conn.UserID, "", 0, false)
 
 	return nil
 }
@@ -81,7 +83,8 @@ func (u *UtilRPC) Logs(channel int, result *string) error {
 	logger(start, "Util.Logs",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		"logs")
+		"logs",
+		channel, conn.UserID, "", 0, false)
 
 	return nil
 }
@@ -139,7 +142,8 @@ func (u *UtilRPC) Machine(channel int, result *string) error {
 	logger(start, "Util.Machine",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		*result)
+		*result,
+		channel, conn.UserID, "part_class", 0, true)
 
 	return nil
 }
@@ -198,7 +202,8 @@ func (u *UtilRPC) Parts(channel int, result *string) error {
 	logger(start, "Util.Parts",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		*result)
+		*result,
+		channel, conn.UserID, "part", 0, true)
 
 	return nil
 }
