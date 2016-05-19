@@ -1415,13 +1415,14 @@ func (t *TaskRPC) Complete(data shared.TaskRPCData, done *bool) error {
 	machine := shared.Machine{}
 	DB.SQL(`select * from machine where id=$1`, data.Task.MachineID).QueryStruct(&machine)
 
+	phoneNumber := ""
+
 	if data.Task.AssignedBy != nil {
 		smsMsg := fmt.Sprintf("Task %06d Completed:\n %s - %s",
 			data.Task.ID,
 			machine.Name,
 			data.Task.Component)
 
-		phoneNumber := ""
 		DB.SQL(`select sms from users where id=$1`, data.Task.AssignedBy).QueryScalar(&phoneNumber)
 
 		if Config.SMSOn {
@@ -1445,18 +1446,23 @@ func (t *TaskRPC) Complete(data shared.TaskRPCData, done *bool) error {
 		event := shared.Event{}
 		DB.SQL(`select * from event where id=$1`, data.Task.EventID).QueryStruct(&event)
 
-		phoneNumber := ""
-		DB.SQL(`select sms from users where id=$1`, event.CreatedBy).QueryScalar(&phoneNumber)
+		phoneNumber2 := ""
+		DB.SQL(`select sms from users where id=$1`, event.CreatedBy).QueryScalar(&phoneNumber2)
 
 		if Config.SMSOn {
 
-			if phoneNumber != "" {
-				SendSMS(phoneNumber, smsMsg, fmt.Sprintf("%d", data.Task.ID), event.CreatedBy)
+			if phoneNumber2 != "" {
+
+				if phoneNumber == phoneNumber2 {
+					log.Println("Stoppage raiser and Task Assigner are the same person .. dont need 2 SMS to the same person")
+				} else {
+					SendSMS(phoneNumber2, smsMsg, fmt.Sprintf("%d", data.Task.ID), event.CreatedBy)
+				}
 			} else {
 				log.Println("No Phone Number for SMS:", smsMsg)
 			}
 		} else {
-			log.Println("Will send SMS:", smsMsg, "to", phoneNumber)
+			log.Println("Will send SMS:", smsMsg, "to", phoneNumber2)
 		}
 
 	}
