@@ -17,23 +17,6 @@ func classSelect(context *router.Context) {
 		data := []shared.PartClass{}
 		rpcClient.Call("PartRPC.ClassList", Session.Channel, &data)
 
-		tree := []shared.Category{}
-		rpcClient.Call("PartRPC.GetTree", shared.PartTreeRPCData{
-			Channel:    Session.Channel,
-			CategoryID: 0,
-		}, &tree)
-		print("got tree", tree)
-
-		for i, t := range tree {
-			print("tree", i, t)
-			for i, p := range t.Parts {
-				print("  part", i, p)
-			}
-			for i, c := range t.Subcats {
-				print("  subcat", i, c)
-			}
-		}
-
 		BackURL := "/"
 
 		form := formulate.ListForm{}
@@ -62,6 +45,43 @@ func classSelect(context *router.Context) {
 		})
 
 		form.Render("class-select", "main", data)
+
+	}()
+}
+
+func partsList(context *router.Context) {
+
+	go func() {
+		tree := []shared.Category{}
+		rpcClient.Call("PartRPC.GetTree", shared.PartTreeRPCData{
+			Channel:    Session.Channel,
+			CategoryID: 0,
+		}, &tree)
+		print("got tree", tree)
+
+		BackURL := "/"
+
+		form := formulate.TreeForm{}
+		form.New("fa-puzzle-piece", "Parts List")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		if Session.UserRole == "Admin" {
+			form.NewRowEvent(func(evt dom.Event) {
+				evt.PreventDefault()
+				Session.Navigate("/class/add")
+			})
+		}
+
+		form.RowEvent(func(key string) {
+			Session.Navigate("/parts/" + key)
+		})
+
+		form.Render("parts-tree-list", "main", tree)
 
 	}()
 }

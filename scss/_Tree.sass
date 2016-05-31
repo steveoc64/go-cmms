@@ -1,17 +1,92 @@
 /* Minimal css for clickable pure CSS collapsible tree menu */
 /* As specific as possible to prevent interference with other code */
 
-#menutree li
-	list-style: none
+// #menutree li
+// 	list-style: none
 
-li .menu_label + input[type=checkbox]
-	opacity: 0
+// li .menu_label + input[type=checkbox]
+// 	opacity: 0
 
-li .menu_label 
-	cursor: pointer
+// li .menu_label 
+// 	cursor: pointer
 
-li .menu_label + input[type=checkbox] + ol > li
-  display: none
+// li .menu_label + input[type=checkbox] + ol > li
+//   display: none
 
-li .menu_label + input[type=checkbox]:checked + ol > li
-	display: block
+// li .menu_label + input[type=checkbox]:checked + ol > li
+// 	display: block
+
+ul, li
+	margin: 0
+	padding: 0
+
+/* CSS Tree menu styles */
+ol.tree
+	padding: 0 0 0 30px
+	width: 300px
+
+	li 
+		position: relative
+		margin-left: -15px
+		list-style: none
+
+	li.file
+		margin-left: -1px !important
+
+		li.file a
+			background: url(/img/css_tree/document.png) 0 0 no-repeat
+			color: #fff
+			padding-left: 21px
+			text-decoration: none
+			display: none
+
+		// li.file a[href *= '.pdf']
+		// 	background: url(/img/css_tree/document.png) 0 0 no-repeat
+		// li.file a[href *= '.html']
+		// 	background: url(/img/css_tree/document.png) 0 0 no-repeat
+		// li.file a[href $= '.css']
+		// 	background: url(/img/css_tree/document.png) 0 0 no-repeat
+		// li.file a[href $= '.js']
+		// 	background: url(/img/css_tree/document.png) 0 0 no-repeat
+
+	li input
+		position: absolute
+		left: 0
+		margin-left: 0
+		opacity: 0
+		z-index: 2
+		cursor: pointer
+		height: 1em
+		width: 1em
+		top: 0
+
+		li input + ol
+			background: url(/img/css_tree/toggle-small-expand.png) 40px 0 no-repeat
+			margin: -0.938em 0 0 -44px /* 15px */
+			height: 1em
+			color: red
+
+		li input + ol > li
+			display: none
+			margin-left: -14px !important
+			padding-left: 1px
+			color: green
+
+	li label
+		background: url(/img/css_tree/folder-horizontal.png) 15px 1px no-repeat
+		cursor: pointer
+		display: block
+		padding-left: 37px
+
+	li input:checked + ol
+		background: url(/img/css_tree/toggle-small.png) 40px 5px no-repeat
+		margin: -1.25em 0 0 -44px /* 20px */
+		padding: 1.563em 0 0 80px
+		height: auto
+
+		li input:checked + ol > li
+			display: block
+			margin: 0 0 0.125em  /* 2px */
+
+		li input:checked + ol > li:last-child
+			margin: 0 0 0.063em /* 1px */ 
