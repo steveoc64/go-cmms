@@ -1,4 +1,5 @@
 all: sassgen templegen app-assets appjs sv run
+	echo all done
 
 build: sassgen templegen app-assets appjs sv 
 

@@ -30,7 +30,7 @@
  
 .css-treeview
 {
-    font: normal 11px "Segoe UI", Arial, Sans-serif;
+    /*font: normal 11px "Segoe UI", Arial, Sans-serif;*/
     -moz-user-select: none;
     -webkit-user-select: none;
     user-select: none;
@@ -77,7 +77,8 @@
 .css-treeview label,
 .css-treeview label::before
 {
-    background: url("../pages/css3-treeview/example/icons.png") no-repeat;
+    /*background: url("../pages/css3-treeview/example/icons.png") no-repeat;*/
+    background: url("/img/css-treeview/icons.png") no-repeat;
 }
  
 .css-treeview label,

@@ -21,6 +21,14 @@ type Category struct {
 	Subcats  []Category `db:"subcats"`
 }
 
+func (c *Category) Subelements() interface{} {
+	return c.Subcats
+}
+
+func (c *Category) Elements() interface{} {
+	return c.Parts
+}
+
 type SiteCategory struct {
 	SiteID int `db:"site_id"`
 	CatID  int `db:"cat_id"`

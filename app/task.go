@@ -1000,7 +1000,6 @@ func schedEdit(context *router.Context) {
 					title += " (PAUSED)"
 				}
 				form.SetTitle(title)
-			default:
 
 			case "pause":
 				go rpcClient.Call("TaskRPC.SchedPause", shared.SchedTaskRPCData{
