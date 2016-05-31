@@ -81,7 +81,11 @@ func partsList(context *router.Context) {
 			Session.Navigate("/parts/" + key)
 		})
 
-		form.Render("parts-tree-list", "main", tree)
+		td := []formulate.TreeData{}
+		for _, t := range tree {
+			td = append(td, t)
+		}
+		form.Render("parts-tree-list", "main", td)
 
 	}()
 }
