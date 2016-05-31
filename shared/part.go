@@ -12,6 +12,20 @@ type PartClass struct {
 	Count int    `db:"count"`
 }
 
+type Category struct {
+	ID       int        `db:"id"`
+	ParentID int        `db:"parent_id"`
+	Name     string     `db:"name"`
+	Descr    string     `db:"descr"`
+	Parts    []Part     `db:"parts"`
+	Subcats  []Category `db:"subcats"`
+}
+
+type SiteCategory struct {
+	SiteID int `db:"site_id"`
+	CatID  int `db:"cat_id"`
+}
+
 type PartClassRPCData struct {
 	Channel   int
 	ID        int
@@ -26,6 +40,7 @@ type PartListReq struct {
 type Part struct {
 	ID                   int        `db:"id"`
 	Class                int        `db:"class"`
+	Category             int        `db:"category"`
 	Name                 string     `db:"name"`
 	Descr                string     `db:"descr"`
 	StockCode            string     `db:"stock_code"`
@@ -46,6 +61,11 @@ type PartRPCData struct {
 	Channel int
 	ID      int
 	Part    *Part
+}
+
+type PartTreeRPCData struct {
+	Channel    int
+	CategoryID int
 }
 
 type PartPrice struct {

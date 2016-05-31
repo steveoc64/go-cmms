@@ -364,3 +364,38 @@ func (p *PartRPC) PriceList(data shared.PartRPCData, prices *[]shared.PartPrice)
 
 	return nil
 }
+
+// Get a list of price records for a part
+func (p *PartRPC) GetTree(data shared.PartTreeRPCData, cats *[]shared.Category) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	c := getTree(data.CategoryID)
+	*cats = c
+
+	logger(start, "Part.GetTree",
+		fmt.Sprintf("%d", data.CategoryID),
+		fmt.Sprintf("%d subcats", len(*cats)),
+		data.Channel, conn.UserID, "category", 0, false)
+
+	return nil
+}
+
+func getTree(parentCat int) []shared.Category {
+	fmt.Printf("getting categories with parent %d\n", parentCat)
+
+	cats := []shared.Category{}
+
+	// get an array of categories that point to the given parent
+	DB.SQL(`select * from category where parent_id=$1`, parentCat).QueryStructs(&cats)
+	fmt.Printf("subcats of %d = %v (%d)\n", parentCat, cats, len(cats))
+
+	for i, c := range cats {
+		DB.SQL(`select * from part where category=$1`, c.ID).QueryStructs(&cats[i].Parts)
+		fmt.Printf("parts of cat %d = %v (%d)\n", c.ID, cats[i].Parts, len(cats[i].Parts))
+		cats[i].Subcats = getTree(c.ID)
+	}
+
+	return cats
+}

@@ -207,3 +207,90 @@ func (u *UtilRPC) Parts(channel int, result *string) error {
 
 	return nil
 }
+
+// Construct the parts categories for bootstrap
+func (u *UtilRPC) Cats(channel int, result *string) error {
+	start := time.Now()
+
+	conn := Connections.Get(channel)
+
+	if conn.UserRole == "Admin" && conn.Username == "steve" {
+		// For each part, get the 1st component that its associated
+		// with (under the old scheme), and from there get the machine.
+		//
+		// The machine then tells us which partclass to use
+		r := "Processing Cats\n"
+
+		// Truncate the cats
+		DB.SQL(`truncate category restart identity`).Exec()
+
+		// Create 1 top level cat for each machine type
+		partClasses := []shared.PartClass{}
+		DB.SQL(`select * from part_class order by name`).QueryStructs(&partClasses)
+
+		for i, p := range partClasses {
+			fmt.Printf("%d: %v\n", i, p)
+
+			cat := shared.Category{
+				Name:  p.Name,
+				Descr: p.Descr,
+			}
+
+			DB.InsertInto("category").
+				Whitelist("name", "descr").
+				Record(cat).
+				Returning("id").
+				QueryScalar(&cat.ID)
+			fmt.Printf("%v\n", cat)
+
+			// With this new category, stamp ALL parts records with this cat id, where
+			// the partclass == selected partclass
+
+			DB.SQL(`update part set category=$1 where class=$2`, cat.ID, p.ID).Exec()
+
+			// Create a sub-category under this one, for each tool in the machine
+			machine := shared.Machine{}
+			DB.SQL(`select * from machine where part_class=$1 limit 1`, p.ID).
+				QueryStruct(&machine)
+
+			components := []shared.Component{}
+			DB.SQL(`select * from component where machine_id=$1 order by position`, machine.ID).
+				QueryStructs(&components)
+
+			for j, c := range components {
+				fmt.Printf("%d: %v\n", j, c)
+
+				subcat := shared.Category{
+					ParentID: cat.ID,
+					Name:     c.Name,
+					Descr:    c.Descr,
+				}
+
+				DB.InsertInto("category").
+					Whitelist("parent_id", "name", "descr").
+					Record(subcat).
+					Returning("id").
+					QueryScalar(&subcat.ID)
+				fmt.Printf("%v\n", subcat)
+
+				// get all parts in this category, and stamp the category on them as subcat.ID
+				pc := []shared.PartComponents{}
+				DB.SQL(`select * from component_part where component_id=$1`, c.ID).QueryStructs(&pc)
+				for _, thePart := range pc {
+					DB.SQL(`update part set category=$1 where id=$2`, subcat.ID, thePart.PartID).Exec()
+				}
+
+			}
+		}
+
+		*result = r
+	}
+
+	logger(start, "Util.Cats",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			channel, conn.UserID, conn.Username, conn.UserRole),
+		*result,
+		channel, conn.UserID, "part", 0, true)
+
+	return nil
+}

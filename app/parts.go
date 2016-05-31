@@ -16,6 +16,24 @@ func classSelect(context *router.Context) {
 	go func() {
 		data := []shared.PartClass{}
 		rpcClient.Call("PartRPC.ClassList", Session.Channel, &data)
+
+		tree := []shared.Category{}
+		rpcClient.Call("PartRPC.GetTree", shared.PartTreeRPCData{
+			Channel:    Session.Channel,
+			CategoryID: 0,
+		}, &tree)
+		print("got tree", tree)
+
+		for i, t := range tree {
+			print("tree", i, t)
+			for i, p := range t.Parts {
+				print("  part", i, p)
+			}
+			for i, c := range t.Subcats {
+				print("  subcat", i, c)
+			}
+		}
+
 		BackURL := "/"
 
 		form := formulate.ListForm{}
@@ -109,6 +127,23 @@ func partList(context *router.Context) {
 			Channel: Session.Channel,
 			ID:      partClass,
 		}, &class)
+
+		tree := []shared.Category{}
+		rpcClient.Call("PartRPC.GetTree", shared.PartTreeRPCData{
+			Channel:    Session.Channel,
+			CategoryID: 76,
+		}, &tree)
+		print("got tree", tree)
+
+		for i, t := range tree {
+			print("tree", i, t)
+			for i, p := range t.Parts {
+				print("  part", i, p)
+			}
+			for i, c := range t.Subcats {
+				print("  subcat", i, c)
+			}
+		}
 
 		BackURL := "/class/select"
 		Title := fmt.Sprintf("Parts of type - %s", class.Name)

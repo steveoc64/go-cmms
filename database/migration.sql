@@ -51,3 +51,17 @@ add entity_id int not null default 0,
 add error text not null default '',
 add is_update bool not null default false;
 
+-- Parts tree
+alter table part add category int not null default 0;
+create table category (
+	id serial not null primary key,
+	parent_id int not null default 0,
+	name text not null default '',
+	descr text not null default ''
+);
+
+create table site_category (
+	site_id int not null,
+	cat_id int not null
+);
+create index site_category_idx on site_category (site_id, cat_id);

@@ -225,6 +225,8 @@ func adminUtils(context *router.Context) {
 				rpcClient.Call("UtilRPC.Machine", Session.Channel, &retval)
 			case "part":
 				rpcClient.Call("UtilRPC.Parts", Session.Channel, &retval)
+			case "cat":
+				rpcClient.Call("UtilRPC.Cats", Session.Channel, &retval)
 			case "sms":
 				Session.Navigate("/sms")
 				return
