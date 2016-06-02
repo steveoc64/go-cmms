@@ -1,0 +1,1088 @@
+-- DB Migration Script
+
+-- To Reset all the events and tasks, and clean out all the schedules
+TRUNCATE event RESTART IDENTITY;
+TRUNCATE task RESTART IDENTITY;
+TRUNCATE task_check RESTART IDENTITY;
+TRUNCATE task_part RESTART IDENTITY;
+TRUNCATE sched_task RESTART IDENTITY;
+TRUNCATE sched_task_part RESTART IDENTITY;
+
+
+-- 2016-05-11  
+-- Modify task part records
+
+alter table task add labour_hrs numeric(12,2) not null default 0;
+alter table task_part add qty_used numeric(12,2) not null default 0;
+alter table part_stock add descr text not null default '';
+alter table part_price add descr text not null default '';
+
+-- Capture SMS transmissions
+
+drop table if exists sms_trans;
+create table sms_trans (
+	id serial not null primary key,
+	number_to text not null default '',
+	number_used text not null default '',
+	user_id int not null default 0,
+	message text not null default '',
+	date_sent timestamptz not null default localtimestamp,
+	ref text not null default '',
+	status text not null default '',
+	error text not null default ''
+);
+
+-- 2016-05-12
+-- Modify user to have hourly rate, and seq task IDs by site
+
+alter table users add hourly_rate numeric(12,2) not null default 0;
+alter table users add address text not null default '';
+alter table users add site_id int not null default 0;
+alter table users add notes text not null default '';
+
+-- 2016-05-16
+-- Syslog has a more useful fields
+
+alter table user_log 
+add channel int not null default 0,
+add user_id int not null default 0,
+add entity text not null default '',
+add entity_id int not null default 0,
+add error text not null default '',
+add is_update bool not null default false;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Corporate-Life-CycleThis is a column I didn’t want to write. Like many of you I am tired of IBM stories and the company that was once an industry leader has become, at best, a poster child for how not to manage the later stages of a corporate life cycle. But because what’s happening at IBM is also happening right now at hundreds of other big technology companies makes it worth covering. So let me be clear: IBM is dying.
+
+Last week a huge round of layoffs hit IBM just as I predicted back in January. The company is releasing as few details as possible. Nobody, for example, knows exactly how big is this layoff — how many people are being let go? IEEE Spectrum found one source that said the number was 30 percent of the U.S. IBM workforce, a number which IBM says is too high. I also believe 30 percent is too high, especially if you confound it with retirements, contractors being axed, etc.
+
+This round of IBM layoffs looks to me to be in the 20-25 percent range. A similar number of IBM workers were let go last year, but what makes this year’s numbers so notable is that most are regular employees — not contractors or retirees (those were mainly dumped last year to make those layoffs look lower). With IBM U.S. employment in the 90-100,000 range, this suggests that 18,000-25,000 people have just been shown the door at IBM. And they did so under new rules that grant at most one month of severance pay instead of up to 23 weeks that was in effect until the end of 2015. That has to be a kick in the head to all the IBM old-timers who had been waiting for the axe to fall no matter how good they were at their jobs, yet hoping for some kind of package. Well the package is here and it is full of crap.
+
+The IBMers I hear from, and there are lots of them, are generally either pissed-off or scared. But it’s frankly far too late to save the IBM they remember. That company has been gone for years. The best they can hope for is a little clarity and leverage concerning the terms under which they are being shown the door. It looks like IBM isn’t being clear about their options with those on the layoff list and I’ll be covering that in another column this week. But for now I want to explain why I say that IBM is dying.
+
+Big Blue is in transition they say. Old businesses like mainframes and midrange systems are giving way to cloud, analytics, mobile, social, and security. The company has done this before many times. Gone are the card sorters and typewriters for example. The theory is that IBM will emerge like Doctor Who from this latest transformation, a new company headed for even greater things.
+
+During such a transition time the job of the CEO is to starve the old businesses to feed the new ones. IBM CEO Ginni Rometty has done this in spades because she has the added job of keeping Wall Street happy, which means increasing dividends and share buybacks no matter the actual economics of her business. It’s all done with the idea that the new businesses will more than make up for the old.
+
+But what if they don’t?
+
+The largest shareholder of IBM is Warren Buffett’s Berkshire Hathaway with over eight percent. In one sense you might think that Buffett would worry about IBM’s stock spiral. On the contrary, a few months ago Buffett explained that as a long-term shareholder who ideally would never sell, falling share prices are actually good because it allows him to buy even more shares on the way down and own that much more of the company when it comes back up.
+
+But right before this round of layoffs Warren Buffett began to change his tune on IBM. He was dour when asked about it and said his partner Charlie Munger was already bearish on IBM. It was a dramatic change of attitude that led to this peculiar clip of CNBC’s Jim Cramer trying to explain it:
+
+
+What happened? What turned Buffet around? Surely not this one layoff: IBM has been doing these for years, though never so brutally.
+
+The only event that I can see causing this change in Warren Buffett is Ginni Rometty disclosing to her largest shareholder that the basic premise of transition and renewal isn’t working. Things aren;t going well at all in cloud, analytics, mobile, social and security land. When those kick-in (if they kick-in) IBM will be just one company in a crowd with no particular advantage over the others.
+
+IBM used to be able to count on its size, its people, its loyal customers, but all of those are going or gone. Apple or Google could buy IBM with cash on hand, so it’s no longer the Big Kahuna. IBMers of yore are all gone and for the current breed it’s just another job. IBM customers are leaving in droves, too. Of the whole CAMSS suite only security is an obvious success and the world isn;’t ready for a $100 billion security company.
+
+IBM isn’t KODAK or XEROX as one reader asked. It’s not that IBM stuck too long with an old technology or developed new ones it then chose not to sell. A better analogy for IBM is the original AT&T — a company that spent huge amounts trying to reinvent itself as a cable company and a wireless company only to finally sell itself to SBC for $16 billion.
+
+More on this tomorrow.
+
+By Robert X. Cringely|March 8th, 2016|2016, Business, Companies, Industry, Predictions|140 Comments
+140 Comments	
+
+RobS March 8, 2016 at 9:41 am - Reply
+My personal theory is that Apple will eventually partner with W Buffett in a leveraged buyout of IBM’s remaining patent portfolio and perhaps some of their key assets (Watson for example – who would be married with the rudimentary tech that is Siri.)
+
+swschrad March 8, 2016 at 11:51 am - Reply
+IBM is not an Apple business. 90 percent or more is hand-holding.
+Apple doesn’t hand hold. they design for simpletons, with plenty of good stuff for geeks, and there is minimal hand-holding. you can’t erase an email, wait for 75 minutes at the Genius Bar.
+so that deal is as likely as a Trump-Sanders ticket.
+
+:-) March 8, 2016 at 2:10 pm - Reply
+You’re clearly a moron
+
+Steve Gunderson March 8, 2016 at 3:15 pm - Reply
+Sanders/Trump??
+
+swschrad March 9, 2016 at 7:22 pm - Reply
+you have a wilder and more unlikely comparison, then? that’s as unlikely as I can dream up, past of course IBM and Apple.
+
+Chris March 8, 2016 at 3:05 pm - Reply
+I fail to see the value proposition of Apple buying IBM. If Apple were still based on POWER, maybe that would be the case and I’m not sure how much Watson is worth to Apple in the business that it’s currently in. It’s funny because there was a time when IBM had the opportunity to buy Apple and walked away.
+
+
+Bob March 9, 2016 at 12:10 pm - Reply
+1. If anyone would step in to buy IBM, it would be someone like HP who is already doing service for companies.
+2. I don’t feel sorry for Ginni, Sam, or Lou; as they all have a share in gutting IBM and seeing who could make the most money out of it. They cut the support staff, then offshored as many people as they could. They took on accounts like Disney and State of Texas, then lost them because of bad support.
+3. Now that it’s crashing, they are maximizing what executives will get by cutting what the real workers get. Where people had been promised six months of severance, it’s now cut to one month.
+I don’t feel sorry for any company that climbs over the bodies of the employees they’ve killed off.
+
+Bruno March 10, 2016 at 7:26 am - Reply
+HP to buy IBM? LOL If you buy one you get the other for free! HP is in the same direction.
+
+Bruce C. March 10, 2016 at 11:16 am - Reply
+HPE, HPQ or both? There is no HP anymore.
+
+TxIBMer March 11, 2016 at 8:45 am - Reply
+First of all, Services and Software are a bad combination in a company. Software needs to “stand on it’s own” with sufficient support and documentation that the product is REAL, SUPPORTED, and LONG TERM VIABLE, STABLE, RELIABLE, UPGRADEABLE,all the “ables”. A customer needs to be able to buy the software, install it, and make it “useful” and “successful” in the corporation without needing services. Almost “consumerware”. I realize that some companies just want to “pay to have it done”, but that is really what SaaS and Managed Services are about and for (and why they are flourishing). Services needs to “stand on it’s own” with EXPERTISE, INDUSTRY KNOWLEDGE, EXPERIENCE, and EFFICIENCY. Successful services have “practices” for key industries and software products (and product combinations) that multiply the effectiveness of combined products into an industry solution that a customer can consume. Think Perot Systems (now part of Dell) focused on being an expert in revenue cycle management. When a company does software and services, things like documentation and support get lazy and sloppy, because “we can sell them services”. It’s a horrible way to do business because the software does not cost the price of the software, but the price of the software PLUS the services required to get it “useful” and “successful” at a company. It’s bait and switch. Sadly, most companies run software and services just like that. I hold up WebSphere and Liberty as “software done well” because customers CAN make it “useful” and “successful” without having to hire an army of IBMers to do so. There are active user and development communities and a great partner channel to provide add-ons and a nice ecosystem. Now JBOSS did come along and take a bunch of that, and maybe the “new” model is Services which implement “Open Source” well. But, still read and read this. If you are gong to SELL SOFTWARE, then make it easy enough to use that customers can install and upgrade it themselves. If you can’t do that, don’t sell software. HP gave up a long time ago. IBM is still in the game on some products. I don’t mind a small services group in a software company to help customers “enhance” the product, but it’s not the software company. Aspera was that way before IBM acquired it, and their management is trying hard to fight the IBM lion to keep it that way. I really do think that Managed Services (and definitely not Iaas or PaaS) are the future, because you run the application software for the customer, and many customers in a multi-tenant model. You need to start with the expertise in the industry, and what has been built and worked and not worked, and then be able to scale that through an industry. SalesForce.com is an example in sales. Sterling (now part of IBM) in EDI/B2B Managed Services. Be different, ditch the xaaS “brand and sell like SalesForce does, by being good at services that customers WANT and NEED!
+
+Sam March 13, 2016 at 1:53 pm - Reply
+Yes, HP, HPE, buying IBM makes no sense. Probably not even possible. HP Enterprise has a market cap of $29b, IBM has a market cap of $130b or so. It makes about as much sense as IBM acquiring Apple.
+
+DCH March 22, 2016 at 2:40 am - Reply
+Sorry HP is not the one. They are working to get out of the service model as they never priced it right.
+
+Mineserver March 8, 2016 at 10:12 am - Reply
+Say what you want to about IBM but they at least mange to ship products. Your kickstarter “suckers” are still waiting for updates on your Mineserver project. Your last update first apologized for the lack of updates and then promised to be better. A promise was then made to have test systems up in about 7 days. That update was in January with no updates since.
+Is this project destined to join your other “successes” like your Moon shot, the foil based hard disk, and your Phd?
+
+Mine server sucker March 8, 2016 at 10:48 am - Reply
+Couldn’t have said it better myself.
+
+Yet another anonymous comment March 8, 2016 at 11:32 am - Reply
+And your point is?
+
+NoTalentHack March 9, 2016 at 1:14 pm - Reply
+I too am waiting for my Mineserver. But there’s a big difference between a $30,000 Kickstarter family campaign failing to perform, and a global company like IBM dropping $4 billion in earnings in a year. And the bulk of IBM’s revenue no longer comes from shipping products, it comes from delivering services. Something they seem increasingly incapable of doing effectively.
+
+Tom March 10, 2016 at 11:16 am - Reply
+OMG, you supported a couple of little kids and now you’re irate because their QC is not yet world-class.
+WTF is wrong with you?
+
+Ronc March 10, 2016 at 5:23 pm - Reply
+Bob did say he was also involved, so it’s not about supporting kids. Also, no one is complaining about QC, but rather the lack of a product without explanation or ETA.
+
+Tom March 10, 2016 at 9:22 pm - Reply
+lol, my own personal troll.
+Get out much?
+
+Ronc March 11, 2016 at 5:02 pm
+“WTF is wrong with you?” Nothing personal.
+
+Mark March 15, 2016 at 9:41 pm - Reply
+Cringely’s final sentence, written a week ago — “More on this tomorrow”.
+–
+How ironic that an out of touch tech writer is blogging about an irrelevant company. If not for Bob and the old men commenting here, I’d hardly remember IBM, HP or any of the dinosaurs of the 80s.
+–
+Personally, I retired in my early 50s. I saw the handwriting on the wall for US employees as a young man and saved/invested as hard as I could. Long before finally telling the boss to take his job and shove it, I understood technology and innovation is a young man’s game. For years, I no longer had the energy or ambition to learn new skills every few years.
+—
+That is why IBM has to mercilessly fire the old men, and jettison unprofitable businesses. They just can’t handle the long hours, midnight pages and marathon coding sessions. I understand that from my own personal situation. I feel sorry for the millions of engineers who thought the 100k salaries were forever. They are just as clueless as the football player who blows the big paycheck on parties, then gets injured.
+
+Ronc March 16, 2016 at 5:05 pm - Reply
+Re: “saved/invested as hard as I could”. Can you share any specifics?
+
+Mark March 18, 2016 at 1:55 am - Reply
+Check out the mr. money mustache blog, if you haven’t already.
+–
+In my case, I made learning all about investments and the mechanics of day trading a second career. You don’t have to go to that extreme. It was a hobby I enjoyed.
+–
+My income now comes from stock dividends yielding around 6%. It takes work, but it is possible to find companies that maintained their entire dividend payout throughout the banking crisis. In these volatile time, I would be very conservative with investments.
+–
+Good luck.
+
+swschrad March 8, 2016 at 10:22 am - Reply
+Berkshire doesn’t tip its hand often, and Buffet last week was quoted as “don’t follow my lead.” which is what he’d say if he was about to divest slowly a huge handful of something. just sayin’….
+
+Joe March 8, 2016 at 10:40 am - Reply
+Bob
+What’s the story with your mine server project. You have taken $34k of cash and shipped nothing and not provided any updates.
+Your credibility is waning.
+
+MikeN March 8, 2016 at 8:53 pm - Reply
+It’s not Bob’s. You are counting on the reliability of young boys.
+
+Charles March 8, 2016 at 11:07 am - Reply
+I like your spin on this one Cringely. I worked 12 years for IBM. I have to say, I saw the death begin in 2011/12 time period. Reorientation of the deck chairs on the Titanic with reorganization from hell. Cost savings that domed the companies productivity and quality of service and products. Sad, but the company has killed its self. Its suicide, I tell you its suicide!
+It’s not all Ginni Rometty fault. Sam Palmisano really began this, IBM can still be saved if it can find a new Lou Gerstner. Not sure if there is one out there…
+
+kel March 8, 2016 at 1:10 pm - Reply
+Clueless. You worked there a decade ago and that’s your ah ha insight? The roots of this mess go back to the late 1980s, dude. Remember when MSFT kneecapped IBM re: Windows? Learn your history.
+Frankly, Cringely isn’t interesting or insightful anymore. He’s pulling this one out of his ass because it’s an easy horse to flog. Try writing about something where you can actually add value. This is press clips city, pal.
+
+TimH March 8, 2016 at 5:14 pm - Reply
+So why are you here, then?
+
+Doctor Who March 8, 2016 at 11:20 am - Reply
+It’s “regeneration”, not “transformation”. Allons-y!
+
+Paul Bellar March 8, 2016 at 11:21 am - Reply
+I’m curious if others have been shorting IBM’s stock based on this and Bob’s book.
+I would assume, based on Bob’s presumed code of ethics that most writers adhere to, that if he were shorting IBM, he would disclose that.
+Paul
+
+swschrad March 8, 2016 at 11:54 am - Reply
+well, IBM has been a point of column fodder with Cringe for 20 some years, so…
+
+John March 8, 2016 at 11:36 am - Reply
+Okay I’ll go ahead and say it. Maybe IBM is having these huge layoffs and has cut its severance to almost nothing BECAUSE IT HAS TO. Could their core businesses be falling so fast such desperate measures are needed?
+
+swschrad March 8, 2016 at 12:00 pm - Reply
+could “big Red IBM” maintain as a business? I suspect so. where the mainframes exist, they’re going to stay. and upgrade. and have more software seats for more incremental revenue.
+could “big ‘call-a me Bob” Global Solutions maintain as a business? maybe. reputation is not great at present.
+could any of this maintain as a business with the big dividends and big buybacks in the face of a nearly stagnant pace of business? hell, no.
+for IBM to hang in, I suspect the solution is spinoffs with a whole new attitude of managing the money. this would necessarily result in smaller companies with the shine of “IBM” off, and miserly dividends if any. that’s not top of mind, I suspect, of the present shareholders. parts of the company will be subsumed elsewhere, as Lotus was, for instance.
+
+Chris March 8, 2016 at 3:07 pm - Reply
+To your point, Unisys is still a going concern.
+
+swschrad March 9, 2016 at 7:27 pm - Reply
+unrecognizeable from what it was at the Sperry/Burroughs merger. Unisys was basically the path for the mainframe corporations… dump the hardware and software, be the middleman.
+
+Plover March 13, 2016 at 1:09 am - Reply
+I think you will find applications have been getting moved off mainframes and onto Linux, Unix or Windows for years now. Some onto IBM middleware, I suppose, but there are plenty of alternatives.
+
+Scott Schrader March 15, 2016 at 9:52 am - Reply
+and since you can run multiple instances of Linux on an IBM mainframe, like multiple instances of their proprietary OSs, the line continues to blur.
+
+IBMer March 8, 2016 at 12:05 pm - Reply
+Yes, core businesses are falling fast with traditional Fortune 500 customers ignoring IBM solutions where they can.
+
+Pittsburgh Mike March 8, 2016 at 11:46 am - Reply
+“Apple or Google could buy IBM with cash on hand….”
+As an old-timer who hasn’t been following IBM in years, please indulge me in a moment of WTF. I didn’t expect to see the day when Apple could buy IBM, much less for cash.
+
+ALP March 8, 2016 at 7:05 pm - Reply
+Well, I just checked the numbers. IBM market cap: $136B (today), Apple cash reserves: $203B (last June and growing). I don’t see them buying though. And if they do for some reason, it won’t be now, but when the market cap fall down… a lot.
+
+anonononon March 9, 2016 at 9:27 am - Reply
+You fail to account for the fact that a huge majority of that cash is trapped overseas and would have to be taxed to bring back to the U.S. to buy IBM. Then after accounting for the tax rate, you have to account for the premium that would have to be assigned to get the buyout through (at least $160 per share total to get it through at today’s stock prices). And then don’t forget that a company like AAPL/GOOG would like to keep a decent amount of cash around for emergencies, acquisitions, etc.
+
+
+
+
+
+
+
+
+
+
+
+
+chiph March 9, 2016 at 11:10 am - Reply
+They could partner with someone who has deep pockets, much like how Michael Dell got Microsoft to chip-in some millions when he took Dell, Inc. private again.
+But really, the question would be, what’s the advantage to Apple to owning them? They already have chip fabrication abilities and an ARM license, so they don’t need IBMs strengths there. I suppose they could train some IBMers in Swift and send them out proselytizing into corporate America (if Apple desired to sell to business customers – which they aren’t showing many signs of).
+
+swschrad March 9, 2016 at 7:38 pm - Reply
+market cap also includes a lot of puffery.
+value of assets depends a lot on penetration of a market and respect for that asset class.
+we have seen a lot of calling out the Emperor’s wardrobe past few years on the services and software segments. quality and responsiveness to requirements. that means market cap stability is a Wall Street urban myth. if quarterly results continue to lag, some of the analysts will probably question their assumptions.
+a lot of value on the boards is probably “Gawd, we gotta hold his dog until it rises, we have a pile on this thing.” the bears have been growling loudly for a year, that it’s a defensive oversold market.
+when/if IBM falls noticeably, hold on to cash. NostrilDrippus Predicts! ™ is seldom wrong, because he never goes out on a limb.
+
+GatewayProc March 25, 2016 at 7:47 am - Reply
+“market cap also includes a lot of puffery.”
+huh?
+Market Cap=Shares Outstanding X Share Price
+what’s puffy about that?
+
+Ronc March 25, 2016 at 5:16 pm
+The share price. Ever heard of Beanie Babies, the dotcom boom, or tulip mania?
+
+GD March 8, 2016 at 11:48 am - Reply
+IMHO the main problem at IBM is the lack of a strategy.
+Ginny’s stated strategy of “Social, Mobile and Analytics (plus cloud)” is like McDonalds saying their strategy is “hamburgers and drinks”. That’s not a strategy, those are fundamental technologies that support almost every technology company out there.
+IBM seems to be making progress in their security story, but it’s like expecting lifeboats from preventing the titanic to sink.
+
+swschrad March 10, 2016 at 8:46 pm - Reply
+there’s no question, and no doubt
+garbage in means garbage out.
+Watson is no better than the big data and the rules within it. if IBM can’t run their ship with all that data, what leads one to believe Watson as a file system will do any better?
+
+GD March 8, 2016 at 11:51 am - Reply
+…maybe they could ask Watson to build a strategy for the company…..or at least Watson could give them stock picks to they can invest their cash somewhere they can get better returns than using it for buying back their own stock….
+
+Leftin14 March 8, 2016 at 1:25 pm - Reply
+Perhaps the problem is that they are listening to Watson.
+
+David K. March 8, 2016 at 1:59 pm - Reply
+The thing that upsets me about this are the enormous salaries and benefits that have been continually extracted, by the executives, from the company, throughout its obvious and inevitable death spiral, as though they were actually doing their jobs well. Maybe, in a sense, they even were, but to stick it to the people on whose back the company functioned (like reducing their severance, as reported), while rolling in cash like it were a successful enterprise, is what makes even people like me fancy the things that Bernie Sanders and the Occupy Wall Street crowd have been saying about inequality. I went to Google what the CEO’s salary was, and, bingo: the LA Times NAILED IT back at the end of January.
+http://www.latimes.com/business/hiltzik/la-fi-mh-ibm-s-ceo-writes-a-new-chapter-20160129-column.html
+
+Self Flagellator March 8, 2016 at 2:03 pm - Reply
+I am in an area of IBM that wasn’t hit by the recent RA. However, even as a 2+ performer, my GDP bonus for 2015 didn’t even total 1% of my salary (.00885% for a job well done). Guess I should be happy for any crumb tossed my way, but when my CEO readily takes millions for her continued under-performance, my desire to give a #%!* goes right out the window.
+
+Paul S. Koskinen March 8, 2016 at 2:24 pm - Reply
+IBM’s fall began with the board of director’s 1992 decision to bring in the first “outsider” to run the company, Lou Gerstner. Gerstner, a takeover “specialist” and McKinsey management consultant with zero personal knowledge of the computer industry, quickly came up with the right solution for the wrong company. His appointment was accompanied by tremendous positive press and his decisions regarding “fixing” IBM were taken as infallible. He was really IBM’s Donald Trump (without the smarmy profamity). Unfortunately he was profoundly wrong in his assesment of what ailed IBM and hence his solution. Poor Ginny Rommety was given a fatally flawed organization that had been kept afloat by slowly dying inertia.
+
+Self Flagellator March 8, 2016 at 2:29 pm - Reply
+“Poor Ginni Rometty” has made a mint while steering IBM further and deeper into the ditch. No need to feel sorry for her.
+
+Buckaroo Banzai March 8, 2016 at 2:32 pm - Reply
+Paul, not a single thing in your comment is even remotely correct, or makes a bit of sense.
+
+Timka March 8, 2016 at 8:41 pm - Reply
+I’m inclined to agree with you. IBM had unique relationships with its customers which included a high level of trust. On most balance sheets “good will” is nothing but carbon fiber, but in IBM’s case, circa, 1992, it was a substantial asset. The flaws at IBM go back to that period, indeed, maybe before that even.
+For instance, when IBM rolled out OS/2 they should have made it free. The global economy over the course of the 1990s lost billions of dollars in man hours due to Windows 3 locking up on people after they spend half a day working inside of a Windows application.
+The IBM systems engineers were seen as the Jedi Knights of information technology. IBM should have built on that by providing business consultants to businesses that weren’t vampires or vultures as most of the other companies were. For a company to exist long term, it has to maintain and grow market share over time. That means investing today in a myriad of things because you don’t know what will be a market driver 20 years from now. By providing high quality low cost advice IBM would basically be preserving their mind share if not market share with its customers. It behooves them to then figure out how to make money doing that while still strengthening the competitiveness of their customers. Its a bit like the way google comes up with a new ap or service, and then only later figures out how to use that to make money. I guess, I think IBM had too much of a “pay as you go” attitude and to little imagination on how to make its presence inside of its customers work for both them and their customers. Of course, maybe that was impossible. But I know of a few Systems Engineers who were let go by IBM, whose customers thought the world of them and so came back as independent contractors.
+
+John March 9, 2016 at 6:41 am - Reply
+There are a couple books on the Gerstner era of IBM. Having worked at IBM at the time I can tell you most of the information in those books is true. Gerstner DID bring IBM back to fiscal health. One of the first things he did was to reach out and have one-on-one executive meetings with all of IBM’s big and important customers. It was called “operation bear hug.” As customers voiced issues the IBM exec’s were empowered to make things right. It worked. It repaired IBM’s relationship with is customers. It bought IBM time to fix its business and realign it to the market needs.
+.
+Gerstner didn’t need to know anything about TECH or the computer industry. We we all fail to remember is what make a company work — customers. Customers buy a company’s products and services, not Wall Street. Customers provide the cash that becomes a company’s revenue, income, dividends, etc; not Wall Street. Without customers IBM would cease to exist. Gerstner knew that, he fixed that.
+.
+What Gerstner didn’t fix was the organization culture that got IBM into trouble in the first place. IBM is actually a poorly managed company and its culture does not promote the best leaders. Its culture does not allow good leaders to operate. That culture produced Sam P. and Ginni.
+.
+Early in Sam P’s reign we had a financial crisis, stock market crash, and deep recession. IBM did better than most companies during that time, primarily on the strength of its multi-year contracts. They buffered IBM from the worst effects of the economic crisis. As stock prices plunged and interest rates dropped to zero, big investors looked for places to invest their money, safe investments. IBM was one of those. A lot of money flocked to IBM — simply because it was “safe.” Sam misinterpreted that as being a reflection on his leadership. Sam, like most of IBM’s leadership was a sales person. Sam started selling IBM to Wall Street. The EPS goals, the cost cuttings, the layoffs, the benefits cuts all that stuff was to make IBM even more attractive in the eyes of Wall Street. For a time this plan worked. IBM’s stock price soared and Wall Street was very happy.
+.
+What was not apparent at the time was IBM was also cheating its customers and damaging its relationship with them. It is not that IBM’s CAMSS strategy is good or gutting services is bad, it is the damage IBM is doing with its customers that is important. Without customers the best business strategy in the world is useless.
+.
+Gerstner, not a tech guy, brought IBM’s customers back. Sam P, not a tech guy drove IBM’s customers away. Ginni, perhaps IBM’s most tech savoy CEO ever is hoping the new businesses take flight before it is too late. IBM’s traditional businesses are now too damaged to be saved. This is a very dangerous time and it started when IBM forgot where its money comes from.
+
+Charles Moorehead March 9, 2016 at 10:14 am - Reply
+Fantastic insights, John. You should be a consultant to the Board of Directors of IBM. But I wonder if those bozos would be smart enough to realize the value of your insights.
+
+Paul S. Koskinen March 9, 2016 at 10:18 am - Reply
+John, I think we’re pretty much on the same page. I write “he [Gerstner] was profoundly wrong in his assesment of what ailed IBM”. You write a little more directly “What Gerstner didn’t fix was the organization culture that got IBM into trouble in the first place”. In other words he did not correctly identify the real problem. BTW, I too was a long-time IBM’er in ’93.
+
+Misty March 9, 2016 at 10:56 am - Reply
+John, nice insight about driving customers away. As I mention below, I left IBM after enough of the madness and landed at a once true blue IBM client shop. By the time I got here, the IBM equipment was/is being systematically dismantled at every opportunity. Difficult in some areas, particularly the mainframe, but nothing new is going on that platform. On the contrary, I project the last mainframe application will migrate to the VM farm (or a cloud provider) within 3-5 years. AWS is a popular alternative here.
+.
+And the VM farm, it used to be IBM x-blades, but since big blue decided to dump that area of the business to Lenovo, it’s now being migrated to Dell as fast as possible. You can’t make this stuff up.
+.
+The basic overtone here is that IBM no longer listens to clients and provides terrible service, particularly when you call for support and connect to offshore kids reading from a script who you can barely understand.
+.
+At this shop, it’s fair to say the damage is done and strategic direction is not in IBM’s favor. Watching the YoY earnings declines convinces me there must be many other shops out there just like this one.
+
+Adam March 9, 2016 at 1:48 pm - Reply
+John, great comments.
+Gerstner’s book finished with some loyal statements, and then a curious postscript stating that, after having been gone a little while, he realised he had always been an outsider. Maybe there was a limit to the cultural change he could drive. I was there for his whole tenure, and thought that in that aspect, at least, he did well.
+Steve Jobs spoke about companies that end up with sales guys in positions of power over product development guys, because an increase in sales can yield greater bottom line improvements, short term at least. I imagine he might have had his own experiences at Apple in mind, but those words sum up IBM imo.
+Ginny may be very tech savvy, but in key areas IBM invested too little too late, and fell behind. Some of those decisions were on her watch. Microsoft is transforming rapidly and effectively post Balmer. Why couldn’t IBM do the same post Palmisano?
+
+unknown March 9, 2016 at 3:20 pm - Reply
+Having worked for other once large and now defunct software companies, there are similar patterns of behavior. These include:
+1) Increasing layers of management and executives, to the point where each person who actually does real work seems to have their own management chain.
+2) Confusing sales with revenue – this is really a lack of knowledge about where the operating income actually comes from and how to continue to support those critical revenue streams while developing new and useful products.
+3) Disrespect for the rank and file – the people who represent the company to the customers and develop the products. A belief that technical expertise is a commodity, not a skill.
+4) Disrespect for the very customers who fund the company. Primarily those paying service and support where the highest margins are. This is often a by-product of #3, and includes not having enough qualified staff to assist when things are not going well.
+5) Reduction in benefits, and multi-tier benefit systems. The managers and execs may have different and better offerings to choose from, the basics for the coders and creators. An example I saw at a prior employer was that to support the country club memberships for three execs a team of 7 working on enhancements to a product line that was generating substantial revenue in service and support (far, far over the cost ) were let go, because as everyone know all business is really done on a golf course.
+6) Constant layoffs – called by increasingly strange names. Right Sizing, lean work place (how can that be with the ratio of execs to worker bees approaching 1?), Agile …whatever it was called, it typically meant more work with less help and often no support
+7) A steady erosion in redundancy payouts.
+8) Buying companies in place of development and R&D. Not recognizing innovation from within.
+9) Following fashion rather than hard work and clear thinking. This manifests in increasingly meaningless and buzzword laden meetings and (pardon the expression) communications that do nothing except cause cycles of knee jerk reactions as first and second line managers tried to interpret buzzwords as strategy, mimicking the executive confusion, and direct their teams towards those empty and changeable goals.
+10) Recognition of glad-handing over hard work in the technical roles.
+Former employees often become decision makers and/or influencers fairly quickly elsewhere – that accelerates the decline when they have been treated with contempt.
+IBM is a big ship, and still can turn itself around. I believed that was true; that it would be recognized that partnerships with customers, that care for their success and pride in quality, would somehow come back into fashion within IBM management.
+And while my group has not yet been touched by the latest round of layoffs, we have been hurt in the past and have the group reaction of flinching when we hear of new ones. And I daresay that if, or rather when, IBM elects to let us go customers will notice our absence and be far more alarmed than if all the top 4 layers of IBM execs and managers were to vanish is a puff of burnt-money smoke. And letting go that many highly skilled and formerly motivated people will not save enough money to pay the bonus of a single top level executive. A pity.
+I mourn, mostly for what might have been and what may perhaps still be if sense, sensibility, and sensitivity return.
+
+Potatopicker March 10, 2016 at 10:05 am
+That is a great summary – as an observer of other companies, and seen up close and personally here, I agree. And there is still time, though the possibilities dwindle with each passing day. A good move might be to completely eliminate a couple of rows of management at the very top.
+
+Misty March 10, 2016 at 2:02 pm
+Unknown, you hit the nail on the head with #3 and #10.
+.
+I lived #3 first-hand for years and it never ceased to amaze me when a mediocre project/program manager or arrogant exec would look down their nose with disdain at a seasoned technician. The culture was and remains “oh, you’re just an over-banded techie.”
+.
+I am now living #10 in my current position and I am one of those influencers (smile).
+
+Mikizo March 17, 2016 at 6:02 am
+One additional thought – with the rapidly dwindling number of techies on the payroll – IBM has successfully navigated a new trick to cut down costs.
+The Sales operation partners with a business partner to support and promote sales. When the sale finally occurs -the Operations department miraculously discovers something wrong with the opportunity, the documentation, the Partner’s shoe size or the product packaging and denies the partner the sales fee.
+Since the rules are nowhere to be found and change without notice, the BP now spends time fighting the windmills of the IBM bureaucracy while the company get presales and marketing for free.
+
+WHAT March 11, 2016 at 2:24 am - Reply
+I love how you scum are so afraid of The Donald.
+I`m totally expecting a lot of leftist suicides when he becomes president.
+It will be glorious.
+
+Brian1 March 8, 2016 at 2:30 pm - Reply
+I started at a company in the 90s just out of college; they had an IBM AS/400 and I was a PC kid. Everyone wanted to get away from the “green screen” and I had to figure out enough about the IBM box to get data off of it. We created various Visual Basic/SQL apps that were accessible to the general public and more visually pleasing. But eventually I came to respect the transaction processing power of the old IBM AS/400, and even learned enough CL to get by. And now I am replacing those “legacy” Microsoft apps with JavaScript and I wonder if Microsoft’s apparent embrace of open source will keep it from “dying” like IBM…
+
+Chris March 8, 2016 at 3:10 pm - Reply
+There are still LOTS of AS/400’s (no, not iSeries, AS/400) in production. I never encountered an AS/400 customer who had a bad thing to say about that platform.
+
+DanMcC March 10, 2016 at 12:08 pm - Reply
+I’ve always thought IBM should spin-off the AS/400 into it’s own company and then allow the tech heads to unleash it’s full potential. It’s the only product that’s worth saving as the IBM ship goes down.
+
+Chris March 11, 2016 at 10:20 am - Reply
+AFAIK, it’s no longer its own product. In 2001, IBM re-branded all its server lines and AS/400 ended up being “iSeries” which was more recently subsumed into the POWER architecture. This is why I find it remarkable when I encounter a device with an AS/400 nameplate.
+
+Eric March 8, 2016 at 9:29 pm - Reply
+first, thanks to everyone who stayed on topic.
+I worked for a time in the Boca Raton Lab in the early nineties. I great place to work, and having access to all the software and tools, that floated around the the ibm internal world wide network at the time. mostly mainframe and gopher server (who remembers gopher?) repositories was like being a kid in a candy store. the thing is none of those candies were for sale, they were free to use internally, but never or rarely made out side of IBM.
+But Boca Raton is ground zero for the problem with IBM. Some very smart guys built a PC using and INTEL chip them let Microsoft license them and OS the not even Microsoft owned at the time. It hard to say what else they could have done. but if they built a proprietary chip and bought an OS. There could be only one Computer company today, IBM.
+Also layoffs (cost cutting, or m&a related) are SOP for Big Business, its how they get expensive olders workers with dated skills off the books.
+
+Kickstarter March 8, 2016 at 11:36 pm - Reply
+Hey there, wouldn’t it be nice if you followed through on your commitments.
+People spent money on you.
+Kickstarter Mr. Cringely.
+You forget? Because it has been over a month.
+I’m sure you haven’t forgotten how to use a computer, as this blog seems to be updated, but you neglect to even give a thought to your THIRTY FOUR THOUSAND DOLLAR PROJECT.
+Please, just give an update on such.
+A simple “We are still working, Fug off” will do.
+Something so that we know we haven’t been scammed.
+Something so we don’t have to hunt you down and press charges.
+We know that you live in the states. We can come after you on theft charges. Don’t let it come to that.
+
+GBS Drone March 8, 2016 at 11:48 pm - Reply
+We are hiring web designers and design thinkers by the tanker load. It’s all to try to get clients to come in and then sell them Watson. Clients aren’t interested. My client said if I dare mention Watson I will be turfed out of meetings. The news from the top this is a sales failure. We have nothing clients want except a rag tag bag of expensive and second class (at best) pile of crap software.
+Design thinking is not going to help. The good people are gone replaced with grads and people who have drunk the koolaide. The shiney SCAMS is just brightly colored furniture, post it notes and smiley simpletons.
+Times are so desperate I got an email to Tweet about IBM about how fun and ‘Google like’ it is to work there. It’s hell. There are not enough projects for the people they are hiring so they get put on pips and shoved out onto projects not related to their expertise. They are ruining people’s lives.
+Everyone is miserable. At least we had packages to look forward to and now we don’t have that.
+It’s not dated older workers with outdated skills they just shed.
+Here’s a great GBS scam. Hire some one with gravitas and hot skills. Send them out front and center to show IBM has hot skills and is doing cool stuff. Use them to close deals. Give them a few days to input into the project and then yank them off for a grad or offshore it. This way the profit margin is higher and the work can be sold competitively. The books for the project look awesome. Bait and switch.
+Repeat. When the hot skills person gets on a pip for not hitting utilization targets let them take the blame, sack them and get another one.
+Scam 2 to protect yourself against utilization targets charge people hours for case studies, slides and any old sales collateral. Bank time against codes to protect your team while screwing everyone else. The managers that have been around awhile are masters of this.
+I hate this company.
+
+Misty March 9, 2016 at 6:36 am - Reply
+GBS drone, well said. Many clients are not interested in the SCAMS angle IBM is pushing because not only is much of it substandard wishware, in many cases some of the client’s decision making employees are former IBMers who either quit or were RA’d and therefore know exactly what is behind IBM door # 2. They will steer their new employer away from IBM solutions at every possible turn. IBM has effectively seeded their demise all across the IT landscape.
+.
+A case in point. After watching the place slowly implode for over two decades, after watching ruthless corporate politician execs continually padding their pockets on the backs of the rank and file workers, I pulled a disappearing act and landed at a great place where they actually refer to their employees as ‘people.’ There were several other former IBMers, a few who were RA victims, also on staff at this new employer. Many of us were in positions to advise on hardware/software strategy and procurement.
+.
+When the IBM sales cartel would show up, we would find ourselves snickering under the table at their pitch. On one occasion, they proposed we switch from an industry standard product to one of their inferior alternatives by saying ‘but that vendor has moved most of the development (of that product) to India.’ We fell into disbelief that the person would even try that angle and proceeded to remind him of his employer’s offshoring track record. With that, the meeting ended.
+.
+Cringely and others are right, IBM is done, cooked, finished. Maybe that is why the leadership ranks are extracting wealth for themselves at a rapid clip, they know the end is near. It will simply take time for the carcass to grow cold and finally turn to dust. And all the while, up to the inevitable end, the CFO and Ginni will continue to spew forth the tag line ‘we are continuing our transition to higher value….’ Yawn.
+
+Sam March 13, 2016 at 4:02 pm - Reply
+@Misty
+Good point. The sheer number of former IBM employees who have left, one way or another, and have a negative view of IBM has an unappreciated impact. These people number at least 100,000 and probably considerably higher when you factor in friends, family, colleagues who have heard the stories. All of these employees went somewhere. Many of them are talented technical professionals, IT managers, etc. It virtually ensures that whenever IBM performs a sales call, someone at that company is going to be set against IBM… and, as they used to work at IBM on IBM tech, they are probably part of the decision making process. It has, and will continue to, cost IBM an untold amounts of business. It is not necessarily just sour grapes either. In many cases they know how IBM has delivered for other customers and it is a logical decision. The IBM alumni base used to be a strong block of support for IBM, but now it works in the opposite direction. If you’re an IBM salesperson and hear “used to work at IBM” you think, “oh s***.”
+
+Rich March 23, 2016 at 8:53 am - Reply
+An interesting point — As an ex-IBMer if I were in a position to meet with their salespeople I wouldn’t disregard them due to the way IBM treated me. I would, however, disregard them due to my honest experience in how little they really care for their customers.
+
+Nutella March 9, 2016 at 2:28 am - Reply
+Wait, India didn’t save IBM as advertised? Remember when all that IBM work went to India and all we heard was how it would save the company?
+Guess it didn’t work out. India sucks another US company dry. They got lots of paychecks, we got failure.
+
+Nutella March 9, 2016 at 2:34 am - Reply
+https://www.endicottalliance.org/its_time_to_call_it_indiabusinessmachines.htm
+
+primos March 9, 2016 at 4:39 am - Reply
+You said it, Cringely. Couldn’t be happier.
+
+El Niño March 9, 2016 at 8:52 am - Reply
+It’s not just old-line IBM that’s dying. Even the recent big-data and cloud acquisitions are suffering. For example, Weather Underground has gotten noticeably worse since IBM bought them. Their website has become unreliable, their email alerts never get sent, and their apps often don’t update. Deafening silence when one tries to contact customer support. I probably won’t renew my subscription…
+
+TxIBMer March 9, 2016 at 12:32 pm - Reply
+I just found out that 1/2 of the people on one of my sister teams got laid off. They had weak numbers last year, we beat our number in my brand and have a good story for this year. We were told Friday that no one in my department would be affected. No one in my brand has been affected so far.
+I must be staying because my boss gave me some big new requirements in the new performance management tool. Lots of activities to complete. IBM has become the new Oracle, make your numbers and goals or be shown the door. All this “cognitive stuff” they want us to participate in will quickly disappear as IBMers become task slaves to the performance tool like the folks at Oracle.
+Companies need to understand how completely DISRUPTIVE cuts are. If IBM is going to make a cut, let’s make it 20-25%, or even 50% if necessary, but promise no further cuts for 2 years. Give us time to adapt and rebuild with the “new reality”. But, I sense that’s not the case. Maybe Cringely is right, and it’s the death spiral. I would like to think that the new Hybrid Cloud, Watson, Analytics, Websphere/Middleware, and Commerce businesses will allow IBM to become a “software and services” company in the 50-80 billion range in sales. I think IBM may ultimately better service their customers as a portfolio of smaller companies, but the “brand elimination” work done in the past few years will have to stop if the strategy is to keep IBM as a single company. My strategy would be to end up with a cluster of smaller “portfolio” software and services companies funded by “VC IBM”, with IBM selling or closing losing companies, and growing or adding newer ones. Mainframes are still profitable, although shrinking daily. If you told them today, many banks, airlines, and logistics companies would need a decade to get off their mainframe. And with the Z/Linux option, they should not have to. Many ideas in the portfolio are good to great ideas which need focused work from a small development and sales team dedicated to the single brand. It involves IBM brands becoming more like companies IBM has acquired, like Aspera, and less like the IBM behemoth with 5 US territories. Sales should be by large company Worldwide, or by territory for smaller companies, and tech sales should be by vertical (finance, retail, healthcare, etc). North America should be 2 territories, not 5. Multi-national customers will want to do the sale in the cheapest currency, or where the law is most advantageous to them, so they should be GLOBAL and IBM should treat both the US and the Worldwide as one with a salesman earning the money whether the sale is Houston or London (and I’ve been burned on that). Coke and Pepsi have Rock Star, Minute Maid, Frito Lay, Quaker, and a portfolio of brands which they have acquired. And Coke and Pepsi have sold brands or bought bottling companies from time to time. With Warren Buffet and Berkshire owing 8%, IBM executive management should have lots of Berkshire folks who can mentor them on creating and running brands. Heck even Liz Claiborne has more than 10 brands, and JCPenney owns the Liz Claiborne brand itself. Can we please have Sterling, WebSphere, Aspera, Softlayer, Rational, etc. back as brands and let us each run our own “mid-sized business”? We have bought so much great technology over the past decade and now Cringely wants to tell us it’s all worthless? I definitely call BS on that.
+
+GBS Drone March 9, 2016 at 6:14 pm - Reply
+I too have been burned on numbers. Selling a global deal where it needs to be fulfilled locally. So neither counts. They are trying to turning it into a services company. Hence all the design centres. Which is just coloured paint and playhouse style furniture. Everything else is the same. Smoke and mirrors to sell Watson. It doesn’t matter what the problem is, the answer is Watson.
+Already bored of ‘come experience design thinking at IBM’, 10 years after this became mainstream and just a part of business as usual at other companies.
+http://bit.ly/1Kb67Gu
+No one is doing anything interesting or bespoke for the client. Some innovative souls tried and were shown the door.
+Everyone is sounding like a brainwashed ‘cult members’.
+The mantra seems keep posting pictures and videos and they will come… They are not. As Misty said the message is to stay CLEAR of IBM.
+It’s turned into a spin company for Watson.
+http://londoncalling.co/2016/01/gabrielle-laine-peters-joins-ibm/
+IBM’s software portfolio is badly maintained, bloated and expensive. To implement it it’s done by 3rd parties.
+
+Xi March 9, 2016 at 1:53 pm - Reply
+Dubuque and Columbia were mostly spared, possibly thanks to Grassley writing to Ginni
+
+Cooked_Goose March 9, 2016 at 5:41 pm - Reply
+Cringely is right on — IBM is dying. I no longer see a path to save it. In my opinion the CEO has smashed too many things while stripping it for loot for the patient to have any hope of recovery. Her game now is to keep the spin going as long as possible to collect another $20M annual payout. Supposedly Watson and Cloud will save it. Just say that with a straight face for one more year, get fools in the market to believe it, and collect another $20M payout. Cloud is a low margin commodity business that IBM is, what, fourth in? And Watson is a desparate game of spin. Watson looks to me like a boondoggle. IBM is giving prizes to employees hwo create Watson apps. They are desparate for Watson users. No details of Watson revenues are ever released. Watson is AI and AI has been touted as poised for a huge breakthrough … any moment now … since the 1950s. Putting all your chips on Cloud and Watson smells like even the spinmeister herself is running out of ideas of things she can still keep spinning.
+
+Lalu March 10, 2016 at 7:07 pm - Reply
+The current CEO has caused a lot of damage. Inside the company its very visible. Couple of examples
+1)Frequent reorgs results in sales teams being shuffled. There are many products which piggyback on other IBM hardware software. Previously all these related products were in the same org and sales teams collaborated since both their targets were linked. With reorgs this entire dynamic was affected and in the product line I worked revenue fell by around 500milion just because of this thoughtless reorg
+2) Bleeding successful product lines dry and not investing in them. The logic is that they are mature and don’t need more investment. However the job cuts that follow this and subsequent attrition has gutted the teams of talent.
+3) Skewed management to worker ratio. When top management asks to reduce the managers they are made individual contributors and then an existing IC who is productive is fired. The manager who became IC is given title of lead and continues to mjust do tracking. The remaining ICs need to pickup the work done by the fired IC. Many of the middle management should be cut.
+The CEO is clueless and follows a strategy that is now adopted by most of management. Keep coming up with new fads do quick prototyping on what’s the latest coolest tech and come up with something that is then showcased. It is then thrown to dustbin as it’s creators know it’s a gimmick.
+
+Sam March 13, 2016 at 3:18 pm - Reply
+Exactly what I think is happening. Rometty knows, probably better than any of us, that CAMSS or cognitive plus cloud is not going to be any savior, but she needs to keep treading that water because every year she treads she collects a fortune.
+
+JT March 9, 2016 at 6:54 pm - Reply
+So where’s part deux, Bob? Waiting with bated breath…
+
+The Rockman March 10, 2016 at 6:56 am - Reply
+I worked at IBM from 2006 to 2010, I couldn’t adjust to the culture of being just a number. My company was acquired by the IBM in 2006, I was excited at the beginning because growing up I always idealize IBM, I still have the sample micro-chip IBMers used to give in career conventions in college.
+Anyhow the round of layoffs of last week touched my old teams, entire department of Content Management were let go. People who were with the company who cannot be replaced have 90 days.
+As my IBMer friend stated “It sucks to see people go and it sucks to stay too”
+I was a rat that jumped ship before sinking.
+I’m trying to recommend people in my company that I know but it’s overwhelming the amount of US employees that were let go this year.
+
+Mobile Man March 10, 2016 at 7:51 am - Reply
+Who needs ‘content management’ expertise? They are such fools.
+I jumped ship after the job I was promised failed to exist. I joined to what I thought would be an exciting and teaming mobile practice where I could be on the inventor program doing cutting edge stuff for clients. I ended up doing endless PowerPoint decks for sales teams. Mobile 101. Did do one crappy service app and spent a year just swapping the logo over so it could be sold to different clients. I say crappy because it was rough and the kind of thing that you do in a week. They were trying to find buyers at $200k a throw. All the work was given to grads or went to Eastern Europe while we were just touted out at workshops.
+When the big mobile conference came around and I was expecting to go as a leader and speaker in this space I found myself pushed out by the strategy/sales guy, department head and a grad.
+There was no work. None. I’d pass people in the halls and no one was working on anything except sales. I was worried my skills would start to slide if I didn’t get back to doing real mobile work. Only training course I did was IBMs design thinking course which is about as practical as a box of frogs, so I left and joined a start up.
+Hate to say it but I have met more honest fraudsters.
+
+Sam March 13, 2016 at 3:16 pm - Reply
+Likewise. I was also promised a promotion if I stayed which never came to pass, actually I was demoted if anything, so I left. Unless you are speaking with an SVP level at IBM, the middle management “executives” have no authority to do much of anything. IBM just cannot be trusted to keep their word or the spirit of their word… I think that is becoming a common experience with employees, customers and Wall St. It is a sad day, but the IBM of today cannot be trusted. That was really IBM’s top selling point too over time. IBM frequently did not have the cutting edge technology. They were beat to market time and again by the DECs, Sun Micros, Oracles, etc of the world, but customers stuck around, even though they knew they were not making the best individual decision, because they knew IBM would do right by them in the long term. That is quickly going away. When IBM needs to compete on the technical merits of their individual products or services and not their (damaged) relationships, that isn’t going to be pretty for IBM.
+
+Morgan Brooks March 10, 2016 at 10:56 am - Reply
+How many declining quarters is it going to take before they replace the CEO ?
+.
+How many declining quarters is it going to take before they replace the executive staff ?
+.
+They need to “clean house” badly, but are failing to do so. Their mismanagement is atrocious. It looks like it is going to take an “activist investor” to buy the “failing” company and “chainsaw” it to save it. The current management simply cannot get their act together. They seem to care only about their paychecks, perks, and golden parachutes. Shame on them.
+
+Sam March 13, 2016 at 3:04 pm - Reply
+I would say about one quarter after they realize that CAMSS is just slideware and there is no turnaround in sight.
+
+TxIBMer March 10, 2016 at 4:04 pm - Reply
+IBM announced company-wide availability for Office 2016 for all platforms (desktop, tablet, phone, iPad) March 8th with no departmental charge-back and no management approvals. I assume there’s a corresponding cut in funding for our support for Open Office? Open Source has ravaged all the major software houses, and now I think the software companies will cut development funding for Open Source in kind. Red Hat Linux is safe, but what happens if Open Office and Eclipse don’t get funded by IBM? MySQL, same story, now that it is commercially owned?
+
+TxFreedRat March 11, 2016 at 8:29 am - Reply
+txIBMer, at this point letting OpenOffice die would be one of the few kind thinks IBM could do. LibreOffice is now years ahead and as far as I can tell, only IBM’s stubbornness has kept the two projects from merging.
+(former long term IBM’er who got smart for once, saw this all coming, and got out and got a decent job a couple years ago)
+
+Adam March 12, 2016 at 5:28 pm - Reply
+Long time user of Open Office here and I think it is a good spreadsheet / word processor / presentation package, but sorry, it’s a long, long time since that was enough.
+.
+I guess people who worked on those tools will be reading this, and I don’t want to hurt anyone’s feelings, but IBM is in trouble and plain speaking is needed. I think there was some good programming done, but where was the produce roadmap? What was the strategic objective of playing?
+.
+Ask yourself what these tools should look like in CAMSS world (remember IBM is touting itself as a CAMSS leader). Look at what Microsoft, Google and Apple have done and compare them to IBM’s efforts. Where is the cloud support? The integration with analytics? How do you use OpenOffice on mobile? How do non-standard file formats and poor support for industry standards play in the Social space?
+.
+The only value proposition for OO seemed to be “its good enough,and it’s free”. But even that gets shaky when you look at total cost of ownership and the lost productivity from poor integration to other tools, including IBM’s own.
+.
+All in all, I think the whole Symphony/OpenOffice journey is a great case study in what IBM needs to do differently to lead again.
+
+Sam March 13, 2016 at 2:33 pm - Reply
+Really? That is great. I worked at IBM when they, attempted, to dump Microsoft Office for OpenOffice to save money. It was a mess. Formulas were broken or did not exist, people couldn’t share documents for editing because the formatting was hashed. OO was just a hassle to use.
+
+Sam March 13, 2016 at 2:58 pm - Reply
+We couldn’t even share Excel or PowerPoint (or whatever OO calls them) files with customers because the formatting wouldn’t transfer…. Always an interesting conversation when you are speaking to a customer who likely spends millions on proprietary IBM software. They did the same thing with CRM, used SugarCRM to cut costs. While Sugar isn’t as bad as OO, it certainly isn’t close to best of breed. Don’t they see the optics on these decisions? When it is IBM’s cash, open source is “good enough.” When it is the customer’s cash, then they really need IBM’s proprietary software with a large license price tag.
+
+Bob March 10, 2016 at 5:08 pm - Reply
+“…especially if you confound it with retirements, contractors being axed, etc.”
+I hate to be petty, but I think you meant “compound it” not “confound it”
+Bob, your inside on IBM has been great. My mother-in-law managed to retire from IBM 5 years ago, somehow avoiding the layoffs that hit her peers that were her age. I still can’t convince her to sell her IBM stock…
+
+Graham March 21, 2016 at 11:01 am - Reply
+“…Bob, your inside on IBM has been great..”
+I hate to be petty, but I think you meant “insight” not “inside”.
+
+Ripthebandaid March 10, 2016 at 7:51 pm - Reply
+It’s time r to rip the bandaid off and shed the businesses that drag the whole company down. SO needs to go, and gts right on its heels. Both are low margin businesses competing with offshore companies that have much lower cost structures. IBM doesn’t do commodity well, and never will. Those two businesses constantly piss off customers who then refuse to buy anything else.
+Storage is next on the list, as are servers. Commodities again. Mainframe is highly profitable, but it’s a drag on the company because they won’t let us take one out, so competitors do instead.
+While we’re at it, let’s cut hr. The new handholding system that replaced pbcs is a massive amount of bs work.
+So what’s left? Software, premium cloud hosting, consulting services, research primarily, with odds and ends. But the days of an integrated it services provider are gone.
+Everyone inside knows this is the end game. It’s time to just do it, and stop the morale crushing continual layoffs.
+Pull off the bandaid Ginny.
+
+Anthony March 11, 2016 at 7:43 am - Reply
+IBM’s biggest asset was it’s people…. special people that were experts in their field and who as a group formed teams of experts, who could get things done, well. These people had years of experience which like a fine wine can’t be reproduced in short order. If you try to remove these people and replace them with cheaper knock offs without the same pedigree what do you expect to happen? It’s the same old same old, Price, Speed, Quality – Pick any two….
+
+TxIBMer March 11, 2016 at 8:46 am - Reply
+Services and Software are a bad combination in a company. Software needs to “stand on it’s own” with sufficient support and documentation that the product is REAL, SUPPORTED, and LONG TERM VIABLE, STABLE, RELIABLE, UPGRADEABLE,all the “ables”. A customer needs to be able to buy the software, install it, and make it “useful” and “successful” in the corporation without needing services. Almost “consumerware”. I realize that some companies just want to “pay to have it done”, but that is really what SaaS and Managed Services are about and for (and why they are flourishing). Services needs to “stand on it’s own” with EXPERTISE, INDUSTRY KNOWLEDGE, EXPERIENCE, and EFFICIENCY. Successful services have “practices” for key industries and software products (and product combinations) that multiply the effectiveness of combined products into an industry solution that a customer can consume. Think Perot Systems (now part of Dell) focused on being an expert in revenue cycle management. When a company does software and services, things like documentation and support get lazy and sloppy, because “we can sell them services”. It’s a horrible way to do business because the software does not cost the price of the software, but the price of the software PLUS the services required to get it “useful” and “successful” at a company. It’s bait and switch. Sadly, most companies run software and services just like that. I hold up WebSphere and Liberty as “software done well” because customers CAN make it “useful” and “successful” without having to hire an army of IBMers to do so. There are active user and development communities and a great partner channel to provide add-ons and a nice ecosystem. Now JBOSS did come along and take a bunch of that, and maybe the “new” model is Services which implement “Open Source” well. But, still read and read this. If you are gong to SELL SOFTWARE, then make it easy enough to use that customers can install and upgrade it themselves. If you can’t do that, don’t sell software. HP gave up a long time ago. IBM is still in the game on some products. I don’t mind a small services group in a software company to help customers “enhance” the product, but it’s not the software company. Aspera was that way before IBM acquired it, and their management is trying hard to fight the IBM lion to keep it that way. I really do think that Managed Services (and definitely not Iaas or PaaS) are the future, because you run the application software for the customer, and many customers in a multi-tenant model. You need to start with the expertise in the industry, and what has been built and worked and not worked, and then be able to scale that through an industry. SalesForce.com is an example in sales. Sterling (now part of IBM) in EDI/B2B Managed Services. Be different, ditch the xaaS “brand and sell like SalesForce does, by being good at services that customers WANT and NEED!
+
+GBS Drone March 11, 2016 at 11:47 pm - Reply
+According to Ginny IBM is now a services company. Cloud and Cognitive Computive (Watson). So good bye SO, GTS and hello coloured paint, funky furniture and cocktails powered by Watson. It also means in GBS that we no longer speak tech. We speak Twitter and all flappy funky stuff and use phrases like “magical moments” and “enchanting experiences”.
+The hundred million investment into digital – hiring 1,000s of grads, opening design studios is happening. It’s a desperate attempt to portray a new IBM. Problem is as Misty said, it’s WISHWARE. There is no delivery capability. Apart from all the singing and dancing on conference stages talking about magic moments and enchanting experiences not much is happening.
+IBM is no longer a tech company. Its not really a service company either as it’s all to put in a good show while we bait and switch. It’s the old carnival style flim flam style selling.
+“Come try our Watson cocktail” and then leave them with a multi-million pound hangover. -“wait I just spent 10 million dollars on this when it’s going to take me 5 years to see a return?”.
+The second problem is it’s left the company with none of the original ethos and trust. It’s the new Enron.
+I wonder how long the partying and pillaging will continue for?
+Weakly IBM: Watson, Where Are the Revenues? : Stephen E. Arnold @ Beyond Search March 12, 2016 at 2:15 am - Reply
+[…] read “What’s happening at IBM (It’s Dying).” The article has a quote to note. I highlighted this snappy […]
+
+Mack March 13, 2016 at 4:48 am - Reply
+Well put and comments by all are pretty sane. Being a former IBM’er I can see a few Director-level comments or above; former IBM’ers who were part of the machine that displaced so many and wonders, huh? end-game please? What is my VP thinking? Or are they thinking?
+Boards these days still see that the acronym IBM still resonates in that room, and I also see there is more polarization in terms of leveraging IBM’s “expertise” vs. intent on using services vs. leveraging IBM to get better deals from their more nimble competitors.
+IBM is done. They only factor on the sales and deal front. Competitors don’t cringe when IBM is around because they may have better execution. It’s quite the opposite really and that’s no exaggeration. I still have friends in IBM and from what I hear I am simply content to know I was pushed out by that machine. I am a delivery exec now at a competitor and use the experience and knowledge I acquired to drive growth. What a concept.
+
+Francis March 13, 2016 at 2:13 pm - Reply
+As Steve Jobs said, “death is the single most most important invention of life” or something like that, and “it clears away the old to make room for the new.”
+
+Sam March 13, 2016 at 2:26 pm - Reply
+I would disagree that security is any real strength or obvious success at IBM. It is a success in the same way analytics is a success… IBM has acquired a bunch of security, and analytics, companies of no particular significance and pooled their revenues together to make what looks like a large business, but it is just a collection of acquired parts which are not really growing in the market. What is IBM’s security breakthrough?
+
+Edvins Augusts March 13, 2016 at 5:29 pm - Reply
+In other news, the annual shareholders meeting is coming up so they’re asking for votes for the BoD and other things such as a stockholder request for an independent board chairman. For what it’s worth, voting is a bit of a release of steam. If anything, they’ve gotten worse since I escaped. It’s starting to look more and more like the last days of Enron. I’m glad I escaped and I feel bad for those who got released as a group, it makes it that much harder to find jobs.
+
+Charles Moorehead March 14, 2016 at 2:55 am - Reply
+Is this the story of IBM?
+.
+Once upon a time IBM was the leader of the Big Iron computer business. Their hardware and software was excellent. The word among its customers was that you would never be fired for using IBM. In these circumstances, sales were king at IBM. They had the right stuff. All they needed to do was sell it to willing customers.
+.
+Then nature took its course. The top dogs at IBM, salesmen all, got arrogant and greedy. They isolated themselves from the inferiors (non-sales people) that worked for the company. Only sales people deserved to rise into the higher ranks and/or get superior compensation. After all, sales were all that mattered.
+.
+Gradually the tech slaves and other worker bees were pushed aside. Ignored and unappreciated, some of them started to lose pride in their work. Prices stayed high but quality started to slide downhill. This was of no concern to the salespeople. Their high-priced deals with customers were all that mattered. They could always find an excuse why the promised benefits weren’t delivered.
+.
+Then the unexpected happened. Enemies were seen approaching the gates of computer land. Yes, competitors started sniffing around. IBM no longer held a death grip on all of their customers. Profits weren’t coming up to expectations. What to do? Of course—cut the compensation of the non-sales people. They were of no consequence anyway.
+.
+As things got worse, changes were made. An outsider was brought in to run the show. He brought back customers and made the company profitable again. However, he made no changes to the salesmen-dominant business caste system.
+.
+Afterwards, arrogance and greed reined supreme again. More customers were short-changed. More highly trained techs were dismissed. More low-cost workers from abroad were substituted. More stock buy-backs were instituted. Gee, I wonder where it will all end?
+
+Misty March 14, 2016 at 11:29 am - Reply
+Charles, you summed it up quite nicely. I think most of us, particularly those who worked on the inside, sense rather accurately where it will all end, it’s just the ‘when’ that is the tough question. You should consider selling your parable to Harvard Business School, it will provide the Cliffs Notes (remember those) for IBM’s death march business course.
+
+Tony Pies March 14, 2016 at 6:29 am - Reply
+Cringely U ….Trump U….. Lifetime Channel Movie ?
+
+jackie March 14, 2016 at 9:08 am - Reply
+Buffet is down 2.5B in his investment and it will get worse. Short this pig now and ride down to 120 because that’s where it will be after Q1 numbers. Crinkley is right the only thing working is security at IBM and even then they are losing big contracts to Splunk and other more nimble players. With Ginni and team this will never bottom and then go up and to the right. Best I see is top line continues to deteriorate and this needs new management to run the 40B dollar business this might be in a few years. Customers hate IBM, the employees hate IBM, long time IBMers are angry and “hanging around” waiting to get their profit sharing etc. So who’s selling then? No one, they hang on ELAs and big contracts, at some point when your done smashing stuff together and counting everything as cloud you have to grow the business organically, that ain’t happening here my friends. this is one shit company run by a bunch of long time, out of touch idiots that I work under. Oh and what about Watson the savior? Yeah, Ginni is all in on this one. We already know IBM can’t deliver services and that’s all watson is, one big services contract. Shit they won’t even break out the watson numbers if that tells you anything. What’s the difference between the Titanic and IBM? The Titanic had a band!
+
+Darwin March 14, 2016 at 10:54 am - Reply
+Anyone in IT who has worked with IBM in the last 15 years or so has seen a dramatic deterioration in the quality of their work especially when they started using on the job training H1B’s by the boatload. Greed and short sightedness is finally doing them in since most companies with any sense no longer trust IBM. You can in fact get fired for hiring IBM these days.
+
+Jerry Kew March 15, 2016 at 6:04 am - Reply
+Back in the 70s I worked for a mail order company in the UK. They bought an IBM 3790 to run agency administration, IBM told them they would only need that and another one to run merchandise. No mainframe needed. They were lying, it absolutely wouldn’t work, but they were IBM and assumed that once in the door they could bait and switch and flog a 370. Unusually I believe, the board I worked under was so mad at IBM they excluded them from the tender process for the serious kit they had realised they really needed. Burroughs did really nicely out of that, but what fascinated me was that IBM continued to think that it was their right to behave like that. FWIW it meant that I studiously avoided working either with IBM or their kit thereafter.
+
+Crusader March 15, 2016 at 8:53 am - Reply
+Could you please update your Mineserver Kickstarter? Bad news is better than no news. The project is 5 months over due and understandably to some extent, but what is going on?
+
+JP March 16, 2016 at 10:17 am - Reply
+“More on this tomorrow.”
+Cringely is a bigger tease than my high school girlfriend….
+
+Beerzie Boy March 16, 2016 at 2:43 pm - Reply
+I left IBM five years ago, when it became clear to me that the work environment was never going to improve. I won’t bore you with the details of the long slow decline I witnessed, and the misery inflicted on good, hard-working people who were treated like dirt and then kicked out the door. When I saw every long-term IBMer (mostly 25 + years of service) taking buyouts I knew that things were permanently in the shitter.
+As hard as my years there were, I am still sad to see this happen. I learned a lot, met a lot of great people, and supported my family during my tenure there.
+This is what happens when shareholder value — and not customers or workers — is the prime concern of a company and their management. It is a disease of national proportions, perpetuated by the idea that corporations are people (and if they are, they are psychopaths) and it is ruining our country.
+
+Tom March 16, 2016 at 9:15 pm - Reply
+Could Jim Cramer be any more inarticulate?
+
+Tom March 16, 2016 at 9:17 pm - Reply
+Was Jim Cramer even lucid when he was speaking?
+
+DJ March 17, 2016 at 10:21 am - Reply
+Both IBM and the GOP will be getting their “just deserts” soon.
+
+Cheryl March 18, 2016 at 9:58 am - Reply
+I feel so bad for my customers, they tell us they truly love the daily interaction and leadership they receive from a small group of us who have an unique job role…. customer service. Had to tell them HR doesn’t understand how or cares if it fits any more. Now you must navigate through the confusion yourselves, Mr. Paying customer.
+
+Client x March 18, 2016 at 3:49 pm - Reply
+Ex IBMer and now client in a big firm. My mission is to keep IBM out. Don’t want anything IBM in here at all. Know of a UK bank that just kicked out IBM as well. It was clear the team had no idea what the hell they were talking about and was just making stuff up.
+No one hates IBM more than an exIBMer! The level of incompetence is breathtaking.
+
+Charley March 18, 2016 at 4:43 pm - Reply
+Just re-re-read this excellent article, and looked at the graphic at the top. Seems to me that Apple, Inc., is on a trajectory somewhere between Aristocracy and Recrimination. Thoughts?
+
+james March 21, 2016 at 10:48 am - Reply
+As a former IBM’er who was RA’d last year after 15 years I can tell you that IBM has not invested in its services business for years. They have moved almost all their work overseas to folks who are trainees. When the trainees get experience they leave for more $$ and the cycle starts all over again. Customers have been leaving at an alarming rate and the new business pipeline keeps shrinking. It would not surprise me if they sold the GTS side of the house. As a former AT&T person I recall when a former IBM Exec named Mike Armstrong became CEO of AT&T and started selling off the pieces until there was hardly anything remaining. The remnants were then sold for only $16 billion to SBC who kept the name. It seems Ginni is now playing the same cards and a similar pattern has emerged. Too bad – IBM was once a great company. Now – it is a terrible place to work and the only real customers are on Wall Street and they too are in for a bath.
+
+Peter March 21, 2016 at 12:31 pm - Reply
+As a former IBMer I agree with the post and most comments. Ginni’s best hope is to split up IBM into a range of product companies, however not releasing Watson financials is not a good sign (sources also tell me that Watson was not spared the RAs). Buffet has to be worried. One interesting trend is that at one time the mantra was “IBM does not complete with our clients.” Not so now, IBM has recently bought a boatload of health data and will be attempting to give that industry a run for it’s money. They have to go that way now, their clients just want the IT service, not all the hardware and software to purchase and capitalize. Providing industry related IT services, whether it’s health care analytics or hotel reservations, is where clients want to spend time and money. The days of each IBM client paying for a separate instance of a technology stack for a specific business outcome are long gone. IBM could have been poised to release a flood of industry specific services, but I think it’s too late as too many veterans have bid adieu.
+
+Jean-Paul March 22, 2016 at 8:31 am - Reply
+Tomorrow never comes, I guess.
+
+Ronc March 22, 2016 at 5:14 pm - Reply
+It’s here now. You posted too early.
+IBM Is Dying | The Arts Mechanical March 22, 2016 at 9:07 pm - Reply
+[…] What’s happening at IBM (it’s dying) […]
+Ginni the Eagle: IBM’s corporate ‘transformation’ | SkyNet Chronicles March 23, 2016 at 5:04 am - Reply
+[…] promised a follow-up to my post from last week about IBM’s massive layoffs and here it is. My goal is first to give a few more details of the […]
+
+SalesCulture March 24, 2016 at 4:37 am - Reply
+Left IBM after just 9 months. They have good products, specially all the acquisitions they have made, but dont know what to do with them. No synergy among Business Units, they dont trust each other.
+In every meeting there will be 10 IBMers (sales/presales of every product + Client Rep) sitting in front of 3 customer employees. why do need to have presales of every product in the room ? Once I asked them hey I have more than 10 years of experience in that product, I can represent them in the meeting but they wont trust me. they thought I will just focus on my own product. Even though they acknowledged that yes I have skillset for that product/solution but they wont let me talk about it. Stick to your own product. Thats BAD !!! how would you maximize your presales/technical resources if you wont allow them to talk about other solutions (which completes the end-to-end story)…there is no point of talking about Mobile App Dev Platform without talking about MDM/MAM and Mobile App Analytic. How will you allow technical resources to learn ? if you confine them to only one product…and IBM have 100s of these products..no wonder IBM needs job cuts, they need to consolidate specialist sales/presales teams.
+IBM is run by long timers who are there for more than 20-25 years….and have no idea how quickly things have changed in past few years (sales culture, go-to-market strategies etc)…
+
+BlueMixThis March 24, 2016 at 12:35 pm - Reply
+“IBMers of yore are all gone and for the current breed it’s just another job.”
+You hit the nail on the head right here. How can a current IBM even pretend to be loyal to the company when the company obviously has no loyalty whatsoever to it’s employees. I’m just here for the paycheck.
+
+
+
+
+
+PCMag Australia
+NEWS/TOP 10/OPINIONS/FEATURES/HOW-TO/DEALS/BUSINESS
+ALL REVIEWSLAPTOPS/TABLETS/PHONES/APPS/SOFTWARE/SECURITY/PRINTERS/CAMERAS/HDTV
+
+Search on PCMag
+ 
+PCMag Australia | Software Reviews | Operating Systems and Platforms - Reviews and Price Comparisons from PC Magazine | Windows 8 Preview, Release Date, News & Features | Opinion
+Microsoft Believes It is Going to Die
+BY JOHN C. DVORAK   18 SEP 2014, 3:32 A.M.
+ 
+ 
+ 
+ 
+ 
+During the dot-com bubble, a number of fascinating ideas emerged, all of which were thought to be the next big thing. I hosted a cable channel discussion panel on TechTV right in the midst of the boom and heard all of them. Most turned out to be bullcrap.
+
+Here are a few of the trends that were going to change everything.
+
+Grocery stores were going to die in favor of direct home delivery.
+Physical retail stores were going to die in favor of online stores and direct home delivery.
+There is something called a new economy, so when you judged things using concepts such as profit or margins or practicality, you were wrong.
+The browser would become the operating system.
+Disintermediation (cutting out the middle man using the Internet) would dominate the decades ahead.
+A couple of ideas that pre-dated the dot com era became part of the dot com canon. They continue to this day and are still my favorites:
+
+The future of computing is client-server (today, we call that "the cloud").
+Windows is dead.
+Microsoft Office is dead.
+The client-server meme has been around since the 1980s as a counter-revolution to the personal computer's appearance in the late 1970s. Once people realized that these machines were not toys, as naysayers earlier claimed, but were instead devices to empower the individual, they had to be stopped.
+
+Back in the day, we called this client-server stuff by names like "thin-client computing" or "network computing." But only "cloud computing" could put the PC juggernaut in its place! Yeah, right.
+
+Opinions
+
+Curiously, nothing except the Mac OS from Apple has done anything to come close to challenging Windows in the marketplace.
+
+When someone suggests that maybe a vendor should develop a real strong OS—other than Linux, of course—to challenge Windows the response is always: "Why? The desktop computer is also dead."
+
+In some funny and odd way, Microsoft itself has bought into this nonsense. It keeps wasting money looking for exit strategies but it remains in business. Instead of marketing Windows and Office with a sincere belief that they will be around forever (that's the proper approach) Microsoft believes the meme, which has yet to be proven, and fails to market against them. This is astonishing to anyone paying attention. What is wrong with these people? Buying Minecraft is not the answer.
+
+Microsoft should simply look at Adobe. It's a company with self-confidence about its own products. A meme cropping up that "Photoshop is dead" or "Illustrator is dead" never happens. That's because the company actually likes what it is doing. It keeps its foot on the gas pedal and improves its products at a breakneck speed. This is the antithesis of Microsoft, which prefers to fret about the future and give up on products. As an example: the tale of Microsoft FrontPage, the long-dead Web development tool, is worth a Harvard case study.
+
+This lack of self-confidence dominates Microsoft. It results in a lackluster response by the public to things such as the Windows Phone. That handset OS should be marketed as the only alternative to Apple's iOS. Android should be seen as just an iOS clone, which it is. Yet how is Windows Phone marketed? What is its image? I have no idea; neither does Microsoft. When does Windows Phone come up in the conversation about smartphones? Never. How often was it mentioned during the iPhone 6 rollout? Not at all. Does Microsoft ever leverage the fact that it invented the idea of a smartphone? Nope.
+
+Microsoft is a company that lost its mojo and self-confidence in the late 1990s and has no clue what to do about it.
+
+Maybe defending its turf, rather than surrendering, would be a start. It could fight back with a serious rebuke of the cloud and market against it—the stupid cloud is a counter-revolutionary concept taking us all back to centralized computing, where users have no control at all. But instead it buys into the whole idea! It's mind-boggling.
+
+Well, at least now the Microsofties can spend time playing Minecraft in their copious spare time, in between bouts of worry and self-doubt.
+
+ 
+ 
+ 
+ 
+Sponsored Links 
+A Passive Income Secret Few Know About?
+WealthMidas.com
+20 Completely Unsettling Historical Photos
+LifehackLane
+Photos The Royal Family Does Not Want You To See!
+BoredBug
+She Easily Pockets More Money By Doing This
+Wealth Discovery Network
+Why Singapore Stands Out With Its Diverse Cultures
+YourSingapore
+Don’t Believe the Hype About Shipping Containers, say Architects
+Domain
+  by Taboola 
+8 Things You Need to Know About Windows 8.1 Update
+17 Tips to Help You Master Microsoft OneDrive
+Windows 10 Xbox Beta App Coming SoonWindows 10 Xbox Beta App Coming Soon
+Android Apps on Windows? Nope, Microsoft Ditches Project AstoriaAndroid Apps on Windo…
+Will Windows 8 Work With My Printer?
+How to Network Windows 8
+A Passive Income Secret Few Know About? (WealthMidas.com)
+Safe Tanning and the Importance of Vitamin D (Peptide Clinics Australia)
+20 Completely Unsettling Historical Photos (LifehackLane)
+She Easily Pockets More Money By Doing This (Wealth Discovery Network)
+Why Singapore Stands Out With Its Diverse Cultures (YourSingapore)
+Don’t Believe the Hype About Shipping Containers, say Architects	 (Domain)
+  by Taboola Promoted Links 
+
+NEXT ARTICLE
+Software ReviewsOperating Systems and ...Windows 8 Preview, ...
+MORE INSIDE PCMAG.COM
+Secrets of the Windows Control Panel
+Google Publishes Windows 8.1 Vulnerability, Microsoft Working on Fix
+Ex-Microsoft Employee Gets 3 Months in Prison for Win 8 Leaks
+China Bans Windows 8 on Government PCs
+John C. Dvorak
+BY JOHN C. DVORAK
+COLUMNIST, PCMAG.COM
+John Dvorak is a columnist for PCMag.com and the host of the weekly TV video podcast CrankyGeeks. His work is licensed around the world. Previously a columnist for Forbes, Forbes Digital, PC World, Barrons, MacUser, PC/Computing, Smart Business and other magazines and newspapers. Former editor and consulting editor for Infoworld. Has appeared in the New York Times, LA Times, Philadelphia Enquirer, SF Examiner, Vancouver Sun. Was on the start-up team for CNet TV as well as ZDTV. At ZDTV (and TechTV) was host of Silicon Spin for four years doing 1000 live and live-to-tape TV shows. Also was on public radio for 8 years. Written over 4000 articles and columns as well as authoring or co-authoring 14 books.
+2004 Award winner of the American Business Editors Association's national gold award for best online column of 2003. That was followed up by an unprecedented second national gold award from the ABEA in 2005, again for the best online column (for 2004). Won the Silver National Award for best magazine column in 2006.
+Follow him on Twitter @therealdvorak.
+MORE STORIES BY JOHN C. DVORAK
+How the Apple Car Could Succeed and Why it Won't (Opinion Apple)
+How the Apple Car Could Succeed and Why it Won't
+It's going to take absolute perfection for Apple to make a vehicle that everyone wants. But even then, it's doomed.
+IBM Is the World's Biggest Patent Troll (Opinion Business)
+IBM Is the World's Biggest Patent Troll
+Every tech company around is probably paying money to IBM based entirely on its massive patent portfolio.
+Calm Down, Apple and the iPhone Are Fine (for Now) (Opinion Apple)
+Calm Down, Apple and the iPhone Are Fine (for Now)
+Company growth has hit a speed bump, but it is making tonnes of money and the product is solid. Stay ...
+The Slow, Sad Death of Yahoo (Opinion Web Sites - Products)
+The Slow, Sad Death of Yahoo
+Look back at over two decades of turmoil at a company that once sat atop the World Wed Web, and ...
+SEE MORE +
+Comments
+
+FEATURED ON PCMAG
+	5 Mistakes to Avoid When Choosing Accounting Software
+Don't let your first foray into accounting software become a nightmare.
+	How to Avoid 5 Common Idea Management Mistakes
+Don't let security concerns, mobile limitations, integration problems, or a thought without ...
+	5 Tips for Effective IT Asset Management
+Purchasing asset management software isn't enough. You've got to make the most ...
+	Xiro Xplorer G
+The Xiro Xplorer G is an inexpensive drone that captures solid aerial ...
+	Bose SoundTouch 10
+
+A Passive Income Secret Few Know About?
+WealthMidas.com
+20 Completely Unsettling Historical Photos
+LifehackLane
+She Easily Pockets More Money By Doing This
+Wealth Discovery Network
+Why Singapore Stands Out With Its Diverse Cultures
+YourSingapore
+  by Taboola Sponsored Links 
+
+BECOME A FAN OF PCMAG
+
+
+
+About
+About PCMagazine
+Privacy Policy
+Terms of Use
+Advertise
+AdChoices 
+Connect
+Ziff Davis
+ExtremeTech
+IGN
+AskMen
+International Editions
+PCMag USA
+United Kingdom
+Australia
+Benelux
+France
+Greece
+India
+Middle East
+Portugal
+Russia
+Social
+Facebook
+Twitter
+Google Plus
+Linkedin
+ © 2016 ZiffDavis, LLC   TRUSTe Privacy Certification
+
+
+
+
+
+
+SHARE
+TRENDING
+COVER STORY
+Wall Street's Unstoppable Force
+Most Popular
+New Posts
+324 Top Comments
+on Microsoft Still Can't Find Its Future. Is It Too Late for the Company?
+Please log in or sign up to comment.
+
+Enter Your Comment
+POST COMMENT
+Commenting Guidelines 
++ FOLLOW THE CONVERSATION
+Trending Now
+ Leadership
+The Little Black Book of Billionaire Secrets
+
+JAN 20, 2013 @ 01:38 PM 106,984 VIEWS
+Microsoft Still Can't Find Its Future. Is It Too Late for the Company?
+
+
+
+
+
+
+Adam Hartung
+CONTRIBUTOR
+I cover business growth & overcoming organizational obstacles.  
+
+Opinions expressed by Forbes Contributors are their own.
+Image representing Microsoft as depicted in Cr...
+Image via CrunchBase
+Microsoft needed a great Christmas season.  After years of product stagnation, and a big market shift toward mobile devices from PCs, Microsoft’s future relied on the company seeing customers demonstrate they were ready to jump in heavily for Windows8 products – including the new Surface tablet.
+
+But that did not happen.
+
+With the data now coming it, it is clear the market movement away from Microsoft products, toward Apple and Android products, has not changed.  On Christmas eve, as people turned on their new devices and launched their first tweet, Surface came in dead last – a mere 2% compared to the number of people tweeting from iPads. (Kindle was second, Android third.)  Looking at more traditional units shipped information, UBS analysts reported Surface sales were 5% of iPads shipped.  And usability reviews continue to run highly negative for Surface and Win8.  Including CNNMoney’s well thought out article about why transitional products like Surface have an inherent, likely insurmountable design failure.
+
+PC sales declining
+
+This inability to make a big splash, and mount a serious attack on Apple/Android domination, is bad news for Microsoft especially because we now know that traditional PC sales are well into decline. Despite the big Win8 launch and promotion, holiday PC sales declined over 3% compared to 2011 as journalists reported customers found “no compelling reason to upgrade.”  Ouch.
+
+Looking deeper, for the 4th quarter PC sales declined by almost 5% according to Gartner research, and by almost 6.5% according to IDC. Both groups no longer expect a rebound in PC shipments, as they believe homes will no longer have more than 1 PC due to mobile device penetration, a market where Surface and Win8 phones have failed to make a significant impact or move beyond a tiny market share. Users increasingly see the complexity of shifting to Win8 as not worth the effort; and if a switch is to be made, consumer and businesses now favor iOS and Android.
+
+Microsoft’s monopoly over personal computing has evaporated
+
+From 95% market domination in 2005 share has fallen to just 20% in 2012 (IDC, Goldman Sachs.)  Comparing devices, in 2005 there were 55 Windows devices sold for every Apple device; today explosive Apple sales has lowered that multiple to a mere 2 (Asymco).  Universally the desire to upgrade Microsoft products has simply disappeared, as XP still has 40% of the Windows market – and even Vista at 5.7% has more users than Win8, which has only achieved a 1.75% Windows market share despite the long wait and launch hoopla. And all future market growth is coming in tablets, which are expected to more than double unit volume sales by 2016. Microsoft is in a tough spot.
+
+Recommended by Forbes
+MOST POPULAR Photos: The Most Expensive Home Listing in Every State 2016
+TRENDING ON FACEBOOK Millennials, This Is Why You Haven't Been Promoted
+These trends mean huge challenges for Microsoft.
+
+Microsoft makes more than 75% of its profits from Windows and Office.  Less than 25% comes from its vaunted servers and tools.  And Microsoft makes nothing from its xBox/Kinect entertainment division, while losing vast sums in its on-line division (negative $350M-$750M/quarter).  No matter how much anyone likes the non-Windows Microsoft products, without the historical Windows/Office sales and profits, it’s hard to see how long Microsoft can remain sustainable.
+
+What can we expect next at Microsoft?
+
+Ballmer appears to have committed to fight to the death in his effort to defend & extend Windows.  So expect death as resources are poured into the unwinnable battle to convert users from iOS and Android.
+As resources are poured out of the company in the Quixotic effort to prolong Windows/Office, dividends should steadily diminish.
+Expect substantial layoffs over the next 3 years. They could even reach 50-60%, or more, of employees.
+Expect closure of the long-suffering on-line division in order to conserve resources.
+The entertainment division could be spun off, sold to someone like Sony or possibly Barnes & Noble, or dramatically reduced in size. Unable to make a profit it will increasingly be seen as a distraction to the battle for saving Windows, and Microsoft leadership has long shown it doesn’t know how to profitably grow this business unit.
+As more and more of the market shifts to competitive cloud infrastructure Apple, Amazon, Samsung and others will grow significantly.  Microsoft, losing its user base, will demonstrate its inability to build a new business in the cloud, mimicking its historical failures with Zune (mobile music) and Microsoft mobile phones.  Microsoft server and tool sales will suffer, creating a much more difficult profit environment for the sole remaining profitable division.
+Missing the market shift to mobile has already forever tarnished the Microsoft brand.
+
+No longer is Microsoft seen as a leader. Instead it is rapidly losing market relevancy as people look to Apple, Google, Amazon, Samsung, Facebook and others for leadership. The declining sales and lack of customer interest could lead to a tailspin at Microsoft not unlike what happened to RIM.  Cash will be burned in the struggle to save  what Microsoft sees as the core of the company.
+
+Is failure already inevitable? Steve Ballmer played “Bet the Company” on the long-delayed release of Win8, losing the chance to refocus Microsoft on other growing divisions with greater chance of success.  Unfortunately, competitors already had enough chips to simply bid Microsoft out of the mobile game – and Microsoft’s ante is now long gone – without holding a hand even remotely able to turn around the product situation.  Now Reuter’s reports on a new book by a former Microsoft exec challenging the quality of Ballmer’s leadership from the inside.
+
+The future is looking very difficult for Microsoft–and for your investment if you own Microsoft’s stock.
+
+Links:
+
+Why Win 8 was a crazy bet-the-company move by Ballmer
+
+Why Win 8 and Surface are not game changers
+
+How Microsoft overspend defending & extending Windows, ruining the company
+
+Losing relevancy is a key indicator of failure – including at Microsoft
+
+How Ballmer’s bad leadership drove Microsoft off a cliff
+
+When should Ballmer be fired? Calling for his ouster in 2010
+
+Why Microsoft’s growth stall predicts failure
+
+Microsoft mirrors GM – failure inevitable
+
+Call that Microsoft peaked in 2005
+
+324Comment on this story
+ Print Report Corrections Reprints & Permissions
+
+Ads by Revcontent
+From the Web
+How Australians Are Getting The Brand New iPhone 6S For Only $1
+BREAKING NEWS
+Mike from Elizabeth Makes $5,017 a Week Simply by Copying
+THE ZULANDER HACK
+50 Completely Unsettling Historical Photos
+LIFEHACKLANE
+Wall Street Furious Over New Trading Algorithm
+START-UP 365
+12 Mysterious Photos That Cannot be Explained #5 Will Scare the Life out of You!
+LIFEHACKLANE
+14 Shows That Replaced Actors and Thought We'd Never Notice
+FAME FOCUS
+If You Can Count To Eleven - You Can Beat the Slots
+WINNING TIPS
+Don’t Play Pokies Until You Read This
+LATEST GADGET NEWS
+ 
+The Little Black Book of Billionaire Secrets
+ 
+
+
+ 
+SHARE
+TRENDING
+COVER STORY
+Wall Street's Unstoppable Force
+Most Popular
+New Posts
+6 Top Comments
+on Poor Microsoft: Why Being Late Killed Windows' Future, Despite Recent Good Ideas
+Please log in or sign up to comment.
+
+Enter Your Comment
+POST COMMENT
+Commenting Guidelines 
++ FOLLOW THE CONVERSATION
+Trending Now
+ Leadership
+The Little Black Book of Billionaire Secrets
+
+NOV 18, 2015 @ 03:29 PM 5,577 VIEWS
+Poor Microsoft: Why Being Late Killed Windows' Future, Despite Recent Good Ideas
+
+
+
+
+
+Adam Hartung
+CONTRIBUTOR
+I cover business growth & overcoming organizational obstacles.  
+
+Opinions expressed by Forbes Contributors are their own.
+Microsoft recently announced it was offering Windows 10 on xBox, thus unifying all its hardware products on a single operating system – PCs, mobile devices, gaming devices and 3D devices.  This means application developers can create solutions that can run on all devices, with extensions that can take advantage of inherent special capabilities of each device.  Given the enormous base of PCs and xBox machines, this is a great move that expands the Windows 10 platform.
+
+Only it is probably too late to make much difference. 
+
+PC sales continue falling – quickly. Q3 PC sales were down over 10% versus a year ago. Q2 saw an 11% decline vs year ago. The PC market has been steadily shrinking since 2012.  In Q2 there were 68M PCs sold, and 66M iPhones.  Hope springs eternal for a PC turnaround – but that would seem increasingly unrealistic.
+
+The big market shift to mobile devices started back in 2007 when the iPhone began challenging Blackberry.  By 2010, when the iPad launched, the shift was in full swing.  And that’s when Microsoft’s current problems really began in earnest.  Previous CEO Steve Ballmer went “all-in” trying to defend and extend the PC platform with Windows 8 which began development around 2010.  But by October, 2012 it was clear the design had so many trade-offs that it was destined to be an Edsel-like flop – a compromised product unable to please anyone.
+
+Windows 8 was “bet the company” – uh oh, OEMs beware!
+
+By January, 2013 sales results were showing the abysmal failure of Windows 8 to slow the wholesale shift into mobile devices.  Ballmer had played “bet the company” on Windows 8 and the returns were not good.  It was the failure of Windows 8, and the ill-fated Surface tablet which became a notorious billion dollar write-off, that set the stage for the rapid demise of PCs.
+
+And that demise is clear in the ecosystem.  Microsoft has long depended on OEM manufacturers selling PCs as the driver of most sales.  But now Lenovo, globally the #1 PC manufacturer, is losing money - lots of money – putting its future in jeopardy.  And Dell, one of the other top 3 manufacturers, recently pivoted from being a PC manufacturer into becoming a supplier of cloud storage by spending $67B to buy EMC. The third largest PC manufacturer, HP, spun off its PC business so it could focus on non-PC growth markets.
+
+And, worse, the entire OEM market is collapsing.  For the largest 4 PC manufacturers sales last quarter were down 4.5%, while sales for the remaining smaller manufacturers dropped over 20%!  With fewer and fewer sales, consolidation is wiping out many companies, and leaving those remaining in margin killing to-the-death competition.
+
+Recommended by Forbes
+MOST POPULAR Photos: The Most Expensive Home Listing in Every State 2016
+TRENDING ON FACEBOOK Millennials, This Is Why You Haven't Been Promoted
+windows 10Microsoft never created a mobile developer community
+
+For Microsoft to grow it desperately needs Windows 10 to succeed on devices other than PCs.  But here Microsoft struggles, because it long eschewed its “channel suppliers,” who create vertical market applications, as it relied on OEM box sales for revenue growth.  Microsoft did little to spur app development, and rather wanted its developers to focus on installing standard PC units with minor tweaks to fit vertical needs.
+
+Today Apple and Google have both built very large, profitable developer networks.  Thus iOS offers 1.5M apps, and Google offers 1.6M. But Microsoft only has 500K apps largely because it entered the world of mobile too late, and without a commitment to success as it tried to defend and extend the PC.  Worse, Microsoft has quietly delayed Project Astoria which was to offer tools for easily porting Android apps into the Windows 10 market, thus making it harder for developers to “add on” the Windows 10 platform for their iOS or Android apps.
+
+Microsoft realized it needed more mobile developers all the way back in 2013 when it began offering bonuses of $100,000 and more to developers who would write for Windows.  But that had little success as developers were more keen to achieve long-term sales by building apps for all those iOS and Android devices then outselling PCs.  Today the situation is only exacerbated.
+
+
+PAGE 1 / 2 Continue 
+6Comment on this story
+ Print Report Corrections Reprints & Permissions
+
+Ads by Revcontent
+From the Web
+How Australians Are Getting The Brand New iPhone 6S For Only $1
+BREAKING NEWS
+Aussies: Watch This Shocking Video Before It's Deleted
+AUSSIE METHOD
+4 UK Students prove their Crazy, Money-Making System, worth Millions, on live TV
+START-UP365
+Say 'Goodbye' To Wrinkles - Do This Once Daily
+JOURNAL 365
+Diabetes Breakthrough That Will Bankrupt Diabetes Industry
+THE ICTM
+Most Embarrassing Pictures Ever Captured
+LIFEHACKLANE
+Report: Australia Will Enter a Recession This Year
+THE DAILY RECKONING
+Hollywood Mourns The Loss of This Child Star
+BOREBURN
+ 
+The Little Black Book of Billionaire Secrets
+ 

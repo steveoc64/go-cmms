@@ -40,6 +40,7 @@ func main() {
 
 	// Start up the basic web server
 	e = echo.New()
+	e.SetDebug(true)
 	e.Static("/", "public")
 
 	// e.Index("public/index.html")
@@ -89,9 +90,9 @@ func main() {
 	autoGenerate()
 
 	e.Get("/ws", standard.WrapHandler(websocket.Handler(webSocket)))
-	// e.Get("/ws", fasthttp.WrapHandler(websocket.Handler(webSocket)))	
+	// e.Get("/ws", fasthttp.WrapHandler(websocket.Handler(webSocket)))
 
-		e.SetDebug(true)
+	e.SetDebug(true)
 	// e.WebSocket("/ws", webSocket)
 
 	// Start the web server

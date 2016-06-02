@@ -78,7 +78,7 @@
 .css-treeview label::before
 {
     /*background: url("../pages/css3-treeview/example/icons.png") no-repeat;*/
-    background: url("/img/css-treeview/icons.png") no-repeat;
+    background: url("/img/css3-treeview/icons.png") no-repeat;
 }
  
 .css-treeview label,
