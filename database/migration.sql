@@ -65,3 +65,23 @@ create table site_category (
 	cat_id int not null
 );
 create index site_category_idx on site_category (site_id, cat_id);
+
+-- 2016-06-03 
+-- Fix up machine layout for Chinderrah and Connecticut
+delete from site_layout where site_id=8;
+delete from site_layout where site_id=9;
+
+insert into site_layout (site_id, seq, machine_id, span) values
+(8,1,26,12),
+(8,2,22,12),
+(8,3,23,12),
+(8,4,25,12),
+(8,5,24,12),
+(9,1,40,12),
+(9,2,41,12),
+(9,3,39,12),
+(9,4,38,12),
+(9,5,37,12),
+(9,6,42,12),
+(9,7,43,12);
+
