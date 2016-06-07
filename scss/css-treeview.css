@@ -74,11 +74,8 @@
     display: block;
 }
  
-.css-treeview label,
-.css-treeview label::before
-{
-    background: url("../pages/css3-treeview/icons.png") no-repeat;
-}
+.css-treeview label, .css-treeview label::before {     background:
+url("../pages/css3-treeview/icons.png") no-repeat; }
  
 .css-treeview label,
 .css-treeview a,

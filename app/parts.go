@@ -52,7 +52,7 @@ func classSelect(context *router.Context) {
 func partsList(context *router.Context) {
 
 	go func() {
-		tree := []shared.Category{}
+		tree := shared.PartsTree{}
 		rpcClient.Call("PartRPC.GetTree", shared.PartTreeRPCData{
 			Channel:    Session.Channel,
 			CategoryID: 0,
@@ -81,7 +81,7 @@ func partsList(context *router.Context) {
 			Session.Navigate("/parts/" + key)
 		})
 
-		form.Render("parts-tree-list", "main", nil)
+		form.Render("parts-tree-list", "main", tree)
 
 	}()
 }
