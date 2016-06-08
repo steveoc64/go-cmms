@@ -23,14 +23,17 @@ type Category struct {
 	Subcats  []Category `db:"subcats"`
 }
 
-type PartsTree []Category
+type PartsTree struct {
+	Categories []Category
+	Name       string
+}
 
 func (p *PartsTree) String() string {
 	return p.Name
 }
 
 func (p *PartsTree) Categorires() formulate.TreeCategories {
-	return p.Subcats
+	return p.Categories
 }
 
 func (p *PartsTree) Elements() formulate.TreeElements {
