@@ -48,6 +48,9 @@ func getRoutes(uid int, role string) []shared.UserRoute {
 			{Route: "/hashtag/add", Func: "hashtag-add"},
 			{Route: "/hashtag/{id}", Func: "hashtag-edit"},
 			{Route: "/hash/used/{id}", Func: "hashtag-used"},
+			{Route: "/machinetypes", Func: "machine-types"},
+			{Route: "/machinetype/add", Func: "machine-type-add"},
+			{Route: "/machinetype/{id}", Func: "machine-type-edit"},
 		}
 	case "Site Manager":
 		return []shared.UserRoute{

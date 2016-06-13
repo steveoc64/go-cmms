@@ -85,3 +85,24 @@ insert into site_layout (site_id, seq, machine_id, span) values
 (9,6,42,12),
 (9,7,43,12);
 
+-- 2016-06-13
+-- MachineTypes database
+
+drop table if exists machine_type;
+create table machine_type (
+	id serial not null primary key,
+	name text not null default '',
+	electrical bool default true,
+	hydraulic bool default true,
+	pnuematic bool default true,
+	lube bool default true,
+	printer bool default true,
+	console bool default true,
+	uncoiler bool default true,
+	rollbed bool  default true
+);
+
+insert into machine_type (name) 
+values ('Bracket'),('Stud'),('Chord'),('Plate'),('Web'),('Floor'),('Valley'),('Top Hat 22'),('Top Hat 40');
+
+alter table machine add pnuematic text not null default 'Running';

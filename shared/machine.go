@@ -199,3 +199,22 @@ func (c *Component) GetClass() string {
 		return "running"
 	}
 }
+
+type MachineType struct {
+	ID         int    `db:"id"`
+	Name       string `db:"name"`
+	Electrical bool   `db:"electrical"`
+	Hydraulic  bool   `db:"hydraulic"`
+	Pnuematic  bool   `db:"pnuematic"`
+	Lube       bool   `db:"lube"`
+	Printer    bool   `db:"printer"`
+	Console    bool   `db:"console"`
+	Uncoiler   bool   `db:"uncoiler"`
+	Rollbed    bool   `db:"rollbed"`
+}
+
+type MachineTypeRPCData struct {
+	Channel     int
+	ID          int
+	MachineType *MachineType
+}

@@ -3,8 +3,6 @@ package shared
 import (
 	"fmt"
 	"time"
-
-	"github.com/steveoc64/formulate"
 )
 
 type PartClass struct {
@@ -23,26 +21,26 @@ type Category struct {
 	Subcats  []Category `db:"subcats"`
 }
 
-type PartsTree struct {
-	Categories []Category
-	Name       string
-}
+// type PartsTree struct {
+// 	Categories []Category
+// 	Name       string
+// }
 
-func (p *PartsTree) String() string {
-	return p.Name
-}
+// func (p *PartsTree) String() string {
+// 	return p.Name
+// }
 
-func (p *PartsTree) Categorires() formulate.TreeCategories {
-	return p.Categories
-}
+// func (p *PartsTree) Categories() formulate.TreeCategories {
+// 	return p.Categories
+// }
 
-func (p *PartsTree) Elements() formulate.TreeElements {
-	return p.Parts
-}
+// func (p *PartsTree) Elements() formulate.TreeElements {
+// 	return p.Parts
+// }
 
-func (p *PartsTree) Select() {
+// func (p *PartsTree) Select() {
 
-}
+// }
 
 type SiteCategory struct {
 	SiteID int `db:"site_id"`

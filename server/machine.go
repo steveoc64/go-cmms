@@ -117,3 +117,61 @@ func (m *MachineRPC) Delete(data shared.MachineRPCData, ok *bool) error {
 	*ok = true
 	return nil
 }
+
+func (m *MachineRPC) MachineTypes(data shared.MachineRPCData, machineTypes *[]shared.MachineType) error {
+	start := time.Now()
+
+	// log.Println("here", data)
+	conn := Connections.Get(data.Channel)
+	// log.Println("conn", conn)
+
+	DB.Select(`*`).From(`machine_type`).OrderBy(`name`).QueryStructs(machineTypes)
+
+	logger(start, "Machine.MachineTypes",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d machine types", len(*machineTypes)),
+		data.Channel, conn.UserID, "machine_type", 0, true)
+
+	return nil
+}
+
+func (m *MachineRPC) GetMachineType(data shared.MachineTypeRPCData, machineType *shared.MachineType) error {
+	start := time.Now()
+
+	// log.Println("here", data)
+	conn := Connections.Get(data.Channel)
+	// log.Println("conn", conn)
+
+	DB.Select(`*`).
+		From(`machine_type`).
+		Where(`id=$1`, data.ID).
+		QueryStruct(machineType)
+
+	logger(start, "Machine.GetMachineType",
+		fmt.Sprintf("Channel %d, ID %d User %d %s %s",
+			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
+		machineType.Name,
+		data.Channel, conn.UserID, "machine_type", data.ID, true)
+
+	return nil
+}
+
+func (m *MachineRPC) UpdateMachineType(data shared.MachineTypeRPCData, done *bool) error {
+	start := time.Now()
+
+	// log.Println("here", data)
+	conn := Connections.Get(data.Channel)
+	// log.Println("conn", conn)
+
+	DB.SQL(`update machine_type set name=$2 where id=$1`, data.ID, data.MachineType.Name).Exec()
+
+	logger(start, "Machine.UpdateMachineType",
+		fmt.Sprintf("Channel %d, ID %d User %d %s %s",
+			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
+		data.MachineType.Name,
+		data.Channel, conn.UserID, "machine_type", data.ID, true)
+
+	*done = true
+	return nil
+}
