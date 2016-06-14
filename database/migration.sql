@@ -106,3 +106,12 @@ insert into machine_type (name)
 values ('Bracket'),('Stud'),('Chord'),('Plate'),('Web'),('Floor'),('Valley'),('Top Hat 22'),('Top Hat 40');
 
 alter table machine add pnuematic text not null default 'Running';
+
+drop table if exists machine_type_tool;
+create table machine_type_tool (
+	machine_id int not null,
+	position int not null default 0,
+	name text not null default ''
+);
+
+create index machine_type_tool_idx on machine_type_tool (machine_id, position);

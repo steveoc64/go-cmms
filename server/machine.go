@@ -160,11 +160,18 @@ func (m *MachineRPC) GetMachineType(data shared.MachineTypeRPCData, machineType 
 func (m *MachineRPC) UpdateMachineType(data shared.MachineTypeRPCData, done *bool) error {
 	start := time.Now()
 
-	// log.Println("here", data)
+	// log.Println("here", data.MachineType)
 	conn := Connections.Get(data.Channel)
 	// log.Println("conn", conn)
 
-	DB.SQL(`update machine_type set name=$2 where id=$1`, data.ID, data.MachineType.Name).Exec()
+	DB.Update("machine_type").
+		SetWhitelist(data.MachineType,
+			"name",
+			"electrical", "hydraulic", "pnuematic",
+			"console", "printer", "lube",
+			"uncoiler", "rollbed").
+		Where("id = $1", data.ID).
+		Exec()
 
 	logger(start, "Machine.UpdateMachineType",
 		fmt.Sprintf("Channel %d, ID %d User %d %s %s",
@@ -173,5 +180,49 @@ func (m *MachineRPC) UpdateMachineType(data shared.MachineTypeRPCData, done *boo
 		data.Channel, conn.UserID, "machine_type", data.ID, true)
 
 	*done = true
+	return nil
+}
+
+func (m *MachineRPC) DeleteMachineType(data shared.MachineTypeRPCData, done *bool) error {
+	start := time.Now()
+
+	// log.Println("here", data)
+	conn := Connections.Get(data.Channel)
+	// log.Println("conn", conn)
+
+	DB.SQL(`delete from machine_type where id=$1`, data.ID).Exec()
+
+	logger(start, "Machine.DeleteMachineType",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("ID: %d", data.ID),
+		data.Channel, conn.UserID, "machine_type", data.ID, true)
+
+	*done = true
+	return nil
+}
+
+func (m *MachineRPC) InsertMachineType(data shared.MachineTypeRPCData, id *int) error {
+	start := time.Now()
+
+	// log.Println("here", data)
+	conn := Connections.Get(data.Channel)
+	// log.Println("conn", conn)
+
+	DB.InsertInto("machine_type").
+		Columns("name",
+			"electrical", "hydraulic", "pnuematic",
+			"console", "printer", "lube",
+			"uncoiler", "rollbed").
+		Record(data.MachineType).
+		Returning("id").
+		QueryScalar(id)
+
+	logger(start, "Machine.UpdateMachineType",
+		fmt.Sprintf("Channel %d, ID %d User %d %s %s",
+			data.Channel, *id, conn.UserID, conn.Username, conn.UserRole),
+		data.MachineType.Name,
+		data.Channel, conn.UserID, "machine_type", *id, true)
+
 	return nil
 }

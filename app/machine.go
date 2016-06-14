@@ -243,3 +243,259 @@ type SiteMachineListData struct {
 	Site     shared.Site
 	Machines []shared.Machine
 }
+
+func machineTypes(context *router.Context) {
+
+	go func() {
+		data := []shared.MachineType{}
+		rpcClient.Call("MachineRPC.MachineTypes", shared.MachineRPCData{
+			Channel: Session.Channel,
+		}, &data)
+
+		print("got machine types", data)
+		BackURL := "/"
+
+		form := formulate.ListForm{}
+		form.New("fa-cubes", "Machine Types")
+
+		// Define the layout
+		form.Column("Name", "Name")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		if Session.UserRole == "Admin" {
+			form.NewRowEvent(func(evt dom.Event) {
+				evt.PreventDefault()
+				Session.Navigate("/machinetype/add")
+			})
+		}
+
+		form.RowEvent(func(key string) {
+			Session.Navigate("/machinetype/" + key)
+		})
+
+		form.Render("machine-type", "main", data)
+
+	}()
+}
+
+func machineTypeAdd(context *router.Context) {
+	print("TODO - add machine type")
+
+	go func() {
+		machineType := shared.MachineType{}
+
+		BackURL := "/machinetypes"
+		title := "Add New Machine Type"
+		form := formulate.EditForm{}
+		form.New("fa-cubes", title)
+
+		// Layout the fields
+		form.Row(1).
+			AddInput(1, "Name", "Name")
+
+		form.Row(3).
+			AddCheck(1, "Electrical", "Electrical").
+			AddCheck(1, "Hydraulic", "Hydraulic").
+			AddCheck(1, "Pnuematic", "Pnuematic")
+
+		form.Row(3).
+			AddCheck(1, "Console", "Console").
+			AddCheck(1, "Printer", "Printer").
+			AddCheck(1, "Lube", "Lube")
+
+		form.Row(3).
+			AddCheck(1, "UnCoiler", "Uncoiler").
+			AddCheck(1, "RollBed", "Rollbed")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&machineType)
+			go func() {
+				newID := 0
+				rpcClient.Call("MachineRPC.InsertMachineType", shared.MachineTypeRPCData{
+					Channel:     Session.Channel,
+					MachineType: &machineType,
+				}, &newID)
+				print("added machine type", newID)
+				Session.Navigate(BackURL)
+			}()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &machineType)
+
+	}()
+
+}
+
+func machineTypeEdit(context *router.Context) {
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		machineType := shared.MachineType{}
+
+		rpcClient.Call("MachineRPC.GetMachineType", shared.MachineTypeRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &machineType)
+
+		print("got machine type", machineType)
+
+		BackURL := "/machinetypes"
+		title := fmt.Sprintf("Machine Type Details - %s", machineType.Name)
+		form := formulate.EditForm{}
+		form.New("fa-cubes", title)
+
+		// Layout the fields
+		form.Row(1).
+			AddInput(1, "Name", "Name")
+
+		form.Row(3).
+			AddCheck(1, "Electrical", "Electrical").
+			AddCheck(1, "Hydraulic", "Hydraulic").
+			AddCheck(1, "Pnuematic", "Pnuematic")
+
+		form.Row(3).
+			AddCheck(1, "Console", "Console").
+			AddCheck(1, "Printer", "Printer").
+			AddCheck(1, "Lube", "Lube")
+
+		form.Row(3).
+			AddCheck(1, "UnCoiler", "Uncoiler").
+			AddCheck(1, "RollBed", "Rollbed")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		form.DeleteEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			machineType.ID = id
+			go func() {
+				done := false
+				rpcClient.Call("MachineRPC.DeleteMachineType", shared.MachineTypeRPCData{
+					Channel: Session.Channel,
+					ID:      id,
+				}, &done)
+				Session.Navigate(BackURL)
+			}()
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&machineType)
+			go func() {
+				done := false
+				rpcClient.Call("MachineRPC.UpdateMachineType", shared.MachineTypeRPCData{
+					Channel:     Session.Channel,
+					ID:          id,
+					MachineType: &machineType,
+				}, &done)
+				Session.Navigate(BackURL)
+			}()
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &machineType)
+
+		// And attach actions
+		form.ActionGrid("machine-type-actions", "#action-grid", id, func(url string) {
+			Session.Navigate(fmt.Sprintf("/machinetype/%d/%s", id, url))
+		})
+
+	}()
+
+}
+
+func machineTypeTools(context *router.Context) {
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		data := []shared.MachineTypeTool{}
+		rpcClient.Call("MachineRPC.MachineTypeTools", shared.MachineRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &data)
+
+		print("got machine types", data)
+		BackURL := "/"
+
+		form := formulate.ListForm{}
+		form.New("fa-cubes", "Machine Types")
+
+		// Define the layout
+		form.Column("Name", "Name")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		if Session.UserRole == "Admin" {
+			form.NewRowEvent(func(evt dom.Event) {
+				evt.PreventDefault()
+				Session.Navigate("/machinetype/add")
+			})
+		}
+
+		form.RowEvent(func(key string) {
+			Session.Navigate("/machinetype/" + key)
+		})
+
+		form.Render("machine-type", "main", data)
+
+	}()
+}
+
+func machineTypeToolAdd(context *router.Context) {
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+	print("TODO - machineTypeToolAdd", id)
+}
+
+func machineTypeToolEdit(context *router.Context) {
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+	print("TODO - machineTypeParts", id)
+}
+
+func machineTypeParts(context *router.Context) {
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+	print("TODO - machineTypeParts", id)
+}

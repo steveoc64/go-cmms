@@ -39,7 +39,7 @@
                   <label>{{.Label}}</label>                  
                   {{if eq .Type "text"}}
                     <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Readonly}}readonly{{end}}>
-                  {{end}}              
+                  {{end}}                               
                   {{if eq .Type "date"}}
                     <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}">
                   {{end}}
@@ -59,6 +59,9 @@
                         <option value="{{.Key}}" {{if .Selected}}selected{{end}}>{{.Display}}</option>
                       {{end}}
                     </select>
+                  {{end}}
+                  {{if eq .Type "checkbox"}}
+                    <input type="checkbox" name="{{.Model}}" {{if .Checked}}checked{{end}}>
                   {{end}}
                   {{if eq .Type "radio"}}
                     {{$model := .Model}}
@@ -109,6 +112,9 @@
               </optgroup>
               {{end}}
             </select>
+          {{end}}
+          {{if eq .Type "checkbox"}}
+            <input type="checkbox" name="{{.Model}}" {{if .Checked}}checked{{end}}>
           {{end}}
           {{if eq .Type "radio"}}
             <div name="radio-{{$fieldModel}}">
