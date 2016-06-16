@@ -34,6 +34,7 @@ type Machine struct {
 	Notes      string      `db:"notes"`
 	Electrical string      `db:"electrical"`
 	Hydraulic  string      `db:"hydraulic"`
+	Pnuematic  string      `db:"pnuematic"`
 	Printer    string      `db:"printer"`
 	Console    string      `db:"console"`
 	Rollbed    string      `db:"rollbed"`
@@ -217,4 +218,10 @@ type MachineTypeRPCData struct {
 	Channel     int
 	ID          int
 	MachineType *MachineType
+}
+
+type MachineTypeTool struct {
+	ID       int    `db:"machine_id"`
+	Position int    `db:"position"`
+	Name     string `db:"name"`
 }

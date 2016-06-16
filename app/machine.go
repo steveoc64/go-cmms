@@ -441,12 +441,18 @@ func machineTypeTools(context *router.Context) {
 			Channel: Session.Channel,
 			ID:      id,
 		}, &data)
+		machineType := shared.MachineType{}
+		rpcClient.Call("MachineRPC.GetMachineType", shared.MachineRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &machineType)
 
-		print("got machine types", data)
-		BackURL := "/"
+		print("got machine type tools", data)
+		BackURL := fmt.Sprintf("/machinetype/%d", id)
 
 		form := formulate.ListForm{}
-		form.New("fa-cubes", "Machine Types")
+		form.New("fa-cubes", fmt.Sprintf("Tools - %s", machineType.Name))
+		// form.KeyField = "MachineID"
 
 		// Define the layout
 		form.Column("Name", "Name")
@@ -498,4 +504,13 @@ func machineTypeParts(context *router.Context) {
 		return
 	}
 	print("TODO - machineTypeParts", id)
+}
+
+func machineTypeMachines(context *router.Context) {
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+	print("TODO - machineTypeMachines", id)
 }

@@ -91,6 +91,7 @@ func enableRoutes(Role string) {
 			"machine-types":          machineTypes,
 			"machine-type-add":       machineTypeAdd,
 			"machine-type-edit":      machineTypeEdit,
+			"machine-type-machines":  machineTypeMachines,
 			"machine-type-tools":     machineTypeTools,
 			"machine-type-tool-add":  machineTypeToolAdd,
 			"machine-type-tool-edit": machineTypeToolEdit,

@@ -226,3 +226,23 @@ func (m *MachineRPC) InsertMachineType(data shared.MachineTypeRPCData, id *int) 
 
 	return nil
 }
+
+func (m *MachineRPC) MachineTypeTools(data shared.MachineTypeRPCData, machineTypeTools *[]shared.MachineTypeTool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.Select(`*`).
+		From(`machine_type_tool`).
+		OrderBy(`position`).
+		Where(`machine_id=$1`, data.ID).
+		QueryStructs(machineTypeTools)
+
+	logger(start, "Machine.MachineTypes",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d machine type tools", len(*machineTypeTools)),
+		data.Channel, conn.UserID, "machine_type", 0, true)
+
+	return nil
+}

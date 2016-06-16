@@ -115,3 +115,9 @@ create table machine_type_tool (
 );
 
 create index machine_type_tool_idx on machine_type_tool (machine_id, position);
+
+insert into machine_type_tool (machine_id, position, name)
+values (1,1,'Guillo'),
+(2,1,'Brick Tie'),(2,2,'Service Hole #1'),(2,3,'Quad Dimple'),(2,4,'Service Hole #2'),(2,5,'Single Dimple & Rib'),(2,6,'Curl #1'),(2,7,'Guillo'),(2,8,'Curl #2'),
+(3,1,'Down Dimple'),
+(4,1,'Single Dimple Square');
