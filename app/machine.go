@@ -463,15 +463,14 @@ func machineTypeTools(context *router.Context) {
 			Session.Navigate(BackURL)
 		})
 
-		if Session.UserRole == "Admin" {
-			form.NewRowEvent(func(evt dom.Event) {
-				evt.PreventDefault()
-				Session.Navigate("/machinetype/add")
-			})
-		}
+		form.NewRowEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(fmt.Sprintf("/machinetype/%d/tool/add", id))
+		})
 
 		form.RowEvent(func(key string) {
-			Session.Navigate("/machinetype/" + key)
+			print("clicked on key", key)
+			Session.Navigate(fmt.Sprintf("/machinetype/%d/tool/%s", id, key))
 		})
 
 		form.Render("machine-type", "main", data)
@@ -494,7 +493,88 @@ func machineTypeToolEdit(context *router.Context) {
 		print(err.Error())
 		return
 	}
-	print("TODO - machineTypeParts", id)
+	tool, err := strconv.Atoi(context.Params["tool"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		machineType := shared.MachineType{}
+
+		rpcClient.Call("MachineRPC.GetMachineType", shared.MachineTypeRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &machineType)
+
+		print("got machine type", machineType)
+
+		machineTypeTool := shared.MachineTypeTool{}
+
+		rpcClient.Call("MachineRPC.GetMachineTypeTool", shared.MachineTypeToolRPCData{
+			Channel:   Session.Channel,
+			MachineID: id,
+			ID:        tool,
+		}, &machineTypeTool)
+
+		print("got machine type tool", machineTypeTool)
+
+		BackURL := fmt.Sprintf("/machinetype/%d/tools", id)
+
+		title := fmt.Sprintf("Machine Tool Details - %s - %s",
+			machineType.Name, machineTypeTool.Name)
+		form := formulate.EditForm{}
+		form.New("fa-cubes", title)
+
+		// Layout the fields
+		form.Row(1).
+			AddInput(1, "Name", "Name")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		form.DeleteEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			machineType.ID = id
+			go func() {
+				done := false
+				rpcClient.Call("MachineRPC.DeleteMachineTypeTool", shared.MachineTypeToolRPCData{
+					Channel:   Session.Channel,
+					MachineID: id,
+					ID:        tool,
+				}, &done)
+				Session.Navigate(BackURL)
+			}()
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&machineTypeTool)
+			go func() {
+				done := false
+				rpcClient.Call("MachineRPC.UpdateMachineTypeTool", shared.MachineTypeToolRPCData{
+					Channel:         Session.Channel,
+					MachineID:       id,
+					ID:              tool,
+					MachineTypeTool: &machineTypeTool,
+				}, &done)
+				Session.Navigate(BackURL)
+			}()
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &machineTypeTool)
+
+	}()
+
+	print("TODO - machineTypeToolEdit", id, tool)
 }
 
 func machineTypeParts(context *router.Context) {

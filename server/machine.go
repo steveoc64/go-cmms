@@ -246,3 +246,44 @@ func (m *MachineRPC) MachineTypeTools(data shared.MachineTypeRPCData, machineTyp
 
 	return nil
 }
+
+func (m *MachineRPC) GetMachineTypeTool(data shared.MachineTypeToolRPCData, machineTypeTool *shared.MachineTypeTool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.Select(`*`).
+		From(`machine_type_tool`).
+		OrderBy(`position`).
+		Where(`machine_id=$1 and position=$2`, data.MachineID, data.ID).
+		QueryStruct(machineTypeTool)
+
+	logger(start, "Machine.GetMachineTypeTool",
+		fmt.Sprintf("Channel %d, Machine %d Tool %d User %d %s %s",
+			data.Channel, data.MachineID, data.ID, conn.UserID, conn.Username, conn.UserRole),
+		machineTypeTool.Name,
+		data.Channel, conn.UserID, "machine_type_tool", data.MachineID, false)
+
+	return nil
+}
+
+func (m *MachineRPC) DeleteMachineTypeTool(data shared.MachineTypeToolRPCData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	*done = false
+
+	DB.SQL(`delete from machine_type_tool where machine_id=$1 and position=$2`,
+		data.MachineID, data.ID).Exec()
+
+	logger(start, "Machine.DeleteMachineTypeTool",
+		fmt.Sprintf("Channel %d, Machine %d Tool %d User %d %s %s",
+			data.Channel, data.MachineID, data.ID, conn.UserID, conn.Username, conn.UserRole),
+		"Deleted",
+		data.Channel, conn.UserID, "machine_type_tool", data.MachineID, true)
+
+	*done = true
+
+	return nil
+}

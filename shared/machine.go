@@ -221,7 +221,14 @@ type MachineTypeRPCData struct {
 }
 
 type MachineTypeTool struct {
-	ID       int    `db:"machine_id"`
-	Position int    `db:"position"`
-	Name     string `db:"name"`
+	MachineID int    `db:"machine_id"`
+	ID        int    `db:"position"`
+	Name      string `db:"name"`
+}
+
+type MachineTypeToolRPCData struct {
+	Channel         int
+	MachineID       int
+	ID              int
+	MachineTypeTool *MachineTypeTool
 }
