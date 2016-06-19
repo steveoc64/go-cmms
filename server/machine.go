@@ -287,3 +287,25 @@ func (m *MachineRPC) DeleteMachineTypeTool(data shared.MachineTypeToolRPCData, d
 
 	return nil
 }
+
+func (m *MachineRPC) UpdateMachineTypeTool(data shared.MachineTypeToolRPCData, done *bool) error {
+	start := time.Now()
+
+	// log.Println("here", data.MachineType)
+	conn := Connections.Get(data.Channel)
+	// log.Println("conn", conn)
+
+	DB.Update("machine_type_tool").
+		SetWhitelist(data.MachineTypeTool, "name").
+		Where("machine_id = $1 and position=$2", data.MachineID, data.ID).
+		Exec()
+
+	logger(start, "Machine.UpdateMachineTypeTool",
+		fmt.Sprintf("Channel %d, ID %d %d User %d %s %s",
+			data.Channel, data.MachineID, data.ID, conn.UserID, conn.Username, conn.UserRole),
+		data.MachineTypeTool.Name,
+		data.Channel, conn.UserID, "machine_type_tool", data.ID, true)
+
+	*done = true
+	return nil
+}
