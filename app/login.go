@@ -90,7 +90,11 @@ func showLoginForm() {
 
 	ldiv := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
 	ldiv.Style().Set("display", "block")
-	doc.GetElementByID("l-username").(*dom.HTMLInputElement).Focus()
+	uname := doc.GetElementByID("l-username").(*dom.HTMLInputElement)
+	print("uname value =", uname.Value)
+	if uname.Value == "" {
+		uname.Focus()
+	}
 
 	// loginBtn.AddEventListener("click", false, func(evt dom.Event) {
 	// 	// print("clicked login btn")
