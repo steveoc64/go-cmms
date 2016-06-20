@@ -102,8 +102,10 @@ create table machine_type (
 	rollbed bool  default true
 );
 
-insert into machine_type (name) 
-values ('Bracket'),('Stud'),('Chord'),('Plate'),('Web'),('Floor'),('Valley'),('Top Hat 22'),('Top Hat 40');
+insert into machine_type (id,name) 
+values (1,'Bracket'),(2,'Stud'),(3,'Chord'),(4,'Plate'),(5,'Web'),(6,'Floor'),(7,'Valley'),
+(8,'Top Hat 22'),(9,'Top Hat 40'),(10,'Mill'),(11,'Wall'),(12,'Lathe'),(13,'Surface Grinder'),
+(14,'Guillotine'),(15,'Folder');
 
 alter table machine add pnuematic text not null default 'Running';
 
@@ -125,16 +127,28 @@ values (1,1,'Guillo'),
 (6,1,'H-Cut'),(6,2,'Notch'),(6,3,'Pier Slot'),(6,4,'Tie Down Slot'),(6,5,'Fold Rib'),(6,6,'Dimple Bearer'),(6,7,'Dimple Joist'),(6,8,'Service Hole'),(6,9,'Swage'),(6,10,'Up Dimple'),(6,11,'Down Dimple'),(6,12,'Guillo Bearer'),(6,13,'Guillo Joist'),
 (7,1,'Guillo Valley'),(7,2,'Guillo Lintel'),
 (8,1,'Guillo'),
-(9,1,'Guillo');
+(9,1,'Guillo'),
+(11,1,'Service Hole'),(11,2,'Quad Dimple'),(11,3,'Single Dimple Crush'),(11,4,'Curl'),(11,5,'Guillo'),(11,6,'Single Dimple Square'),(11,7,'Notch'),(11,8,'Tie Down Slot'),(11,9,'Nogging');
 
 alter table machine add machine_type int not null default 0;
 
-update machine set machine_type = 1 where name = 'Bracket';
-update machine set machine_type = 2 where name = 'Stud';
-update machine set machine_type = 3 where name = 'Chord';
-update machine set machine_type = 4 where name = 'Plate';
-update machine set machine_type = 5 where name = 'Web';
-update machine set machine_type = 6 where name = 'Floor';
-update machine set machine_type = 7 where name = 'Valley';
-update machine set machine_type = 8 where name = 'Top Hat 22';
-update machine set machine_type = 9 where name = 'Top Hat 40';
+update machine set machine_type = 1 where name like 'Bracket%';
+update machine set machine_type = 2 where name like 'Stud%';
+update machine set machine_type = 3 where name like 'Chord%';
+update machine set machine_type = 4 where name like 'Plate%';
+update machine set machine_type = 5 where name like 'Web%';
+update machine set machine_type = 6 where name like 'Floor%';
+update machine set machine_type = 7 where name like 'Valley%';
+update machine set machine_type = 8 where name like 'Top Hat 22%';
+update machine set machine_type = 9 where name like 'Top Hat 40%';
+update machine set machine_type = 10 where name like 'Mill%';
+update machine set machine_type = 11 where name like 'Wall%';
+update machine set machine_type = 12 where name like 'Lathe%';
+update machine set machine_type = 13 where name like 'Surface Grinder%';
+update machine set machine_type = 14 where name like 'Guillotine%';
+update machine set machine_type = 15 where name like 'Folder%';
+
+
+
+
+
