@@ -16,34 +16,35 @@ type MachineReq struct {
 }
 
 type Machine struct {
-	ID         int         `db:"id"`
-	SiteID     int         `db:"site_id"`
-	Name       string      `db:"name"`
-	Descr      string      `db:"descr"`
-	Make       string      `db:"make"`
-	Model      string      `db:"model"`
-	Serialnum  string      `db:"serialnum"`
-	IsRunning  bool        `db:"is_running"`
-	Status     string      `db:"status"`
-	Stopped    *time.Time  `db:"stopped_at"`
-	Started    *time.Time  `db:"started_at"`
-	Alert      *time.Time  `db:"alert_at"`
-	Picture    string      `db:"picture"`
-	SiteName   *string     `db:"site_name"`
-	Span       *string     `db:"span"`
-	Notes      string      `db:"notes"`
-	Electrical string      `db:"electrical"`
-	Hydraulic  string      `db:"hydraulic"`
-	Pnuematic  string      `db:"pnuematic"`
-	Printer    string      `db:"printer"`
-	Console    string      `db:"console"`
-	Rollbed    string      `db:"rollbed"`
-	Uncoiler   string      `db:"uncoiler"`
-	Lube       string      `db:"lube"`
-	AlertsTo   int         `db:"alerts_to"`
-	TasksTo    int         `db:"tasks_to"`
-	Components []Component `db:"components"`
-	PartClass  int         `db:"part_class"`
+	ID          int         `db:"id"`
+	SiteID      int         `db:"site_id"`
+	Name        string      `db:"name"`
+	Descr       string      `db:"descr"`
+	Make        string      `db:"make"`
+	Model       string      `db:"model"`
+	Serialnum   string      `db:"serialnum"`
+	IsRunning   bool        `db:"is_running"`
+	Status      string      `db:"status"`
+	Stopped     *time.Time  `db:"stopped_at"`
+	Started     *time.Time  `db:"started_at"`
+	Alert       *time.Time  `db:"alert_at"`
+	Picture     string      `db:"picture"`
+	SiteName    *string     `db:"site_name"`
+	Span        *string     `db:"span"`
+	Notes       string      `db:"notes"`
+	Electrical  string      `db:"electrical"`
+	Hydraulic   string      `db:"hydraulic"`
+	Pnuematic   string      `db:"pnuematic"`
+	Printer     string      `db:"printer"`
+	Console     string      `db:"console"`
+	Rollbed     string      `db:"rollbed"`
+	Uncoiler    string      `db:"uncoiler"`
+	Lube        string      `db:"lube"`
+	AlertsTo    int         `db:"alerts_to"`
+	TasksTo     int         `db:"tasks_to"`
+	Components  []Component `db:"components"`
+	PartClass   int         `db:"part_class"`
+	MachineType int         `db:"machine_type"`
 }
 
 type MachineRPCData struct {
@@ -212,6 +213,7 @@ type MachineType struct {
 	Console    bool   `db:"console"`
 	Uncoiler   bool   `db:"uncoiler"`
 	Rollbed    bool   `db:"rollbed"`
+	NumTools   int    `db:"num_tools"`
 }
 
 type MachineTypeRPCData struct {
@@ -231,4 +233,8 @@ type MachineTypeToolRPCData struct {
 	MachineID       int
 	ID              int
 	MachineTypeTool *MachineTypeTool
+}
+
+func (m *MachineTypeTool) GetName() string {
+	return fmt.Sprintf("%d) %s", m.ID, m.Name)
 }

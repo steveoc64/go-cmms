@@ -17,6 +17,14 @@ m.*,s.name as site_name,x.span as span
 		left join site_layout x on (x.site_id=m.site_id and x.machine_id=m.id)
 where m.id = $1`
 
+const MachinesOfType = `select 
+m.*,s.name as site_name,x.span as span
+		from machine m
+		left join site s on (s.id=m.site_id)
+		left join site_layout x on (x.site_id=m.site_id and x.machine_id=m.id)
+where m.machine_type = $1
+order by x.seq,lower(m.name)`
+
 // Get the details for a given machine
 func (m *MachineRPC) Get(data shared.MachineRPCData, machine *shared.Machine) error {
 	start := time.Now()
@@ -41,6 +49,37 @@ func (m *MachineRPC) Get(data shared.MachineRPCData, machine *shared.Machine) er
 		fmt.Sprintf("%d", data.ID),
 		machine.Name,
 		data.Channel, conn.UserID, "machine", data.ID, false)
+
+	return nil
+}
+
+// Get machines of a specific type
+func (m *MachineRPC) MachineOfType(data shared.MachineRPCData, machines *[]shared.Machine) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	// Read the machines for the given site
+	err := DB.SQL(MachinesOfType, data.ID).QueryStructs(machines)
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	// For each machine, fetch all components
+	for k, m := range *machines {
+		err = DB.Select("*").
+			From("component").
+			Where("machine_id = $1", m.ID).
+			OrderBy("position,zindex,lower(name)").
+			QueryStructs(&(*machines)[k].Components)
+	}
+
+	logger(start, "Machine.MachinesOfType",
+		fmt.Sprintf("Channel %d, Type %d, User %d %s %s",
+			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d machines", len(*machines)),
+		data.Channel, conn.UserID, "machine", 0, false)
 
 	return nil
 }
@@ -147,6 +186,9 @@ func (m *MachineRPC) GetMachineType(data shared.MachineTypeRPCData, machineType 
 		From(`machine_type`).
 		Where(`id=$1`, data.ID).
 		QueryStruct(machineType)
+
+	DB.SQL(`select count(*) as num_tools from machine_type_tool where machine_id=$1`, data.ID).
+		QueryScalar(&machineType.NumTools)
 
 	logger(start, "Machine.GetMachineType",
 		fmt.Sprintf("Channel %d, ID %d User %d %s %s",
@@ -293,7 +335,6 @@ func (m *MachineRPC) UpdateMachineTypeTool(data shared.MachineTypeToolRPCData, d
 
 	// log.Println("here", data.MachineType)
 	conn := Connections.Get(data.Channel)
-	// log.Println("conn", conn)
 
 	DB.Update("machine_type_tool").
 		SetWhitelist(data.MachineTypeTool, "name").

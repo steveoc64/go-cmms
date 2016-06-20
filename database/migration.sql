@@ -119,5 +119,22 @@ create index machine_type_tool_idx on machine_type_tool (machine_id, position);
 insert into machine_type_tool (machine_id, position, name)
 values (1,1,'Guillo'),
 (2,1,'Brick Tie'),(2,2,'Service Hole #1'),(2,3,'Quad Dimple'),(2,4,'Service Hole #2'),(2,5,'Single Dimple & Rib'),(2,6,'Curl #1'),(2,7,'Guillo'),(2,8,'Curl #2'),
-(3,1,'Down Dimple'),
-(4,1,'Single Dimple Square');
+(3,1,'Down Dimple'),(3,2,'Tie Down Slot'),(3,3,'Up Dimple'),(3,4,'Half Notch'),(3,5,'Full Notch'),(3,6,'Right Angle Guillo'),(3,7,'Straight Guillo'),(3,8,'Left Angle Guillo'),
+(4,1,'Single Dimple Square'),(4,2,'Service Hole / Curl'),(4,3,'Tie Down Slot'),(4,4,'Notch'),(4,5,'Nogging'),(4,6,'Guillo'),
+(5,1,'Pierce Location'),(5,2,'Crush'),(5,3,'Guillo'),
+(6,1,'H-Cut'),(6,2,'Notch'),(6,3,'Pier Slot'),(6,4,'Tie Down Slot'),(6,5,'Fold Rib'),(6,6,'Dimple Bearer'),(6,7,'Dimple Joist'),(6,8,'Service Hole'),(6,9,'Swage'),(6,10,'Up Dimple'),(6,11,'Down Dimple'),(6,12,'Guillo Bearer'),(6,13,'Guillo Joist'),
+(7,1,'Guillo Valley'),(7,2,'Guillo Lintel'),
+(8,1,'Guillo'),
+(9,1,'Guillo');
+
+alter table machine add machine_type int not null default 0;
+
+update machine set machine_type = 1 where name = 'Bracket';
+update machine set machine_type = 2 where name = 'Stud';
+update machine set machine_type = 3 where name = 'Chord';
+update machine set machine_type = 4 where name = 'Plate';
+update machine set machine_type = 5 where name = 'Web';
+update machine set machine_type = 6 where name = 'Floor';
+update machine set machine_type = 7 where name = 'Valley';
+update machine set machine_type = 8 where name = 'Top Hat 22';
+update machine set machine_type = 9 where name = 'Top Hat 40';

@@ -450,12 +450,14 @@ func machineTypeTools(context *router.Context) {
 		print("got machine type tools", data)
 		BackURL := fmt.Sprintf("/machinetype/%d", id)
 
-		form := formulate.ListForm{}
+		form := formulate.ListForm{
+			Draggable: true,
+		}
 		form.New("fa-cubes", fmt.Sprintf("Tools - %s", machineType.Name))
 		// form.KeyField = "MachineID"
 
 		// Define the layout
-		form.Column("Name", "Name")
+		form.Column("Position / Name", "GetName")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -473,7 +475,12 @@ func machineTypeTools(context *router.Context) {
 			Session.Navigate(fmt.Sprintf("/machinetype/%d/tool/%s", id, key))
 		})
 
-		form.Render("machine-type", "main", data)
+		form.Render("machine-type-tools", "main", data)
+
+		// // And attach actions
+		// form.ActionGrid("machine-type-actions", "#action-grid", id, func(url string) {
+		// 	Session.Navigate(fmt.Sprintf("/machinetype/%d/%s", id, url))
+		// })
 
 	}()
 }
@@ -484,7 +491,58 @@ func machineTypeToolAdd(context *router.Context) {
 		print(err.Error())
 		return
 	}
-	print("TODO - machineTypeToolAdd", id)
+
+	go func() {
+
+		machineType := shared.MachineType{}
+		rpcClient.Call("MachineRPC.GetMachineType", shared.MachineTypeRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &machineType)
+
+		machineTypeTool := shared.MachineTypeTool{
+			MachineID: id,
+			ID:        machineType.NumTools + 1,
+		}
+
+		BackURL := fmt.Sprintf("/machinetype/%d/tools", id)
+
+		title := fmt.Sprintf("Add New Tool - %s", machineType.Name)
+
+		form := formulate.EditForm{}
+		form.New("fa-cubes", title)
+
+		// Layout the fields
+		form.Row(3).
+			AddNumber(1, "Position", "ID", "1").
+			AddInput(2, "Name", "Name")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&machineTypeTool)
+			go func() {
+				newID := 0
+				// print("saving", machineTypeTool)
+				rpcClient.Call("MachineRPC.InsertMachineTypeTool", shared.MachineTypeToolRPCData{
+					Channel:         Session.Channel,
+					MachineTypeTool: &machineTypeTool,
+				}, &newID)
+				print("added tool", newID)
+				Session.Navigate(BackURL)
+			}()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &machineTypeTool)
+
+	}()
+
 }
 
 func machineTypeToolEdit(context *router.Context) {
@@ -527,8 +585,9 @@ func machineTypeToolEdit(context *router.Context) {
 		form.New("fa-cubes", title)
 
 		// Layout the fields
-		form.Row(1).
-			AddInput(1, "Name", "Name")
+		form.Row(3).
+			AddNumber(1, "Position", "ID", "1").
+			AddInput(2, "Name", "Name")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -592,5 +651,44 @@ func machineTypeMachines(context *router.Context) {
 		print(err.Error())
 		return
 	}
-	print("TODO - machineTypeMachines", id)
+
+	go func() {
+		data := []shared.Machine{}
+		rpcClient.Call("MachineRPC.MachineOfType", shared.MachineRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &data)
+		machineType := shared.MachineType{}
+		rpcClient.Call("MachineRPC.GetMachineType", shared.MachineRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &machineType)
+
+		BackURL := fmt.Sprintf("/machinetype/%d", id)
+
+		form := formulate.ListForm{
+			Draggable: true,
+		}
+		form.New("fa-gears", fmt.Sprintf("Machines of type %s", machineType.Name))
+		// form.KeyField = "MachineID"
+
+		// Define the layout
+		form.Column("Site", "SiteName")
+		form.Column("Name", "Name")
+		form.Column("Status", "Status")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		form.RowEvent(func(key string) {
+			print("clicked on key", key)
+			Session.Navigate(fmt.Sprintf("/machine/%s", key))
+		})
+
+		form.Render("machine-type-machines", "main", data)
+
+	}()
 }
