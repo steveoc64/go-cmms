@@ -49,6 +49,60 @@ func classSelect(context *router.Context) {
 	}()
 }
 
+func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
+
+	w := dom.GetWindow()
+	doc := w.Document()
+	// print("adding from ", tree, " to ", ul)
+	// Add a LI for each category
+	for _, tv := range tree {
+		// print("Tree Value", i, tv)
+		widgetID := fmt.Sprintf("part-%d", tv.ID)
+		li := doc.CreateElement("li")
+		chek := doc.CreateElement("input").(*dom.HTMLInputElement)
+		chek.Type = "checkbox"
+		chek.SetID(widgetID)
+		li.AppendChild(chek)
+		label := doc.CreateElement("label")
+		label.SetAttribute("for", widgetID)
+		label.SetInnerHTML(tv.Name)
+		li.AppendChild(label)
+		ul.AppendChild(li)
+
+		if len(tv.Subcats) > 0 {
+			ul2 := doc.CreateElement("ul").(*dom.HTMLUListElement)
+			li.AppendChild(ul2)
+			addTree(tv.Subcats, ul2, depth+1)
+		} else {
+			if depth == 0 {
+				ulempty := doc.CreateElement("ul")
+				li.AppendChild(ulempty)
+				liempty := doc.CreateElement("li")
+				liempty.SetInnerHTML("(no sub-categories)")
+				ulempty.AppendChild(liempty)
+			}
+		}
+
+		ul3 := doc.CreateElement("ul")
+		li.AppendChild(ul3)
+		if len(tv.Parts) > 0 {
+			for _, part := range tv.Parts {
+				partID := fmt.Sprintf("part-%d")
+				li2 := doc.CreateElement("li")
+				li2.SetID(partID)
+				li2.SetInnerHTML(fmt.Sprintf("%s : %s", part.StockCode, part.Name))
+				ul3.AppendChild(li2)
+			}
+		} else {
+			if depth > 0 {
+				li3 := doc.CreateElement("li")
+				li3.SetInnerHTML("(no parts)")
+				ul3.AppendChild(li3)
+			}
+		}
+	}
+}
+
 func partsList(context *router.Context) {
 
 	go func() {
@@ -95,21 +149,9 @@ func partsList(context *router.Context) {
 		ul := doc.CreateElement("ul").(*dom.HTMLUListElement)
 		ul.SetClass("css-treeview")
 
-		// Add a LI for each category
-		for i, tv := range tree {
-			print("Tree Value", i, tv)
-			widgetID := fmt.Sprintf("part-%d", tv.ID)
-			li := doc.CreateElement("li")
-			chek := doc.CreateElement("input").(*dom.HTMLInputElement)
-			chek.Type = "checkbox"
-			chek.SetID(widgetID)
-			li.AppendChild(chek)
-			label := doc.CreateElement("label")
-			label.SetAttribute("for", widgetID)
-			label.SetInnerHTML(tv.Name)
-			li.AppendChild(label)
-			ul.AppendChild(li)
-		}
+		// Recursively add elements to the tree
+		addTree(tree, ul, 0)
+
 		t.AppendChild(ul)
 
 		// <ul class="css-treeview">
