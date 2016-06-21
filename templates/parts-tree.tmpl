@@ -1,0 +1,160 @@
+<div class="data-container">
+
+  <form class="grid-form">
+    <fieldset>
+      <div class="row data-table-header">
+        <h3 class="column column-90" id="legend">
+          <i class="fa {{.Icon}} fa-lg" style="font-size: 3rem"></i>
+          <span id="titletext">{{.Title}}</span>
+        </h3>
+        {{if .DeleteCB}}
+        <div class="column col-center no-print">
+          <i class="data-del-btn fa fa-minus-circle fa-lg"></i>    
+        </div>
+        {{end}}
+        {{if .PrintCB}}
+        <div class="column col-center no-print">
+          <i class="data-print-btn fa fa-print fa-lg"></i>    
+        </div>
+        {{end}}        
+      </div>
+
+      {{range .Rows}}
+      <div data-row-span="{{.Span}}">
+        {{range .Fields}}
+        {{$fieldModel := .Model}}
+        <div data-field-span="{{.Span}}">
+          <label>{{.Label}}</label>
+          {{if eq .Type "div"}}
+            <div name="{{.Model}}" class="{{.Class}}">Div Placeholder for {{.Model}}</div>
+          {{end}}
+          {{if eq .Type "swapper"}}
+            {{$swapper := .Swapper}}
+            {{range .Swapper.Panels}}
+            <div class="swapper-option" name="{{$swapper.Name}}-{{.Name}}">
+              {{range .Rows}}
+              <div data-row-span="{{.Span}}">
+                {{range .Fields}}
+                  <div data-field-span="{{.Span}}">
+                  <label>{{.Label}}</label>                  
+                  {{if eq .Type "text"}}
+                    <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Readonly}}readonly{{end}}>
+                  {{end}}                               
+                  {{if eq .Type "date"}}
+                    <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}">
+                  {{end}}
+                  {{if eq .Type "number"}}
+                    <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" step="{{.Step}}">
+                  {{end}}
+                  {{if eq .Type "textarea"}}
+                    {{if .CodeBlock}}
+                    <pre><code name="{{.Model}}">{{.Value}}</code></pre>
+                    {{else}}
+                    <textarea name="{{.Model}}" {{if .Readonly}}readonly{{end}} {{if .BigText}}class="bigtext"}}{{end}}>{{.Value}}</textarea>
+                    {{end}}
+                  {{end}}
+                  {{if eq .Type "select"}}
+                    <select name="{{.Model}}">
+                      {{range .Options}}
+                        <option value="{{.Key}}" {{if .Selected}}selected{{end}}>{{.Display}}</option>
+                      {{end}}
+                    </select>
+                  {{end}}
+                  {{if eq .Type "checkbox"}}
+                    <input type="checkbox" name="{{.Model}}" {{if .Checked}}checked{{end}}>
+                  {{end}}
+                  {{if eq .Type "radio"}}
+                    {{$model := .Model}}
+                    <div name="radio-{{$model}}">
+                    {{range .Options}}
+                    <label><input type="radio" name="{{$model}}" value="{{.Key}}" {{if .Selected}}checked="checked"{{end}}> {{.Display}}</label>
+                    {{end}}
+                    </div>
+                  {{end}}                  
+                  </div>
+                {{end}}
+              </div>
+              {{end}}
+            </div>
+            {{end}}
+          {{end}}
+          {{if eq .Type "text"}}
+            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Focusme}}id="#focusme"{{end}} {{if .Readonly}}readonly{{end}}>
+          {{end}}
+          {{if eq .Type "date"}}
+            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}">
+          {{end}}
+          {{if eq .Type "number"}}
+            <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" step="{{.Step}}">
+          {{end}}
+          {{if eq .Type "textarea"}}
+            {{if .CodeBlock}}
+            <pre><code name="{{.Model}}">{{.Value}}</code></pre>
+            {{else}}
+            <textarea name="{{.Model}}" {{if .Readonly}}readonly{{end}} {{if .BigText}}class="bigtext"{{end}}>{{.Value}}</textarea>
+            {{end}}
+          {{end}}
+          {{if eq .Type "select"}}
+            <select name="{{.Model}}">
+              {{range .Options}}
+                <option value="{{.Key}}" {{if .Selected}}selected{{end}}>{{.Display}}</option>
+              {{end}}
+            </select>
+          {{end}}
+          {{if eq .Type "groupselect"}}
+            {{$sel := .Selected}}
+            <select name="{{.Model}}">
+              {{range .Group}}
+              <optgroup {{if .Title}}label="{{.Title}}"{{end}}>
+                {{range .Options}}
+                <option value="{{.ID}}" {{if eq .ID $sel}}selected{{end}}>{{.Name}}</option>
+                {{end}}
+              </optgroup>
+              {{end}}
+            </select>
+          {{end}}
+          {{if eq .Type "checkbox"}}
+            <input type="checkbox" name="{{.Model}}" {{if .Checked}}checked{{end}}>
+          {{end}}
+          {{if eq .Type "radio"}}
+            <div name="radio-{{$fieldModel}}">
+            <label></label>
+            {{range .Options}}
+            <label><input type="radio" name="{{$fieldModel}}" value="{{.Key}}" {{if .Selected}}checked="checked"{{end}}> {{.Display}}</label>
+            {{end}}
+            </div>
+          {{end}}
+        </div>
+        {{end}}
+      </div>
+      {{end}}
+    </fieldset>
+    <div class="row no-print">
+      <div class="column">
+        <div class="button-bar">
+          {{if .SaveCB}}
+          <input type="button" class="button-outline md-close" value="Cancel">
+          <button class="button-primary md-save">Save</button> 
+          {{else}}
+          <input type="button" class="button-outline md-close" value="Close">
+          {{end}}
+        </div>
+      </div>
+    </div>
+  </form>
+
+</div>
+<div id="action-grid" class="no-print"></div>
+
+{{if .DeleteCB}}
+<div id="confirm-delete" class="md-modal md-effect-1">
+  <div class="grid-form md-content data-container">
+    Are you sure that you want to delete this record ??
+  </div>
+  <div class="row">
+    <input type="button" class="button-outline md-close-del column" value="Cancel">
+    <button class="button-primary md-confirm-del column">Yes - Delete</button>
+  </div>
+</div>
+<div class="md-overlay-red"></div>
+{{end}}

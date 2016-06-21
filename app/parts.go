@@ -61,8 +61,21 @@ func partsList(context *router.Context) {
 
 		BackURL := "/"
 
-		form := formulate.TreeForm{}
+		form := formulate.EditForm{}
 		form.New("fa-puzzle-piece", "Parts List")
+
+		// create the swapper panels
+		swapper := formulate.Swapper{
+			Name:     "Details",
+			Selected: 1,
+		}
+
+		form.Row(4).
+			AddCustom(1, "Parts Tree", "tree", "tree").
+			AddSwapper(3, "Details", &swapper)
+
+		swapper.AddPanel("Category").AddRow(1).AddInput(1, "Cat Name", "Name")
+		swapper.AddPanel("Part").AddRow(1).AddInput(1, "Part Name", "Name")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -70,18 +83,61 @@ func partsList(context *router.Context) {
 			Session.Navigate(BackURL)
 		})
 
-		if Session.UserRole == "Admin" {
-			form.NewRowEvent(func(evt dom.Event) {
-				evt.PreventDefault()
-				Session.Navigate("/class/add")
-			})
+		form.Render("parts-tree", "main", tree)
+
+		// Fill in the custom field
+		w := dom.GetWindow()
+		doc := w.Document()
+		t := doc.QuerySelector(`[name="tree"`)
+		t.SetInnerHTML("") // Init the tree panel
+
+		// Create the Tree's UL element
+		ul := doc.CreateElement("ul").(*dom.HTMLUListElement)
+		ul.SetClass("css-treeview")
+
+		// Add a LI for each category
+		for i, tv := range tree {
+			print("Tree Value", i, tv)
+			widgetID := fmt.Sprintf("part-%d", tv.ID)
+			li := doc.CreateElement("li")
+			chek := doc.CreateElement("input").(*dom.HTMLInputElement)
+			chek.Type = "checkbox"
+			chek.SetID(widgetID)
+			li.AppendChild(chek)
+			label := doc.CreateElement("label")
+			label.SetAttribute("for", widgetID)
+			label.SetInnerHTML(tv.Name)
+			li.AppendChild(label)
+			ul.AppendChild(li)
 		}
+		t.AppendChild(ul)
 
-		form.RowEvent(func(key string) {
-			Session.Navigate("/parts/" + key)
-		})
+		// <ul class="css-treeview">
+		//    <li><input type="checkbox" id="item-0" />
+		//    		<label for="item-0">Bracket B4/5</label>
+		//        <ul>
+		//            <li><input type="checkbox" id="item-0-0" />
+		//            	<label for="item-0-0">Lower Crop Blade</label>
+		//            	<ul>
+		//              <li><input type="checkbox" id="item-1-0-0" />
+		//              	<label for="item-1-0-0">Consumables</label>
+		//              	<ul>
+		//                <li>Sharpening Stone</li>
+		//                <li>Oil</li>
+		//                <li>Razor Blades</li>
+		//              	</ul>
+		//              </li>
+		//              <li>Part 1</li>
+		//              <li>Part 2</li>
+		//              <li>Part 3</li>
+		//              <li>Part 4</li>
+		//              <li>Part 5</li>
+		//            	</ul>
+		//            </li>
 
-		form.Render("parts-tree-list", "main", nil)
+		//            <
+
+		print("t =", t)
 
 	}()
 }
