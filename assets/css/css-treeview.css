@@ -40,6 +40,17 @@
 {
     color: #00f;
     text-decoration: none;
+    height: 16px;
+    line-height: 16px;
+}
+
+.stock-item
+{
+    color: #00f;
+    text-decoration: none;
+    height: 16px;
+    line-height: 16px;
+    font-size: 18;
 }
  
 .css-treeview a:hover

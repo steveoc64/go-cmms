@@ -90,7 +90,8 @@ func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
 				partID := fmt.Sprintf("part-%d")
 				li2 := doc.CreateElement("li")
 				li2.SetID(partID)
-				li2.SetInnerHTML(fmt.Sprintf("%s : %s", part.StockCode, part.Name))
+				li2.SetInnerHTML(fmt.Sprintf(`%s : %s`, part.StockCode, part.Name))
+				li2.Class().Add("stock-item")
 				ul3.AppendChild(li2)
 			}
 		} else {
@@ -124,8 +125,8 @@ func partsList(context *router.Context) {
 			Selected: 1,
 		}
 
-		form.Row(4).
-			AddCustom(1, "Parts Tree", "tree", "tree").
+		form.Row(5).
+			AddCustom(2, "Parts Tree", "tree", "tree").
 			AddSwapper(3, "Details", &swapper)
 
 		swapper.AddPanel("Category").AddRow(1).AddInput(1, "Cat Name", "Name")
@@ -153,6 +154,14 @@ func partsList(context *router.Context) {
 		addTree(tree, ul, 0)
 
 		t.AppendChild(ul)
+
+		// Add functions on the tree
+		// Handlers on the table itself
+		t.AddEventListener("click", false, func(evt dom.Event) {
+			// evt.PreventDefault()
+			li := evt.Target()
+			print("clicked on ", li)
+		})
 
 		// <ul class="css-treeview">
 		//    <li><input type="checkbox" id="item-0" />
