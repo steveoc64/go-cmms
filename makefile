@@ -29,7 +29,10 @@ app/template.go: templates/*.tmpl
 	@mplayer -quiet audio/attention.oga 2> /dev/null > /dev/null
 	temple build templates app/template.go --package main
 
-app-assets: dist/assets.log
+app-assets: dist/assets.log dist/config.json
+
+dist/config.json: server/config.json
+	cp server/config.json dist	
 
 dist/assets.log: assets/index.html assets/img/*  assets/fonts/* assets/css/*
 	@mplayer -quiet audio/attention.oga 2> /dev/null > /dev/null
@@ -40,7 +43,6 @@ dist/assets.log: assets/index.html assets/img/*  assets/fonts/* assets/css/*
 	cp -R assets/fonts dist/public
 	cp -R assets/js dist/public
 	#cp bower_components/normalize.css/normalize.css dist/public/css
-	cp server/config.json dist	
 	@date > dist/assets.log
 
 appjs: dist/public/app.js
