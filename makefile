@@ -3,6 +3,27 @@ all: sassgen templegen app-assets appjs sv run
 
 build: sassgen templegen app-assets appjs sv 
 
+get: 
+	go get -u github.com/gopherjs/gopherjs
+	go get -u github.com/gopherjs/websocket
+	go get -u github.com/go-humble/temple
+	go get -u github.com/go-humble/form
+	go get -u github.com/go-humble/router
+	go get -u github.com/steveoc64/formulate
+	go get -u github.com/steveoc64/godev/echocors
+	go get -u github.com/steveoc64/godev/sms
+	go get -u github.com/steveoc64/godev/smt
+	go get -u github.com/steveoc64/godev/db
+	go get -u github.com/steveoc64/godev/config
+	go get -u honnef.co/go/simple/cmd/gosimple
+	go get -u github.com/labstack/echo
+	go get -u github.com/labstack/echo/middleware
+	go get -u github.com/labstack/echo/engine/standard
+	go get -u github.com/lib/pq
+	go get -u gopkg.in/mgutz/dat.v1/sqlx-runner
+	mkdir -p scripts
+	mkdir -p backup
+
 help: 
 	# sassgen    - make SASS files
 	# templegen  - make Templates
@@ -49,7 +70,8 @@ dist/public/app.js: app/*.go shared/*.go
 	@mplayer -quiet audio/frontend-compile.ogg 2> /dev/null > /dev/null &
 	@mkdir -p dist/public/js
 	@gosimple app
-	cd app && gopherjs build *.go -o ../dist/public/app.js -m
+	# cd app && gopherjs build *.go -o ../dist/public/app.js -m
+	cd app && gopherjs build *.go -o ../dist/public/app.js 
 	@ls -l dist/public/app.js
 
 remake: 
