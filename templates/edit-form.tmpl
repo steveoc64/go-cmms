@@ -119,7 +119,7 @@
             </select>
           {{end}}
           {{if eq .Type "checkbox"}}
-            <input type="checkbox" name="{{.Model}}" {{if .Checked}}checked{{end}}> {{.Label}}
+            <input type="checkbox" name="{{.Model}}" {{if or .Value .Checked}}checked{{end}}> {{.Label}}
           {{end}}
           {{if eq .Type "radio"}}
             <div name="radio-{{$fieldModel}}">

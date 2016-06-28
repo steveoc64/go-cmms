@@ -284,15 +284,16 @@ func userEdit(context *router.Context) {
 			Add(1, "Username", "text", "Username", `id="focusme"`).
 			Add(1, "Password", "text", "Passwd", "")
 
-		form.Row(3).
-			Add(1, "Name", "text", "Name", "").
-			Add(1, "Email", "text", "Email", "").
-			Add(1, "Mobile", "text", "SMS", "")
+		form.Row(10).
+			Add(3, "Name", "text", "Name", "").
+			Add(3, "Email", "text", "Email", "").
+			Add(3, "Mobile", "text", "SMS", "").
+			AddCheck(1, "Use", "UseMobile")
 
 		if Session.UserRole == "Admin" {
 			form.Row(3).
 				AddSelect(1, "Role", "Role", roles, "ID", "Name", 1, currentRole).
-				AddNumber(1, "Hourly Rate", "HourlyRate", "1")
+				AddDecimal(1, "Hourly Rate", "HourlyRate", 2, "1")
 		} else {
 			form.Row(3).
 				AddSelect(1, "Role", "Role", roles, "ID", "Name", 1, currentRole)

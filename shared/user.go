@@ -13,6 +13,7 @@ type User struct {
 	SiteID     int     `db:"site_id"`
 	Notes      string  `db:"notes"`
 	Sites      []Site  `db:"site"`
+	UseMobile  bool    `db:"use_mobile"`
 }
 
 type UserRPCData struct {

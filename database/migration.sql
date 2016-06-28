@@ -154,5 +154,10 @@ update machine set machine_type = 15 where name like 'Folder%';
 alter table machine add conveyor text not null default 'Running';
 alter table machine_type add conveyor bool default true;
 
+-- 2016 06 29
+-- Toggle SMS on / off per user
+
+alter table users add use_mobile bool default false;
+
 
 
