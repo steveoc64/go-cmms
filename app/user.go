@@ -114,12 +114,16 @@ func siteUserList(context *router.Context) {
 	go func() {
 
 		site := shared.Site{}
-		rpcClient.Call("SiteRPC.Get", id, &site)
+		rpcClient.Call("SiteRPC.Get", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &site)
+		print("site after get =", site)
 
 		BackURL := fmt.Sprintf("/site/%d", id)
 		form := formulate.EditForm{}
 		form.New("fa-user", "User Access for Site - "+site.Name)
-
+		print("site =", site)
 		// Layout the fields
 
 		form.Row(1).

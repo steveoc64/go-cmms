@@ -8,6 +8,7 @@ import (
 	"github.com/steveoc64/go-cmms/shared"
 )
 
+// PartRPC exported struct for catching RPC calls
 type PartRPC struct{}
 
 // Get the details for a given part
@@ -31,7 +32,7 @@ func (p *PartRPC) Get(data shared.PartRPCData, part *shared.Part) error {
 	return nil
 }
 
-// Get the details for a given part class
+// GetClass - Get the details for a given part class
 func (p *PartRPC) GetClass(data shared.PartClassRPCData, partClass *shared.PartClass) error {
 	start := time.Now()
 
@@ -62,7 +63,7 @@ func (p *PartRPC) GetClass(data shared.PartClassRPCData, partClass *shared.PartC
 	return nil
 }
 
-// Add a new part class
+// InsertClass - Add a new part class
 func (p *PartRPC) InsertClass(data shared.PartClassRPCData, id *int) error {
 	start := time.Now()
 
@@ -83,7 +84,7 @@ func (p *PartRPC) InsertClass(data shared.PartClassRPCData, id *int) error {
 	return nil
 }
 
-// Delete the class
+// DeleteClass - Delete the class
 func (p *PartRPC) DeleteClass(data shared.PartClassRPCData, done *bool) error {
 	start := time.Now()
 
@@ -104,7 +105,7 @@ func (p *PartRPC) DeleteClass(data shared.PartClassRPCData, done *bool) error {
 	return nil
 }
 
-// Update the class
+// UpdateClass - Update the class
 func (p *PartRPC) UpdateClass(data shared.PartClassRPCData, done *bool) error {
 	start := time.Now()
 
@@ -125,8 +126,8 @@ func (p *PartRPC) UpdateClass(data shared.PartClassRPCData, done *bool) error {
 	return nil
 }
 
-// Get a list of machine classes
-func (m *PartRPC) ClassList(channel int, classes *[]shared.PartClass) error {
+// ClassList - Get a list of machine classes
+func (p *PartRPC) ClassList(channel int, classes *[]shared.PartClass) error {
 	start := time.Now()
 
 	conn := Connections.Get(channel)
@@ -163,7 +164,7 @@ func (m *PartRPC) ClassList(channel int, classes *[]shared.PartClass) error {
 	return nil
 }
 
-// Get all the parts for the given class, which is passed in as the ID
+// List - Get all the parts for the given class, which is passed in as the ID
 // or leave the ID 0 to get all parts
 func (p *PartRPC) List(data shared.PartRPCData, parts *[]shared.Part) error {
 	start := time.Now()
@@ -313,7 +314,7 @@ func (p *PartRPC) Delete(data shared.PartRPCData, done *bool) error {
 	return nil
 }
 
-// Get a list of stock records for a part
+// StockList - Get a list of stock records for a part
 func (p *PartRPC) StockList(data shared.PartRPCData, stocks *[]shared.PartStock) error {
 	start := time.Now()
 
@@ -339,7 +340,7 @@ func (p *PartRPC) StockList(data shared.PartRPCData, stocks *[]shared.PartStock)
 	return nil
 }
 
-// Get a list of price records for a part
+// PriceList - Get a list of price records for a part
 func (p *PartRPC) PriceList(data shared.PartRPCData, prices *[]shared.PartPrice) error {
 	start := time.Now()
 
@@ -365,7 +366,7 @@ func (p *PartRPC) PriceList(data shared.PartRPCData, prices *[]shared.PartPrice)
 	return nil
 }
 
-// Get a list of price records for a part
+// GetTree - Get a parts tree from a specifec category ... uses recursive Fn getTree() to complete
 func (p *PartRPC) GetTree(data shared.PartTreeRPCData, cats *[]shared.Category) error {
 	start := time.Now()
 
@@ -382,18 +383,19 @@ func (p *PartRPC) GetTree(data shared.PartTreeRPCData, cats *[]shared.Category) 
 	return nil
 }
 
+// getTree - Recursive Fn to fill in the nodes on a parts tree
 func getTree(parentCat int) []shared.Category {
-	fmt.Printf("getting categories with parent %d\n", parentCat)
+	// fmt.Printf("getting categories with parent %d\n", parentCat)
 
 	cats := []shared.Category{}
 
 	// get an array of categories that point to the given parent
 	DB.SQL(`select * from category where parent_id=$1`, parentCat).QueryStructs(&cats)
-	fmt.Printf("subcats of %d = %v (%d)\n", parentCat, cats, len(cats))
+	// fmt.Printf("subcats of %d = %v (%d)\n", parentCat, cats, len(cats))
 
 	for i, c := range cats {
 		DB.SQL(`select * from part where category=$1`, c.ID).QueryStructs(&cats[i].Parts)
-		fmt.Printf("parts of cat %d = %v (%d)\n", c.ID, cats[i].Parts, len(cats[i].Parts))
+		// fmt.Printf("parts of cat %d = %v (%d)\n", c.ID, cats[i].Parts, len(cats[i].Parts))
 		cats[i].Subcats = getTree(c.ID)
 	}
 

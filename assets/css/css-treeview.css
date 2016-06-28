@@ -46,11 +46,17 @@
 
 .stock-item
 {
-    color: #00f;
+    color: #004A66;
     text-decoration: none;
-    height: 16px;
-    line-height: 16px;
-    font-size: 18;
+    height: 22px;
+    line-height: 22px;
+    font-size: 20px;
+}
+
+.stock-item:hover
+{
+    text-decoration: underline;
+    background-color: #DDE;
 }
  
 .css-treeview a:hover
