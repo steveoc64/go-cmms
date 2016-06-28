@@ -234,9 +234,9 @@ func partsList(context *router.Context) {
 				print("Add category ", newCat, "to current cat", currentCat)
 
 				// Find the UL element for the current Cat, and add a new LI to it !
-				theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
-				print("got ", theLI)
-				theUL := theLI.LastChild().(*dom.HTMLUListElement)
+				// theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
+				// print("got ", theLI)
+				// theUL := theLI.LastChild().(*dom.HTMLUListElement)
 
 				// print("got ", theLI, theUL)
 
