@@ -10,45 +10,6 @@ import (
 	"honnef.co/go/js/dom"
 )
 
-// Show a list of machine classes, select one to show the parts for that class
-func classSelect(context *router.Context) {
-
-	go func() {
-		data := []shared.PartClass{}
-		rpcClient.Call("PartRPC.ClassList", Session.Channel, &data)
-
-		BackURL := "/"
-
-		form := formulate.ListForm{}
-		form.New("fa-puzzle-piece", "Select Machine Type for Parts List")
-
-		// Define the layout
-		form.Column("Name", "Name")
-		form.Column("Description", "Descr")
-		form.Column("Number of Parts", "Count")
-
-		// Add event handlers
-		form.CancelEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			Session.Navigate(BackURL)
-		})
-
-		if Session.UserRole == "Admin" {
-			form.NewRowEvent(func(evt dom.Event) {
-				evt.PreventDefault()
-				Session.Navigate("/class/add")
-			})
-		}
-
-		form.RowEvent(func(key string) {
-			Session.Navigate("/parts/" + key)
-		})
-
-		form.Render("class-select", "main", data)
-
-	}()
-}
-
 func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
 
 	w := dom.GetWindow()
@@ -236,25 +197,26 @@ func partsList(context *router.Context) {
 				print("Add category ", newCat, "to current cat", currentCat)
 
 				// Find the UL element for the current Cat, and add a new LI to it !
-				// theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
-				// print("got ", theLI)
+				theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
+				print("got ", theLI)
 				// theUL := theLI.LastChild().(*dom.HTMLUListElement)
+				theUL := theLI.ChildNodes()[2].(*dom.HTMLUListElement)
 
-				// print("got ", theLI, theUL)
+				print("got ", theLI, theUL)
 
-				// widgetID := fmt.Sprintf("category-%d", newCat)
-				// li := doc.CreateElement("li")
-				// li.SetID(widgetID)
-				// chek := doc.CreateElement("input").(*dom.HTMLInputElement)
-				// chek.Type = "checkbox"
-				// li.AppendChild(chek)
-				// label := doc.CreateElement("label")
-				// label.SetAttribute("for", widgetID)
-				// label.SetInnerHTML("New Category")
-				// label.SetAttribute("data-type", "category")
-				// label.SetAttribute("data-id", fmt.Sprintf("%d", newCat))
-				// li.AppendChild(label)
-				// theUL.AppendChild(li)
+				widgetID := fmt.Sprintf("category-%d", newCat)
+				li := doc.CreateElement("li")
+				li.SetID(widgetID)
+				chek := doc.CreateElement("input").(*dom.HTMLInputElement)
+				chek.Type = "checkbox"
+				li.AppendChild(chek)
+				label := doc.CreateElement("label")
+				label.SetAttribute("for", widgetID)
+				label.SetInnerHTML("New Category")
+				label.SetAttribute("data-type", "category")
+				label.SetAttribute("data-id", fmt.Sprintf("%d", newCat))
+				li.AppendChild(label)
+				theUL.AppendChild(li)
 
 			}()
 		})
@@ -759,4 +721,45 @@ func partPriceList(context *router.Context) {
 
 func partStockList(context *router.Context) {
 	print("TODO - partStockList")
+}
+
+// No longer required functions
+
+// Show a list of machine classes, select one to show the parts for that class
+func classSelect(context *router.Context) {
+
+	go func() {
+		data := []shared.PartClass{}
+		rpcClient.Call("PartRPC.ClassList", Session.Channel, &data)
+
+		BackURL := "/"
+
+		form := formulate.ListForm{}
+		form.New("fa-puzzle-piece", "Select Machine Type for Parts List")
+
+		// Define the layout
+		form.Column("Name", "Name")
+		form.Column("Description", "Descr")
+		form.Column("Number of Parts", "Count")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		if Session.UserRole == "Admin" {
+			form.NewRowEvent(func(evt dom.Event) {
+				evt.PreventDefault()
+				Session.Navigate("/class/add")
+			})
+		}
+
+		form.RowEvent(func(key string) {
+			Session.Navigate("/parts/" + key)
+		})
+
+		form.Render("class-select", "main", data)
+
+	}()
 }
