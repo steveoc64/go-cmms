@@ -235,13 +235,13 @@ func (u *UserRPC) GetSiteUsers(data shared.UserSiteRequest, siteUsers *[]shared.
 			on s.user_id=u.id
 			and s.site_id=$1
 		group by u.id
-		order by u.username`, data.Site.ID).QueryStructs(siteUsers)
+		order by u.username`, data.ID).QueryStructs(siteUsers)
 
 	logger(start, "User.GetSiteUsers",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("Site %d - %d Users",
-			data.Site.ID, len(*siteUsers)),
+			data.ID, len(*siteUsers)),
 		data.Channel, conn.UserID, "users", 0, false)
 
 	return nil

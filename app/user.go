@@ -147,6 +147,7 @@ func siteUserList(context *router.Context) {
 		siteUsers := []shared.SiteUser{}
 		req := shared.UserSiteRequest{
 			Channel: Session.Channel,
+			ID:      id,
 			User:    nil,
 			Site:    &site,
 		}

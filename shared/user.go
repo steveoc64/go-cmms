@@ -45,6 +45,7 @@ type SiteUser struct {
 
 type UserSiteRequest struct {
 	Channel int
+	ID      int
 	User    *User
 	Site    *Site
 }
