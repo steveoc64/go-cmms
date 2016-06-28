@@ -148,7 +148,11 @@ update machine set machine_type = 13 where name like 'Surface Grinder%';
 update machine set machine_type = 14 where name like 'Guillotine%';
 update machine set machine_type = 15 where name like 'Folder%';
 
+-- 2016 06 29
+-- Add conveyor to machine
 
+alter table machine add conveyor text not null default 'Running';
+alter table machine_type add conveyor bool default true;
 
 
 

@@ -366,6 +366,68 @@ func (p *PartRPC) PriceList(data shared.PartRPCData, prices *[]shared.PartPrice)
 	return nil
 }
 
+// GetCategory - Get the category record
+func (p *PartRPC) GetCategory(data shared.PartRPCData, cat *shared.Category) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+	DB.SQL(`select * from category where id=$1`, data.ID).QueryStruct(cat)
+
+	logger(start, "Part.GetCategory",
+		fmt.Sprintf("%d", data.ID),
+		fmt.Sprintf("%v", cat),
+		data.Channel, conn.UserID, "category", data.ID, false)
+
+	return nil
+}
+
+// AddCategory - Add a category with the specified Cat as the parent, return the new Cat ID
+func (p *PartRPC) AddCategory(data shared.PartRPCData, newID *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+	cat := shared.Category{
+		ParentID: data.ID,
+		Name:     "New Category",
+	}
+	DB.InsertInto("category").
+		Columns("parent_id", "name").
+		Record(&cat).
+		Returning("id").
+		QueryScalar(newID)
+
+	logger(start, "Part.AddCategory",
+		fmt.Sprintf("Channel %d Parent %d", data.Channel, data.ID),
+		fmt.Sprintf("New ID %d", *newID),
+		data.Channel, conn.UserID, "category", *newID, true)
+
+	return nil
+}
+
+// AddPart - Add a part with the specified Cat as the parent, return the new part ID
+func (p *PartRPC) AddPart(data shared.PartRPCData, newID *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+	part := shared.Part{
+		Category:  data.ID,
+		Name:      "New Part",
+		StockCode: "NEW-000",
+	}
+	DB.InsertInto("part").
+		Columns("category", "name", "stock_code").
+		Record(&part).
+		Returning("id").
+		QueryScalar(newID)
+
+	logger(start, "Part.AddPart",
+		fmt.Sprintf("Channel %d Category %d", data.Channel, data.ID),
+		fmt.Sprintf("New ID %d", *newID),
+		data.Channel, conn.UserID, "part", *newID, true)
+
+	return nil
+}
+
 // GetTree - Get a parts tree from a specifec category ... uses recursive Fn getTree() to complete
 func (p *PartRPC) GetTree(data shared.PartTreeRPCData, cats *[]shared.Category) error {
 	start := time.Now()

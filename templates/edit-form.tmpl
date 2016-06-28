@@ -24,7 +24,9 @@
         {{range .Fields}}
         {{$fieldModel := .Model}}
         <div data-field-span="{{.Span}}">
+          {{if ne .Type "checkbox"}}
           <label>{{.Label}}</label>
+          {{end}}
           {{if eq .Type "div"}}
             <div name="{{.Model}}" class="{{.Class}}">Div Placeholder for {{.Model}}</div>
           {{end}}
@@ -71,6 +73,9 @@
                     {{end}}
                     </div>
                   {{end}}                  
+                  {{if eq .Type "button"}}
+                    <button class="button-primary" name="{{.Model}}">{{.Label}}</button> 
+                  {{end}}
                   </div>
                 {{end}}
               </div>
@@ -114,7 +119,7 @@
             </select>
           {{end}}
           {{if eq .Type "checkbox"}}
-            <input type="checkbox" name="{{.Model}}" {{if .Checked}}checked{{end}}>
+            <input type="checkbox" name="{{.Model}}" {{if .Checked}}checked{{end}}> {{.Label}}
           {{end}}
           {{if eq .Type "radio"}}
             <div name="radio-{{$fieldModel}}">

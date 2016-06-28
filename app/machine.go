@@ -310,7 +310,8 @@ func machineTypeAdd(context *router.Context) {
 
 		form.Row(3).
 			AddCheck(1, "UnCoiler", "Uncoiler").
-			AddCheck(1, "RollBed", "Rollbed")
+			AddCheck(1, "RollBed", "Rollbed").
+			AddCheck(1, "Conveyor", "Conveyor")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -377,7 +378,8 @@ func machineTypeEdit(context *router.Context) {
 
 		form.Row(3).
 			AddCheck(1, "UnCoiler", "Uncoiler").
-			AddCheck(1, "RollBed", "Rollbed")
+			AddCheck(1, "RollBed", "Rollbed").
+			AddCheck(1, "Conveyor", "Conveyor")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {

@@ -57,15 +57,17 @@ func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
 	// Add a LI for each category
 	for _, tv := range tree {
 		// print("Tree Value", i, tv)
-		widgetID := fmt.Sprintf("part-%d", tv.ID)
+		widgetID := fmt.Sprintf("category-%d", tv.ID)
 		li := doc.CreateElement("li")
+		li.SetID(widgetID)
 		chek := doc.CreateElement("input").(*dom.HTMLInputElement)
 		chek.Type = "checkbox"
-		chek.SetID(widgetID)
 		li.AppendChild(chek)
 		label := doc.CreateElement("label")
 		label.SetAttribute("for", widgetID)
 		label.SetInnerHTML(tv.Name)
+		label.SetAttribute("data-type", "category")
+		label.SetAttribute("data-id", fmt.Sprintf("%d", tv.ID))
 		li.AppendChild(label)
 		ul.AppendChild(li)
 
@@ -87,11 +89,13 @@ func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
 		li.AppendChild(ul3)
 		if len(tv.Parts) > 0 {
 			for _, part := range tv.Parts {
-				partID := fmt.Sprintf("part-%d")
+				partID := fmt.Sprintf("part-%d", part.ID)
 				li2 := doc.CreateElement("li")
 				li2.SetID(partID)
 				li2.SetInnerHTML(fmt.Sprintf(`%s : %s`, part.StockCode, part.Name))
 				li2.Class().Add("stock-item")
+				li2.SetAttribute("data-type", "part")
+				li2.SetAttribute("data-id", fmt.Sprintf("%d", part.ID))
 				ul3.AppendChild(li2)
 			}
 		} else {
@@ -105,6 +109,9 @@ func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
 }
 
 func partsList(context *router.Context) {
+
+	currentCat := 0
+	currentPart := 0
 
 	go func() {
 		tree := []shared.Category{}
@@ -129,8 +136,61 @@ func partsList(context *router.Context) {
 			AddCustom(2, "Parts Tree", "tree", "tree").
 			AddSwapper(3, "Details", &swapper)
 
-		swapper.AddPanel("Category").AddRow(1).AddInput(1, "Cat Name", "Name")
-		swapper.AddPanel("Part").AddRow(1).AddInput(1, "Part Name", "Name")
+		catPanel := swapper.AddPanel("Category")
+		catPanel.AddRow(1).AddInput(1, "Category Name", "CatName")
+		catPanel.AddRow(1).AddInput(1, "Description", "CatDescr")
+
+		catPanel.Row(4).
+			AddButton(1, "Save", "SaveCat").
+			AddButton(1, "+ Category", "AddCat").
+			AddButton(1, "+ Part", "AddPart").
+			AddButton(1, "- Delete", "DelCat")
+
+		// Layout the fields for Parts
+		partPanel := swapper.AddPanel("Part")
+
+		partPanel.Row(2).
+			AddInput(1, "Name", "Name").
+			AddInput(1, "Stock Code", "StockCode")
+
+		partPanel.Row(1).
+			AddInput(1, "Description", "Descr")
+
+		partPanel.Row(4).
+			AddDecimal(1, "ReOrder Level", "ReorderStocklevel", 2, "1").
+			AddDecimal(1, "ReOrder Qty", "ReorderQty", 2, "1").
+			AddDecimal(1, "Current Stock", "CurrentStock", 2, "1").
+			AddInput(1, "Qty Type", "QtyType")
+
+		partPanel.Row(4).
+			AddDisplay(2, "Last Price Update", "LastPriceDateDisplay").
+			AddDecimal(1, "Latest Price", "LatestPrice", 2, "1").
+			AddDisplay(1, "Valuation", "ValuationString")
+
+		partPanel.Row(1).
+			AddTextarea(1, "Notes", "Notes")
+
+		partPanel.Row(2).
+			AddButton(1, "Save", "SavePart").
+			AddButton(1, "- Delete", "DelPart")
+
+		// ID                   int        `db:"id"`
+		// 	Class                int        `db:"class"`
+		// 	Category             int        `db:"category"`
+		// 	Name                 string     `db:"name"`
+		// 	Descr                string     `db:"descr"`
+		// 	StockCode            string     `db:"stock_code"`
+		// 	ReorderStocklevel    float64    `db:"reorder_stocklevel"`
+		// 	ReorderQty           float64    `db:"reorder_qty"`
+		// 	LatestPrice          float64    `db:"latest_price"`
+		// 	LastPriceDate        *time.Time `db:"last_price_date"`
+		// 	LastPriceDateDisplay string     `db:"last_price_date_display"`
+		// 	CurrentStock         float64    `db:"current_stock"`
+		// 	ValuationString      string     `db:"valuation_string"`
+		// 	Valuation            float64    `db:"valuation"`
+		// 	QtyType              string     `db:"qty_type"`
+		// 	Picture              string     `db:"picture"`
+		// 	Notes                string     `db:"notes"`
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -143,7 +203,8 @@ func partsList(context *router.Context) {
 		// Fill in the custom field
 		w := dom.GetWindow()
 		doc := w.Document()
-		t := doc.QuerySelector(`[name="tree"`)
+
+		t := doc.QuerySelector(`[name="tree"]`)
 		t.SetInnerHTML("") // Init the tree panel
 
 		// Create the Tree's UL element
@@ -155,40 +216,112 @@ func partsList(context *router.Context) {
 
 		t.AppendChild(ul)
 
+		// Handlers for the various buttons
+		btnAddPart := doc.QuerySelector(`[name=AddPart]`)
+		btnAddCat := doc.QuerySelector(`[name=AddCat]`)
+		btnDelCat := doc.QuerySelector(`[name=DelCat]`)
+		btnSaveCat := doc.QuerySelector(`[name=SaveCat]`)
+		btnSavePart := doc.QuerySelector(`[name=SavePart]`)
+		btnDelPart := doc.QuerySelector(`[name=DelPart]`)
+
+		btnAddCat.AddEventListener("click", false, func(evt dom.Event) {
+			go func() {
+				newCat := 0
+				rpcClient.Call("PartRPC.AddCategory", shared.PartRPCData{
+					Channel: Session.Channel,
+					ID:      currentCat,
+				}, &newCat)
+				print("Add category ", newCat, "to current cat", currentCat)
+
+				// Find the UL element for the current Cat, and add a new LI to it !
+				theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
+				print("got ", theLI)
+				theUL := theLI.LastChild().(*dom.HTMLUListElement)
+
+				// print("got ", theLI, theUL)
+
+				// widgetID := fmt.Sprintf("category-%d", newCat)
+				// li := doc.CreateElement("li")
+				// li.SetID(widgetID)
+				// chek := doc.CreateElement("input").(*dom.HTMLInputElement)
+				// chek.Type = "checkbox"
+				// li.AppendChild(chek)
+				// label := doc.CreateElement("label")
+				// label.SetAttribute("for", widgetID)
+				// label.SetInnerHTML("New Category")
+				// label.SetAttribute("data-type", "category")
+				// label.SetAttribute("data-id", fmt.Sprintf("%d", newCat))
+				// li.AppendChild(label)
+				// theUL.AppendChild(li)
+
+			}()
+		})
+
+		btnAddPart.AddEventListener("click", false, func(evt dom.Event) {
+			go func() {
+				newPart := 0
+				rpcClient.Call("PartRPC.AddPart", shared.PartRPCData{
+					Channel: Session.Channel,
+					ID:      currentCat,
+				}, &newPart)
+				print("Add part ", newPart, " to current cat", currentCat)
+			}()
+		})
+
+		btnSavePart.AddEventListener("click", false, func(evt dom.Event) {
+			print("Save current part", currentPart)
+		})
+
+		btnSaveCat.AddEventListener("click", false, func(evt dom.Event) {
+			print("Save current Cat", currentCat)
+		})
+
+		btnDelCat.AddEventListener("click", false, func(evt dom.Event) {
+			print("Delete current cat", currentCat)
+		})
+
+		btnDelPart.AddEventListener("click", false, func(evt dom.Event) {
+			print("Delete current part", currentPart)
+		})
+
 		// Add functions on the tree
 		// Handlers on the table itself
 		t.AddEventListener("click", false, func(evt dom.Event) {
 			// evt.PreventDefault()
 			li := evt.Target()
-			print("clicked on ", li)
+			dataType := li.GetAttribute("data-type")
+			dataID := li.GetAttribute("data-id")
+			actualID, _ := strconv.Atoi(dataID)
+			switch dataType {
+			case "category":
+				go func() {
+					theCat := shared.Category{}
+					rpcClient.Call("PartRPC.GetCategory", shared.PartRPCData{
+						Channel: Session.Channel,
+						ID:      actualID,
+					}, &theCat)
+					// print("Cat", dataID, theCat)
+					currentCat = theCat.ID
+					doc.QuerySelector("[name=CatName]").(*dom.HTMLInputElement).Value = theCat.Name
+					doc.QuerySelector("[name=CatDescr]").(*dom.HTMLInputElement).Value = theCat.Descr
+					swapper.Select(0)
+				}()
+				print("Category", dataID)
+				swapper.Select(0)
+			case "part":
+				go func() {
+					thePart := shared.Part{}
+					rpcClient.Call("PartRPC.Get", shared.PartRPCData{
+						Channel: Session.Channel,
+						ID:      actualID,
+					}, &thePart)
+					print("Part", dataID, thePart)
+					currentPart = thePart.ID
+					swapper.Panels[1].Paint(&thePart)
+					swapper.Select(1)
+				}()
+			}
 		})
-
-		// <ul class="css-treeview">
-		//    <li><input type="checkbox" id="item-0" />
-		//    		<label for="item-0">Bracket B4/5</label>
-		//        <ul>
-		//            <li><input type="checkbox" id="item-0-0" />
-		//            	<label for="item-0-0">Lower Crop Blade</label>
-		//            	<ul>
-		//              <li><input type="checkbox" id="item-1-0-0" />
-		//              	<label for="item-1-0-0">Consumables</label>
-		//              	<ul>
-		//                <li>Sharpening Stone</li>
-		//                <li>Oil</li>
-		//                <li>Razor Blades</li>
-		//              	</ul>
-		//              </li>
-		//              <li>Part 1</li>
-		//              <li>Part 2</li>
-		//              <li>Part 3</li>
-		//              <li>Part 4</li>
-		//              <li>Part 5</li>
-		//            	</ul>
-		//            </li>
-
-		//            <
-
-		print("t =", t)
 
 	}()
 }

@@ -35,6 +35,7 @@ type Machine struct {
 	Electrical  string      `db:"electrical"`
 	Hydraulic   string      `db:"hydraulic"`
 	Pnuematic   string      `db:"pnuematic"`
+	Conveyor    string      `db:"conveyor"`
 	Printer     string      `db:"printer"`
 	Console     string      `db:"console"`
 	Rollbed     string      `db:"rollbed"`
@@ -213,6 +214,7 @@ type MachineType struct {
 	Console    bool   `db:"console"`
 	Uncoiler   bool   `db:"uncoiler"`
 	Rollbed    bool   `db:"rollbed"`
+	Conveyor   bool   `db:"conveyor"`
 	NumTools   int    `db:"num_tools"`
 }
 

@@ -36,7 +36,9 @@
               <div data-row-span="{{.Span}}">
                 {{range .Fields}}
                   <div data-field-span="{{.Span}}">
+                  {{if ne .Type "button"}}
                   <label>{{.Label}}</label>                  
+                  {{end}}
                   {{if eq .Type "text"}}
                     <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Readonly}}readonly{{end}}>
                   {{end}}                               
@@ -71,7 +73,10 @@
                     {{end}}
                     </div>
                   {{end}}                  
-                  </div>
+                  {{if eq .Type "button"}}
+                    <input type="button" class="button-primary" name="{{.Model}}" value="{{.Label}}">
+                  {{end}}
+                </div>
                 {{end}}
               </div>
               {{end}}

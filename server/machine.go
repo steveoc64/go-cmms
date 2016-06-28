@@ -211,7 +211,7 @@ func (m *MachineRPC) UpdateMachineType(data shared.MachineTypeRPCData, done *boo
 			"name",
 			"electrical", "hydraulic", "pnuematic",
 			"console", "printer", "lube",
-			"uncoiler", "rollbed").
+			"uncoiler", "rollbed", "conveyor").
 		Where("id = $1", data.ID).
 		Exec()
 
@@ -255,7 +255,7 @@ func (m *MachineRPC) InsertMachineType(data shared.MachineTypeRPCData, id *int) 
 		Columns("name",
 			"electrical", "hydraulic", "pnuematic",
 			"console", "printer", "lube",
-			"uncoiler", "rollbed").
+			"uncoiler", "rollbed", "conveyor").
 		Record(data.MachineType).
 		Returning("id").
 		QueryScalar(id)
