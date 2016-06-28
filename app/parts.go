@@ -68,6 +68,8 @@ func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
 		label.SetInnerHTML(tv.Name)
 		label.SetAttribute("data-type", "category")
 		label.SetAttribute("data-id", fmt.Sprintf("%d", tv.ID))
+		chek.SetAttribute("data-type", "category")
+		chek.SetAttribute("data-id", fmt.Sprintf("%d", tv.ID))
 		li.AppendChild(label)
 		ul.AppendChild(li)
 
