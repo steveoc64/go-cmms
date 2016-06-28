@@ -206,6 +206,7 @@ func userList(context *router.Context) {
 		form.Column("Name", "Name")
 		form.Column("Email", "Email")
 		form.Column("Mobile", "SMS")
+		form.Column("Use", "UseMobile")
 		form.Column("Role", "Role")
 
 		if Session.UserRole == "Admin" {
