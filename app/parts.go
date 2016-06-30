@@ -29,6 +29,7 @@ func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
 		label.SetInnerHTML(tv.Name)
 		label.SetAttribute("data-type", "category")
 		label.SetAttribute("data-id", fmt.Sprintf("%d", tv.ID))
+		label.SetID(widgetID + "-label")
 		chek.SetAttribute("data-type", "category")
 		chek.SetAttribute("data-id", fmt.Sprintf("%d", tv.ID))
 		li.AppendChild(label)
@@ -283,9 +284,64 @@ func partsList(context *router.Context) {
 
 		btnSaveCat.AddEventListener("click", false, func(evt dom.Event) {
 			print("Save current Cat", currentCat)
+
+			go func() {
+				// Read the part from the DOM
+				theCat := shared.Category{}
+				rpcClient.Call("PartRPC.GetCategory", shared.PartRPCData{
+					Channel: Session.Channel,
+					ID:      currentCat,
+				}, &theCat)
+
+				print("The original Cat ", theCat)
+				theCat.Name = doc.QuerySelector("[name=CatName]").(*dom.HTMLInputElement).Value
+				theCat.Descr = doc.QuerySelector("[name=CatDescr]").(*dom.HTMLInputElement).Value
+				theCat.StockCode = doc.QuerySelector("[name=CatStockCode]").(*dom.HTMLInputElement).Value
+				print("The modified Cat ", theCat)
+
+				// Update the database
+				done := false
+				rpcClient.Call("PartRPC.UpdateCategory", shared.CategoryRPCData{
+					Channel:  Session.Channel,
+					ID:       currentCat,
+					Category: &theCat,
+				}, &done)
+
+				// Find the LI element for the current Part, and redraw it
+				theLabel := doc.QuerySelector(fmt.Sprintf("#category-%d-label", currentCat)).(*dom.HTMLLabelElement)
+				// print("got ", theLI)
+				theLabel.SetInnerHTML(theCat.Name)
+			}()
 		})
 
 		btnDelCat.AddEventListener("click", false, func(evt dom.Event) {
+			go func() {
+				parentCat := 0
+				rpcClient.Call("PartRPC.DelCategory", shared.PartRPCData{
+					Channel: Session.Channel,
+					ID:      currentCat,
+				}, &parentCat)
+				print("Del Cat ", currentCat)
+
+				// Find the LI element for the current Cat, and remove it
+				theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
+				print("got ", theLI)
+
+				theLI.ParentNode().RemoveChild(theLI)
+				if parentCat != 0 {
+					theCat := shared.Category{}
+					rpcClient.Call("PartRPC.GetCategory", shared.PartRPCData{
+						Channel: Session.Channel,
+						ID:      parentCat,
+					}, &theCat)
+					// print("Cat", dataID, theCat)
+					currentCat = theCat.ID
+					doc.QuerySelector("[name=CatName]").(*dom.HTMLInputElement).Value = theCat.Name
+					doc.QuerySelector("[name=CatDescr]").(*dom.HTMLInputElement).Value = theCat.Descr
+					doc.QuerySelector("[name=CatStockCode]").(*dom.HTMLInputElement).Value = theCat.StockCode
+					swapper.Select(0)
+				}
+			}()
 			print("Delete current cat", currentCat)
 		})
 
@@ -333,11 +389,20 @@ func partsList(context *router.Context) {
 						Channel: Session.Channel,
 						ID:      actualID,
 					}, &theCat)
-					// print("Cat", dataID, theCat)
+					print("Cat", dataID, theCat)
 					currentCat = theCat.ID
 					doc.QuerySelector("[name=CatName]").(*dom.HTMLInputElement).Value = theCat.Name
 					doc.QuerySelector("[name=CatDescr]").(*dom.HTMLInputElement).Value = theCat.Descr
 					doc.QuerySelector("[name=CatStockCode]").(*dom.HTMLInputElement).Value = theCat.StockCode
+
+					if theCat.NumParts > 0 || theCat.NumSubcats > 0 {
+						// turn off the delete btn
+						print("hide the del btn")
+						btnDelCat.Class().Add("hidden")
+					} else {
+						// turn on the delete btn
+						btnDelCat.Class().Remove("hidden")
+					}
 					swapper.Select(0)
 				}()
 				print("Category", dataID)

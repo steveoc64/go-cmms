@@ -13,13 +13,21 @@ type PartClass struct {
 }
 
 type Category struct {
-	ID        int        `db:"id"`
-	ParentID  int        `db:"parent_id"`
-	Name      string     `db:"name"`
-	Descr     string     `db:"descr"`
-	StockCode string     `db:"stock_code"`
-	Parts     []Part     `db:"parts"`
-	Subcats   []Category `db:"subcats"`
+	ID         int        `db:"id"`
+	ParentID   int        `db:"parent_id"`
+	Name       string     `db:"name"`
+	Descr      string     `db:"descr"`
+	StockCode  string     `db:"stock_code"`
+	Parts      []Part     `db:"parts"`
+	Subcats    []Category `db:"subcats"`
+	NumParts   int        `db:"num_parts"`
+	NumSubcats int        `db:"num_subcats"`
+}
+
+type CategoryRPCData struct {
+	Channel  int
+	ID       int
+	Category *Category
 }
 
 // type PartsTree struct {

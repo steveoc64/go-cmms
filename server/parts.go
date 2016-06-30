@@ -366,12 +366,14 @@ func (p *PartRPC) PriceList(data shared.PartRPCData, prices *[]shared.PartPrice)
 	return nil
 }
 
-// GetCategory - Get the category record
+// GetCategory - Get the category record using the ID field
 func (p *PartRPC) GetCategory(data shared.PartRPCData, cat *shared.Category) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
 	DB.SQL(`select * from category where id=$1`, data.ID).QueryStruct(cat)
+	DB.SQL(`select count(*) from category where parent_id=$1`, data.ID).QueryScalar(&cat.NumSubcats)
+	DB.SQL(`select count(*) from part where category=$1`, data.ID).QueryScalar(&cat.NumParts)
 
 	logger(start, "Part.GetCategory",
 		fmt.Sprintf("%d", data.ID),
@@ -416,6 +418,27 @@ func (p *PartRPC) AddCategory(data shared.PartRPCData, newID *int) error {
 	return nil
 }
 
+// UpdateCategory - Update the Category data
+func (p *PartRPC) UpdateCategory(data shared.CategoryRPCData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.Update("category").
+		SetWhitelist(data.Category, "name", "descr", "stock_code").
+		Where("id = $1", data.Category.ID).
+		Exec()
+
+	logger(start, "Part.UpdateCategory",
+		fmt.Sprintf("Channel %d Cat %d", data.Channel, data.ID),
+		fmt.Sprintf("%v", data.Category),
+		data.Channel, conn.UserID, "category", data.Category.ID, false)
+
+	*done = true
+
+	return nil
+}
+
 // AddPart - Add a part with the specified Cat as the parent, return the new part ID
 func (p *PartRPC) AddPart(data shared.PartRPCData, newPart *shared.Part) error {
 	start := time.Now()
@@ -442,6 +465,26 @@ func (p *PartRPC) AddPart(data shared.PartRPCData, newPart *shared.Part) error {
 		fmt.Sprintf("Channel %d Category %d", data.Channel, data.ID),
 		fmt.Sprintf("New ID %d", newPart.ID),
 		data.Channel, conn.UserID, "part", newPart.ID, true)
+
+	return nil
+}
+
+// DelCategory - Delete the category in data.ID, and return the parent category ID
+func (p *PartRPC) DelCategory(data shared.PartRPCData, parentCat *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`select parent_id from category where id=$1`, data.ID).QueryScalar(parentCat)
+
+	DB.DeleteFrom("category").
+		Where("id=$1", data.ID).
+		Exec()
+
+	logger(start, "Part.DelCategory",
+		fmt.Sprintf("Channel %d Category %d", data.Channel, data.ID),
+		fmt.Sprintf("Parent Cat %d", *parentCat),
+		data.Channel, conn.UserID, "category", data.ID, true)
 
 	return nil
 }
