@@ -196,13 +196,13 @@ func partsList(context *router.Context) {
 					Channel: Session.Channel,
 					ID:      currentCat,
 				}, &newCat)
-				print("Add category ", newCat, "to current cat", currentCat)
+				// print("Add category ", newCat, "to current cat", currentCat)
 
 				// Find the UL element for the current Cat, and add a new LI to it !
 				theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
-				print("got ", theLI)
+				// print("got ", theLI)
 				// theUL := theLI.LastChild().(*dom.HTMLUListElement)
-				theUL := theLI.ChildNodes()[2].(*dom.HTMLUListElement)
+				// theUL := theLI.ChildNodes()[2].(*dom.HTMLUListElement)
 
 				print("got ", theLI, theUL)
 
@@ -230,15 +230,15 @@ func partsList(context *router.Context) {
 					Channel: Session.Channel,
 					ID:      currentCat,
 				}, &newPart)
-				print("Add part ", newPart.ID, " to current cat", currentCat)
+				// print("Add part ", newPart.ID, " to current cat", currentCat)
 
 				// Find the UL element for the current Cat, and add a new LI to it !
 				theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
-				print("got ", theLI)
+				// print("got ", theLI)
 				// theUL := theLI.LastChild().(*dom.HTMLUListElement)
 				theUL := theLI.ChildNodes()[2].(*dom.HTMLUListElement)
 
-				print("got ", theLI, theUL)
+				// print("got ", theLI, theUL)
 
 				partID := fmt.Sprintf("part-%d", newPart.ID)
 				li2 := doc.CreateElement("li")
@@ -253,7 +253,6 @@ func partsList(context *router.Context) {
 		})
 
 		btnSavePart.AddEventListener("click", false, func(evt dom.Event) {
-			print("Save current part", currentPart)
 			go func() {
 				// Read the part from the DOM
 				thePart := shared.Part{}
@@ -283,7 +282,6 @@ func partsList(context *router.Context) {
 		})
 
 		btnSaveCat.AddEventListener("click", false, func(evt dom.Event) {
-			print("Save current Cat", currentCat)
 
 			go func() {
 				// Read the part from the DOM
@@ -321,11 +319,11 @@ func partsList(context *router.Context) {
 					Channel: Session.Channel,
 					ID:      currentCat,
 				}, &parentCat)
-				print("Del Cat ", currentCat)
+				// print("Del Cat ", currentCat)
 
 				// Find the LI element for the current Cat, and remove it
 				theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
-				print("got ", theLI)
+				// print("got ", theLI)
 
 				theLI.ParentNode().RemoveChild(theLI)
 				if parentCat != 0 {
@@ -351,11 +349,11 @@ func partsList(context *router.Context) {
 					Channel: Session.Channel,
 					ID:      currentPart,
 				}, &currentCat)
-				print("Del part ", currentPart)
+				// print("Del part ", currentPart)
 
 				// Find the LI element for the current Part, and remove it
 				theLI := doc.QuerySelector(fmt.Sprintf("#part-%d", currentPart)).(*dom.HTMLLIElement)
-				print("got ", theLI)
+				// print("got ", theLI)
 
 				theLI.ParentNode().RemoveChild(theLI)
 				theCat := shared.Category{}
@@ -389,7 +387,7 @@ func partsList(context *router.Context) {
 						Channel: Session.Channel,
 						ID:      actualID,
 					}, &theCat)
-					print("Cat", dataID, theCat)
+					// print("Cat", dataID, theCat)
 					currentCat = theCat.ID
 					doc.QuerySelector("[name=CatName]").(*dom.HTMLInputElement).Value = theCat.Name
 					doc.QuerySelector("[name=CatDescr]").(*dom.HTMLInputElement).Value = theCat.Descr
@@ -397,7 +395,7 @@ func partsList(context *router.Context) {
 
 					if theCat.NumParts > 0 || theCat.NumSubcats > 0 {
 						// turn off the delete btn
-						print("hide the del btn")
+						// print("hide the del btn")
 						btnDelCat.Class().Add("hidden")
 					} else {
 						// turn on the delete btn
@@ -405,7 +403,7 @@ func partsList(context *router.Context) {
 					}
 					swapper.Select(0)
 				}()
-				print("Category", dataID)
+				// print("Category", dataID)
 				swapper.Select(0)
 			case "part":
 				go func() {
@@ -414,7 +412,7 @@ func partsList(context *router.Context) {
 						Channel: Session.Channel,
 						ID:      actualID,
 					}, &thePart)
-					print("Part", dataID, thePart)
+					// print("Part", dataID, thePart)
 					currentPart = thePart.ID
 					swapper.Panels[1].Paint(&thePart)
 					swapper.Select(1)
