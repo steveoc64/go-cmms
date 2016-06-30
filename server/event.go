@@ -148,7 +148,8 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 			left join machine m on m.id=e.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=e.created_by
-		where m.site_id in $1 and e.completed is null
+		where m.site_id in $1
+			and e.completed is null
 		order by e.startdate desc`, sites).
 			QueryStructs(events)
 
@@ -210,7 +211,9 @@ func (e *EventRPC) ListCompleted(channel int, events *[]shared.Event) error {
 			left join machine m on m.id=e.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=e.created_by
-		where m.site_id in $1 and e.completed is not null
+		where m.site_id in $1
+			and e.completed is not null
+			and e.startdate > NOW() - INTERVAL '1 month'
 		order by e.startdate desc`, sites).
 			QueryStructs(events)
 
@@ -225,6 +228,7 @@ func (e *EventRPC) ListCompleted(channel int, events *[]shared.Event) error {
 			left join site s on s.id=m.site_id
 			left join users u on u.id=e.created_by	
 		where e.completed is not null	
+			and e.startdate > NOW() - INTERVAL '1 month'
 		order by e.completed desc,e.startdate desc`).
 			QueryStructs(events)
 

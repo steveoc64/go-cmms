@@ -66,7 +66,7 @@ func _stoppageList(action string, id int) {
 		rpcClient.Call("EventRPC.ListCompleted", Session.Channel, &cevents)
 
 		cform := formulate.ListForm{}
-		cform.New("fa-pause-circle-o", "Completed Stoppages")
+		cform.New("fa-pause-circle-o", "Completed Stoppages (Last 30 Days)")
 
 		// Define the layout
 		cform.Column("Raised By", "Username")
