@@ -99,4 +99,4 @@ run:
 install:
 	./terminate
 	cp -Rv dist/* ~/go-cmms/current
-	nohup ~/go-cmms/current/cmms-server &
+	cd ~/go-cmms/current && nohup ./cmms-server &
