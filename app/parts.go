@@ -101,6 +101,7 @@ func partsList(context *router.Context) {
 
 		catPanel := swapper.AddPanel("Category")
 		catPanel.AddRow(1).AddInput(1, "Category Name", "CatName")
+		catPanel.AddRow(1).AddInput(1, "Stock Code", "CatStockCode")
 		catPanel.AddRow(1).AddInput(1, "Description", "CatDescr")
 
 		catPanel.Row(4).
@@ -223,17 +224,61 @@ func partsList(context *router.Context) {
 
 		btnAddPart.AddEventListener("click", false, func(evt dom.Event) {
 			go func() {
-				newPart := 0
+				newPart := shared.Part{}
 				rpcClient.Call("PartRPC.AddPart", shared.PartRPCData{
 					Channel: Session.Channel,
 					ID:      currentCat,
 				}, &newPart)
-				print("Add part ", newPart, " to current cat", currentCat)
+				print("Add part ", newPart.ID, " to current cat", currentCat)
+
+				// Find the UL element for the current Cat, and add a new LI to it !
+				theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
+				print("got ", theLI)
+				// theUL := theLI.LastChild().(*dom.HTMLUListElement)
+				theUL := theLI.ChildNodes()[2].(*dom.HTMLUListElement)
+
+				print("got ", theLI, theUL)
+
+				partID := fmt.Sprintf("part-%d", newPart.ID)
+				li2 := doc.CreateElement("li")
+				li2.SetID(partID)
+				li2.SetInnerHTML(newPart.StockCode)
+				li2.Class().Add("stock-item")
+				li2.SetAttribute("data-type", "part")
+				li2.SetAttribute("data-id", fmt.Sprintf("%d", newPart.ID))
+				theUL.AppendChild(li2)
+
 			}()
 		})
 
 		btnSavePart.AddEventListener("click", false, func(evt dom.Event) {
 			print("Save current part", currentPart)
+			go func() {
+				// Read the part from the DOM
+				thePart := shared.Part{}
+				rpcClient.Call("PartRPC.Get", shared.PartRPCData{
+					Channel: Session.Channel,
+					ID:      currentPart,
+				}, &thePart)
+
+				// print("The original Part ", thePart)
+				swapper.Panels[1].Bind(&thePart)
+				// print("The modified Part ", thePart)
+
+				// Update the database
+				done := false
+				rpcClient.Call("PartRPC.Update", shared.PartRPCData{
+					Channel: Session.Channel,
+					ID:      currentPart,
+					Part:    &thePart,
+				}, &done)
+
+				// Find the LI element for the current Part, and redraw it
+				theLI := doc.QuerySelector(fmt.Sprintf("#part-%d", currentPart)).(*dom.HTMLLIElement)
+				// print("got ", theLI)
+				theLI.SetInnerHTML(fmt.Sprintf(`%s : %s`, thePart.StockCode, thePart.Name))
+				swapper.Panels[1].Paint(&thePart)
+			}()
 		})
 
 		btnSaveCat.AddEventListener("click", false, func(evt dom.Event) {
@@ -245,6 +290,30 @@ func partsList(context *router.Context) {
 		})
 
 		btnDelPart.AddEventListener("click", false, func(evt dom.Event) {
+			go func() {
+				rpcClient.Call("PartRPC.DelPart", shared.PartRPCData{
+					Channel: Session.Channel,
+					ID:      currentPart,
+				}, &currentCat)
+				print("Del part ", currentPart)
+
+				// Find the LI element for the current Part, and remove it
+				theLI := doc.QuerySelector(fmt.Sprintf("#part-%d", currentPart)).(*dom.HTMLLIElement)
+				print("got ", theLI)
+
+				theLI.ParentNode().RemoveChild(theLI)
+				theCat := shared.Category{}
+				rpcClient.Call("PartRPC.GetCategory", shared.PartRPCData{
+					Channel: Session.Channel,
+					ID:      currentCat,
+				}, &theCat)
+				// print("Cat", dataID, theCat)
+				currentCat = theCat.ID
+				doc.QuerySelector("[name=CatName]").(*dom.HTMLInputElement).Value = theCat.Name
+				doc.QuerySelector("[name=CatDescr]").(*dom.HTMLInputElement).Value = theCat.Descr
+				doc.QuerySelector("[name=CatStockCode]").(*dom.HTMLInputElement).Value = theCat.StockCode
+				swapper.Select(0)
+			}()
 			print("Delete current part", currentPart)
 		})
 
@@ -268,6 +337,7 @@ func partsList(context *router.Context) {
 					currentCat = theCat.ID
 					doc.QuerySelector("[name=CatName]").(*dom.HTMLInputElement).Value = theCat.Name
 					doc.QuerySelector("[name=CatDescr]").(*dom.HTMLInputElement).Value = theCat.Descr
+					doc.QuerySelector("[name=CatStockCode]").(*dom.HTMLInputElement).Value = theCat.StockCode
 					swapper.Select(0)
 				}()
 				print("Category", dataID)

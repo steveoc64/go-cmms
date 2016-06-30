@@ -385,13 +385,25 @@ func (p *PartRPC) GetCategory(data shared.PartRPCData, cat *shared.Category) err
 func (p *PartRPC) AddCategory(data shared.PartRPCData, newID *int) error {
 	start := time.Now()
 
+	// Calc the stock code based on the parent, with the seq number attached
+	stockCode := ""
+	if data.ID != 0 {
+		pcat := shared.Category{}
+		numSubcats := 0
+		DB.SQL(`select stock_code from category where id=$1`, data.ID).QueryStruct(&pcat)
+		DB.SQL(`select count(*) from category where parent_id=$1`, data.ID).QueryScalar(&numSubcats)
+		stockCode = fmt.Sprintf("%s-%02d", pcat.StockCode, numSubcats+1)
+		print("new stock code =", stockCode)
+	}
+
 	conn := Connections.Get(data.Channel)
 	cat := shared.Category{
-		ParentID: data.ID,
-		Name:     "New Category",
+		ParentID:  data.ID,
+		Name:      "New Category",
+		StockCode: stockCode,
 	}
 	DB.InsertInto("category").
-		Columns("parent_id", "name").
+		Columns("parent_id", "name", "stock_code").
 		Record(&cat).
 		Returning("id").
 		QueryScalar(newID)
@@ -405,25 +417,51 @@ func (p *PartRPC) AddCategory(data shared.PartRPCData, newID *int) error {
 }
 
 // AddPart - Add a part with the specified Cat as the parent, return the new part ID
-func (p *PartRPC) AddPart(data shared.PartRPCData, newID *int) error {
+func (p *PartRPC) AddPart(data shared.PartRPCData, newPart *shared.Part) error {
 	start := time.Now()
+
+	stockCode := ""
+	DB.SQL(`select stock_code from category where id=$1`, data.ID).QueryScalar(&stockCode)
 
 	conn := Connections.Get(data.Channel)
 	part := shared.Part{
 		Category:  data.ID,
 		Name:      "New Part",
-		StockCode: "NEW-000",
+		StockCode: fmt.Sprintf("%s-0000", stockCode),
 	}
+	newID := 0
 	DB.InsertInto("part").
 		Columns("category", "name", "stock_code").
 		Record(&part).
 		Returning("id").
-		QueryScalar(newID)
+		QueryScalar(&newID)
+
+	DB.SQL(`select * from part where id=$1`, newID).QueryStruct(newPart)
 
 	logger(start, "Part.AddPart",
 		fmt.Sprintf("Channel %d Category %d", data.Channel, data.ID),
-		fmt.Sprintf("New ID %d", *newID),
-		data.Channel, conn.UserID, "part", *newID, true)
+		fmt.Sprintf("New ID %d", newPart.ID),
+		data.Channel, conn.UserID, "part", newPart.ID, true)
+
+	return nil
+}
+
+// DelPart - Delete the part in data.ID, and return the parent category ID
+func (p *PartRPC) DelPart(data shared.PartRPCData, parentCat *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`select category from part where id=$1`, data.ID).QueryScalar(parentCat)
+
+	DB.DeleteFrom("part").
+		Where("id=$1", data.ID).
+		Exec()
+
+	logger(start, "Part.DelPart",
+		fmt.Sprintf("Channel %d Part %d", data.Channel, data.ID),
+		fmt.Sprintf("Parent Cat %d", *parentCat),
+		data.Channel, conn.UserID, "part", data.ID, true)
 
 	return nil
 }
@@ -452,11 +490,11 @@ func getTree(parentCat int) []shared.Category {
 	cats := []shared.Category{}
 
 	// get an array of categories that point to the given parent
-	DB.SQL(`select * from category where parent_id=$1`, parentCat).QueryStructs(&cats)
+	DB.SQL(`select * from category where parent_id=$1 order by name`, parentCat).QueryStructs(&cats)
 	// fmt.Printf("subcats of %d = %v (%d)\n", parentCat, cats, len(cats))
 
 	for i, c := range cats {
-		DB.SQL(`select * from part where category=$1`, c.ID).QueryStructs(&cats[i].Parts)
+		DB.SQL(`select * from part where category=$1 order by name`, c.ID).QueryStructs(&cats[i].Parts)
 		// fmt.Printf("parts of cat %d = %v (%d)\n", c.ID, cats[i].Parts, len(cats[i].Parts))
 		cats[i].Subcats = getTree(c.ID)
 	}

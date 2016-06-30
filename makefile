@@ -73,14 +73,14 @@ dist/public/app.js: app/*.go shared/*.go
 	@mkdir -p dist/public/js
 	@gosimple app
 	# cd app && gopherjs build *.go -o ../dist/public/app.js -m
-	cd app && gopherjs build *.go -o ../dist/public/app.js 
+	gopherjs build app/*.go -o dist/public/app.js 
 	@ls -l dist/public/app.js
 
 remake: 
 	@mplayer -quiet audio/server-compile.oga 2> /dev/null > /dev/null &
 	rm -f dist/cmms-server
 	@gosimple server
-	cd server && go build -o ../dist/cmms-server
+	go build -o dist/cmms-server server/*.go
 	@ls -l dist/cmms-server
 
 sv: dist/cmms-server 
@@ -88,7 +88,7 @@ sv: dist/cmms-server
 dist/cmms-server: server/*.go shared/*.go
 	@mplayer -quiet audio/server-compile.oga 2> /dev/null > /dev/null &
 	@gosimple server
-	cd server && go build -o ../dist/cmms-server
+	go build -o dist/cmms-server server/*.go
 	@ls -l dist/cmms-server
 
 run: 

@@ -159,5 +159,10 @@ alter table machine_type add conveyor bool default true;
 
 alter table users add use_mobile bool default false;
 
+-- 2016 06 30
+-- Extend parts list functionality, and add photo uploader
+
+alter table category add stock_code text not null default '';
+
 
 
