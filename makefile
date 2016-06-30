@@ -97,6 +97,6 @@ run:
 	@cd dist && ./cmms-server
 
 install:
-	./teminate
+	./terminate
 	cp -Rv dist/* ~/go-cmms/current
 	nohup ~/go-cmms/cmms-server &
