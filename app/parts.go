@@ -32,6 +32,7 @@ func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
 		label.SetID(widgetID + "-label")
 		chek.SetAttribute("data-type", "category")
 		chek.SetAttribute("data-id", fmt.Sprintf("%d", tv.ID))
+		chek.SetID(widgetID + "-chek")
 		li.AppendChild(label)
 		ul.AppendChild(li)
 
@@ -76,6 +77,7 @@ func partsList(context *router.Context) {
 
 	currentCat := 0
 	currentPart := 0
+	var lastSelectedClass *dom.TokenList
 
 	go func() {
 		tree := []shared.Category{}
@@ -202,7 +204,7 @@ func partsList(context *router.Context) {
 				theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
 				// print("got ", theLI)
 				// theUL := theLI.LastChild().(*dom.HTMLUListElement)
-				// theUL := theLI.ChildNodes()[2].(*dom.HTMLUListElement)
+				theUL := theLI.ChildNodes()[2].(*dom.HTMLUListElement)
 
 				print("got ", theLI, theUL)
 
@@ -376,6 +378,12 @@ func partsList(context *router.Context) {
 		t.AddEventListener("click", false, func(evt dom.Event) {
 			// evt.PreventDefault()
 			li := evt.Target()
+			if lastSelectedClass != nil {
+				lastSelectedClass.Remove("listselected")
+			}
+			lastSelectedClass = li.Class()
+			lastSelectedClass.Add("listselected")
+
 			dataType := li.GetAttribute("data-type")
 			dataID := li.GetAttribute("data-id")
 			actualID, _ := strconv.Atoi(dataID)
@@ -401,7 +409,13 @@ func partsList(context *router.Context) {
 						// turn on the delete btn
 						btnDelCat.Class().Remove("hidden")
 					}
+
+					print("expand out the cat", currentCat)
+					theCheka := doc.QuerySelector(fmt.Sprintf("#category-%d-chek", currentCat)).(*dom.HTMLInputElement)
+					theCheka.Checked = !theCheka.Checked
+
 					swapper.Select(0)
+					doc.QuerySelector(`[name=CatName]`).(*dom.HTMLInputElement).Focus()
 				}()
 				// print("Category", dataID)
 				swapper.Select(0)
@@ -416,6 +430,8 @@ func partsList(context *router.Context) {
 					currentPart = thePart.ID
 					swapper.Panels[1].Paint(&thePart)
 					swapper.Select(1)
+					doc.QuerySelector(`[name=Name]`).(*dom.HTMLInputElement).Focus()
+
 				}()
 			}
 		})
