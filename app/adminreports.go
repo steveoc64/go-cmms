@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/go-humble/router"
+	"github.com/gopherjs/gopherjs/js"
 	"github.com/steveoc64/formulate"
 	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
@@ -240,5 +241,58 @@ func adminUtils(context *router.Context) {
 			el.SetTextContent(retval)
 		}()
 	})
+
+}
+
+func phototest(contetxt *router.Context) {
+	print("phototest")
+
+	go func() {
+		BackURL := "/"
+		form := formulate.EditForm{}
+		form.New("fa-instagram", "Photo Upload Tester")
+
+		// Layout the fields
+
+		form.Row(1).
+			AddInput(1, "Some Text Field ", "Textfield")
+
+		form.Row(1).
+			AddPhoto(1, "Photo Field", "Photo")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", nil)
+
+		// add a handler on the photo field
+		w := dom.GetWindow()
+		doc := w.Document()
+		if el := doc.QuerySelector("[name=Photo]").(*dom.HTMLInputElement); el != nil {
+			el.AddEventListener("change", false, func(evt dom.Event) {
+				files := el.Files()
+				fileReader := js.Global.Get("FileReader").New()
+				fileReader.Set("onload", func(e *js.Object) {
+					target := e.Get("target")
+					imgData := target.Get("result").String()
+					//print("imgdata =", imgData)
+					imgEl := doc.QuerySelector("[name=Photo-Preview").(*dom.HTMLImageElement)
+					imgEl.Src = imgData
+					imgEl.Class().Add("photopreview-big")
+				})
+				fileReader.Call("readAsDataURL", files[0])
+			})
+
+		}
+
+	}()
 
 }

@@ -74,7 +74,7 @@ dist/public/app.js: app/*.go shared/*.go
 	@gosimple app
 	# cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	# gopherjs build app/*.go -o dist/public/app.js -m
-	gopherjs build app/*.go -o dist/public/app.js
+	gopherjs build app/*.go -o dist/public/app.js -m
 	@ls -l dist/public/app.js
 
 remake: 
