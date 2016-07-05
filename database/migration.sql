@@ -171,6 +171,7 @@ create table phototest (
 	id serial not null primary key,
 	name text,
 	photo text,
+	preview text,
 	thumbnail text
 );
 
