@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/go-humble/router"
@@ -244,19 +245,70 @@ func adminUtils(context *router.Context) {
 
 }
 
-func phototest(contetxt *router.Context) {
-	print("phototest")
+func phototest(context *router.Context) {
+
+	go func() {
+
+		photos := []shared.Photo{}
+		rpcClient.Call("UtilRPC.PhotoList", shared.PhotoRPCData{
+			Channel: Session.Channel,
+		}, &photos)
+
+		form := formulate.ListForm{}
+		form.New("fa-instagram", "Photo List")
+
+		// Define the layout
+		form.Column("Name", "Name")
+		form.ImgColumn("Thumbnail", "Thumbnail")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate("/")
+		})
+
+		form.NewRowEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate("/phototest/add")
+		})
+
+		form.RowEvent(func(key string) {
+			Session.Navigate("/phototest/" + key)
+		})
+
+		form.Render("photo-list", "main", photos)
+
+		// manually set thumbnails on the fields for now
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		for _, v := range photos {
+			ename := fmt.Sprintf(`[name=Thumbnail-%d]`, v.ID)
+			print("ename = ", ename)
+			el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
+			el.Src = v.Thumbnail
+		}
+	}()
+}
+
+func phototestEdit(context *router.Context) {
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+	print("phototest edit", id)
 
 	go func() {
 		photo := shared.Photo{}
 
 		rpcClient.Call("UtilRPC.GetPhoto", shared.PhotoRPCData{
 			Channel: Session.Channel,
-			ID:      1,
+			ID:      id,
 		}, &photo)
 		// print("got photo", photo)
 
-		BackURL := "/"
+		BackURL := "/phototest"
 		form := formulate.EditForm{}
 		form.New("fa-instagram", "Photo Upload Tester")
 
@@ -266,7 +318,7 @@ func phototest(contetxt *router.Context) {
 			AddInput(1, "Name", "Name")
 
 		form.Row(1).
-			AddPhoto(1, "Photo Field", "Photo")
+			AddPreview(1, "Preview", "Preview")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -280,7 +332,58 @@ func phototest(contetxt *router.Context) {
 
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			print("save photo")
+			print("update photo")
+			form.Bind(&photo)
+			print("bind the photo gives", photo)
+			go func() {
+				done := false
+				rpcClient.Call("UtilRPC.UpdatePhoto", shared.PhotoRPCData{
+					Channel: Session.Channel,
+					ID:      id,
+					Photo:   &photo,
+				}, &done)
+				// Session.Navigate(BackURL)
+			}()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &photo)
+
+	}()
+
+}
+
+func phototestAdd(context *router.Context) {
+	print("phototest add")
+
+	go func() {
+		photo := shared.Photo{}
+
+		BackURL := "/phototest"
+		form := formulate.EditForm{}
+		form.New("fa-instagram", "Photo Upload Tester")
+
+		// Layout the fields
+
+		form.Row(1).
+			AddInput(1, "Name", "Name")
+
+		form.Row(1).
+			AddPhoto(1, "Photo", "Photo")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			print("add photo")
 			form.Bind(&photo)
 			print("bind the photo gives", photo)
 			go func() {
@@ -289,7 +392,7 @@ func phototest(contetxt *router.Context) {
 					Channel: Session.Channel,
 					Photo:   &photo,
 				}, &newID)
-				// Session.Navigate(BackURL)
+				Session.Navigate(BackURL)
 			}()
 		})
 
@@ -309,7 +412,7 @@ func phototest(contetxt *router.Context) {
 					//print("imgdata =", imgData)
 					imgEl := doc.QuerySelector("[name=Photo-Preview").(*dom.HTMLImageElement)
 					imgEl.Src = imgData
-					imgEl.Class().Add("photopreview-big")
+					imgEl.Class().Remove("hidden")
 				})
 				fileReader.Call("readAsDataURL", files[0])
 			})

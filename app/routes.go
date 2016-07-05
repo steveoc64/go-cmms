@@ -97,6 +97,8 @@ func enableRoutes(Role string) {
 			"machine-type-tool-edit": machineTypeToolEdit,
 			"machine-type-parts":     machineTypeParts,
 			"phototest":              phototest,
+			"phototest-edit":         phototestEdit,
+			"phototest-add":          phototestAdd,
 		}
 	case "Technician":
 		Session.AppFn = map[string]router.Handler{

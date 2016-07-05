@@ -87,8 +87,16 @@
             <input type="{{.Type}}" name="{{.Model}}" value="{{.Value}}" {{if .Focusme}}id="#focusme"{{end}} {{if .Readonly}}readonly{{end}}>
           {{end}}
           {{if eq .Type "photos"}}
+            {{if .PhotoUpload}}
               <input type="file" name="{{.Model}}" multiple="multiple"><p>
+              <img class="photouppreview hidden" name="{{.Model}}-Preview">
+            {{end}}
+            {{if .Preview}}
               <img class="photopreview" name="{{.Model}}-Preview">
+            {{end}}
+            {{if .Thumbnail}}
+              <img class="photothumbnail" name="{{.Model}}-Preview">
+            {{end}}
           {{end}}
           {{if eq .Type "photo"}}
               <input type="file" name="{{.Model}}"><p>

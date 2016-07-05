@@ -4,8 +4,8 @@ type Photo struct {
 	ID        int    `db:"id"`
 	Name      string `db:"name"`
 	Photo     string `db:"photo"`
+	Preview   string `db:"preview"`
 	Thumbnail string `db:"thumbnail"`
-	Photodec  string `db:"photodec"`
 }
 
 type PhotoRPCData struct {

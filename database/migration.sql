@@ -189,5 +189,3 @@ alter table users add is_tech bool not null default false;
 update users set is_tech = true where role = 'Technician' or username = 'shane.voigt';
 
 insert into migration (name) values ('Extend user info');
-
-alter table phototest add photodec bytea;	

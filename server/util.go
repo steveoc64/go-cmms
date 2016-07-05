@@ -1,12 +1,18 @@
 package main
 
 import (
-	b64 "encoding/base64"
+	"bytes"
+	"encoding/base64"
 	"fmt"
+	"image"
+	"image/jpeg"
+	_ "image/png"
 	"log"
 	"os/exec"
+	"strings"
 	"time"
 
+	"github.com/nfnt/resize"
 	"github.com/steveoc64/go-cmms/shared"
 )
 
@@ -302,17 +308,67 @@ func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
 	conn := Connections.Get(data.Channel)
 
 	// Generate the thumbnail
-	// print("decoding", data.Photo.Photo[24:])
-	decodedImg, err := b64.StdEncoding.DecodeString(data.Photo.Photo[23:])
+	theImage := data.Photo.Photo[23:]
+	print("The Image =", theImage[:80])
+	reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(theImage))
+	m, _, err := image.Decode(reader)
 	if err != nil {
-		println("Error decoding stream", err.Error(), "\n", data.Photo.Photo[23:])
+		println("Decode Error", err.Error())
+		// log.Fatal(err)
 	} else {
-		data.Photo.Photodec = string(decodedImg)
-		println("photodec =", data.Photo.Photodec)
+
+		// bounds := m.Bounds()
+
+		// // Calculate a 16-bin histogram for m's red, green, blue and alpha components.
+		// //
+		// // An image's bounds do not necessarily start at (0, 0), so the two loops start
+		// // at bounds.Min.Y and bounds.Min.X. Looping over Y first and X second is more
+		// // likely to result in better memory access patterns than X first and Y second.
+		// var histogram [16][4]int
+		// for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		// 	for x := bounds.Min.X; x < bounds.Max.X; x++ {
+		// 		r, g, b, a := m.At(x, y).RGBA()
+		// 		// A color's RGBA method returns values in the range [0, 65535].
+		// 		// Shifting by 12 reduces this to the range [0, 15].
+		// 		histogram[r>>12][0]++
+		// 		histogram[g>>12][1]++
+		// 		histogram[b>>12][2]++
+		// 		histogram[a>>12][3]++
+		// 	}
+		// }
+
+		// // Print the results.
+		// fmt.Printf("%-14s %6s %6s %6s %6s\n", "bin", "red", "green", "blue", "alpha")
+		// for i, x := range histogram {
+		// 	fmt.Printf("0x%04x-0x%04x: %6d %6d %6d %6d\n", i<<12, (i+1)<<12-1, x[0], x[1], x[2], x[3])
+		// }
+
+		// create the thumbnail and a preview
+		var tb bytes.Buffer
+		thumb := resize.Resize(64, 0, m, resize.Lanczos3)
+		encoder := base64.NewEncoder(base64.StdEncoding, &tb)
+		jpeg.Encode(encoder, thumb, &jpeg.Options{Quality: 95})
+		data.Photo.Thumbnail = "data:image/jpeg;base64," + tb.String()
+
+		var pb bytes.Buffer
+		preview := resize.Resize(240, 0, m, resize.Lanczos3)
+		encoder = base64.NewEncoder(base64.StdEncoding, &pb)
+		jpeg.Encode(encoder, preview, &jpeg.Options{Quality: 95})
+		data.Photo.Preview = "data:image/jpeg;base64," + pb.String()
+
+		// out, err := os.Create(fmt.Sprintf("public/thumbs/%d.jpg", *newID))
+		// if err != nil {
+		// 	log.Fatal(err)
+		// }
+		// defer out.Close()
+
+		// // write new image to file
+		// jpeg.Encode(out, thumb, nil)
 	}
 
+	// Save the data, and get a new ID
 	DB.InsertInto("phototest").
-		Columns("name", "photo", "thumbnail", "photodec").
+		Columns("name", "photo", "thumbnail", "preview").
 		Record(data.Photo).
 		Returning("id").
 		QueryScalar(newID)
@@ -331,23 +387,29 @@ func (u *UtilRPC) GetPhoto(data shared.PhotoRPCData, photo *shared.Photo) error 
 
 	conn := Connections.Get(data.Channel)
 
-	err := DB.Select(`*`).
-		From(`phototest`).
-		Where(`id=$1`, data.ID).
-		QueryStruct(photo)
-
-	if err != nil {
-		print(err.Error(), "\n")
-	}
-
-	DB.SQL(`select * from phototest where id=1`).QueryStruct(photo)
-	// fmt.Printf("%v", *photo)
+	DB.SQL(`select id,name,preview from phototest where id=$1`, data.ID).QueryStruct(photo)
 
 	logger(start, "Util.GetPhoto",
 		fmt.Sprintf("Channel %d, ID %d, User %d %s %s",
 			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
 		photo.Name,
 		data.Channel, conn.UserID, "phototest", data.ID, false)
+
+	return nil
+}
+
+func (u *UtilRPC) PhotoList(data shared.PhotoRPCData, photos *[]shared.Photo) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`select id,name,thumbnail from phototest order by name`).QueryStructs(photos)
+
+	logger(start, "Util.PhotoList",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d Photos", len(*photos)),
+		data.Channel, conn.UserID, "photo", 0, false)
 
 	return nil
 }
