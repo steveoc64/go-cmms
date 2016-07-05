@@ -1,6 +1,7 @@
 package main
 
 import (
+	b64 "encoding/base64"
 	"fmt"
 	"log"
 	"os/exec"
@@ -301,9 +302,17 @@ func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
 	conn := Connections.Get(data.Channel)
 
 	// Generate the thumbnail
+	// print("decoding", data.Photo.Photo[24:])
+	decodedImg, err := b64.StdEncoding.DecodeString(data.Photo.Photo[23:])
+	if err != nil {
+		println("Error decoding stream", err.Error(), "\n", data.Photo.Photo[23:])
+	} else {
+		data.Photo.Photodec = string(decodedImg)
+		println("photodec =", data.Photo.Photodec)
+	}
 
 	DB.InsertInto("phototest").
-		Columns("name", "photo", "thumbnail").
+		Columns("name", "photo", "thumbnail", "photodec").
 		Record(data.Photo).
 		Returning("id").
 		QueryScalar(newID)
@@ -313,6 +322,32 @@ func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		data.Photo.Name,
 		data.Channel, conn.UserID, "phototest", 0, true)
+
+	return nil
+}
+
+func (u *UtilRPC) GetPhoto(data shared.PhotoRPCData, photo *shared.Photo) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	err := DB.Select(`*`).
+		From(`phototest`).
+		Where(`id=$1`, data.ID).
+		QueryStruct(photo)
+
+	if err != nil {
+		print(err.Error(), "\n")
+	}
+
+	DB.SQL(`select * from phototest where id=1`).QueryStruct(photo)
+	// fmt.Printf("%v", *photo)
+
+	logger(start, "Util.GetPhoto",
+		fmt.Sprintf("Channel %d, ID %d, User %d %s %s",
+			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
+		photo.Name,
+		data.Channel, conn.UserID, "phototest", data.ID, false)
 
 	return nil
 }

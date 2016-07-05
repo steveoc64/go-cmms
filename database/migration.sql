@@ -174,3 +174,20 @@ create table phototest (
 	thumbnail text
 );
 
+-- 2016 07 05
+-- Extend users table and add migration tracking
+
+create table migration (
+	id serial not null primary key,
+	name text,
+	date timestamptz not null default localtimestamp
+);
+
+insert into migration (name) values ('Init Migration Database');
+
+alter table users add is_tech bool not null default false;
+update users set is_tech = true where role = 'Technician' or username = 'shane.voigt';
+
+insert into migration (name) values ('Extend user info');
+
+alter table phototest add photodec bytea;	

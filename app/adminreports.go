@@ -249,6 +249,13 @@ func phototest(contetxt *router.Context) {
 
 	go func() {
 		photo := shared.Photo{}
+
+		rpcClient.Call("UtilRPC.GetPhoto", shared.PhotoRPCData{
+			Channel: Session.Channel,
+			ID:      1,
+		}, &photo)
+		// print("got photo", photo)
+
 		BackURL := "/"
 		form := formulate.EditForm{}
 		form.New("fa-instagram", "Photo Upload Tester")
@@ -287,7 +294,7 @@ func phototest(contetxt *router.Context) {
 		})
 
 		// All done, so render the form
-		form.Render("edit-form", "main", nil)
+		form.Render("edit-form", "main", &photo)
 
 		// add a handler on the photo field
 		w := dom.GetWindow()
