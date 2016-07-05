@@ -248,6 +248,7 @@ func phototest(contetxt *router.Context) {
 	print("phototest")
 
 	go func() {
+		photo := shared.Photo{}
 		BackURL := "/"
 		form := formulate.EditForm{}
 		form.New("fa-instagram", "Photo Upload Tester")
@@ -255,7 +256,7 @@ func phototest(contetxt *router.Context) {
 		// Layout the fields
 
 		form.Row(1).
-			AddInput(1, "Some Text Field ", "Textfield")
+			AddInput(1, "Name", "Name")
 
 		form.Row(1).
 			AddPhoto(1, "Photo Field", "Photo")
@@ -268,6 +269,21 @@ func phototest(contetxt *router.Context) {
 
 		form.PrintEvent(func(evt dom.Event) {
 			dom.GetWindow().Print()
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			print("save photo")
+			form.Bind(&photo)
+			print("bind the photo gives", photo)
+			go func() {
+				newID := 0
+				rpcClient.Call("UtilRPC.AddPhoto", shared.PhotoRPCData{
+					Channel: Session.Channel,
+					Photo:   &photo,
+				}, &newID)
+				// Session.Navigate(BackURL)
+			}()
 		})
 
 		// All done, so render the form

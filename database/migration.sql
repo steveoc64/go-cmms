@@ -164,5 +164,13 @@ alter table users add use_mobile bool default false;
 
 alter table category add stock_code text not null default '';
 
+-- 2016 07 05
+-- Photo upload tester
 
+create table phototest (
+	id serial not null primary key,
+	name text,
+	photo text,
+	thumbnail text
+);
 

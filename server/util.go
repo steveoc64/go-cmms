@@ -294,3 +294,25 @@ func (u *UtilRPC) Cats(channel int, result *string) error {
 
 	return nil
 }
+
+func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	// Generate the thumbnail
+
+	DB.InsertInto("phototest").
+		Columns("name", "photo", "thumbnail").
+		Record(data.Photo).
+		Returning("id").
+		QueryScalar(newID)
+
+	logger(start, "Util.AddPhoto",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		data.Photo.Name,
+		data.Channel, conn.UserID, "phototest", 0, true)
+
+	return nil
+}

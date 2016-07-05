@@ -21,6 +21,7 @@ get:
 	go get -u github.com/labstack/echo/engine/standard
 	go get -u github.com/lib/pq
 	go get -u gopkg.in/mgutz/dat.v1/sqlx-runner
+	go get -u github.com/nfnt/resize
 	mkdir -p scripts
 	mkdir -p backup
 
