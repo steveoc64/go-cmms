@@ -219,9 +219,18 @@ func partsList(context *router.Context) {
 				label.SetInnerHTML("New Category")
 				label.SetAttribute("data-type", "category")
 				label.SetAttribute("data-id", fmt.Sprintf("%d", newCat))
+				label.SetID(widgetID + "-label")
+				chek.SetAttribute("data-type", "category")
+				chek.SetAttribute("data-id", fmt.Sprintf("%d", newCat))
+				chek.SetID(widgetID + "-chek")
 				li.AppendChild(label)
 				theUL.AppendChild(li)
 
+				ul3 := doc.CreateElement("ul")
+				theUL.AppendChild(ul3)
+				li3 := doc.CreateElement("li")
+				li3.SetInnerHTML("(no parts)")
+				ul3.AppendChild(li3)
 			}()
 		})
 
@@ -238,6 +247,8 @@ func partsList(context *router.Context) {
 				theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
 				// print("got ", theLI)
 				// theUL := theLI.LastChild().(*dom.HTMLUListElement)
+				nodes := theLI.ChildNodes()
+				print("nodes -", nodes)
 				theUL := theLI.ChildNodes()[2].(*dom.HTMLUListElement)
 
 				// print("got ", theLI, theUL)

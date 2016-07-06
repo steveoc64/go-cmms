@@ -290,7 +290,7 @@ func userEdit(context *router.Context) {
 			Add(3, "Name", "text", "Name", "").
 			Add(3, "Email", "text", "Email", "").
 			Add(3, "Mobile", "text", "SMS", "").
-			AddCheck(1, "Use", "UseMobile")
+			AddCheck(1, "Send Msgs", "UseMobile")
 
 		if Session.UserRole == "Admin" {
 			form.Row(4).

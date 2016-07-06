@@ -309,7 +309,7 @@ func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
 
 	// Generate the thumbnail
 	theImage := data.Photo.Photo[23:]
-	print("The Image =", theImage[:80])
+	// print("The Image =", theImage[:80])
 	reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(theImage))
 	m, _, err := image.Decode(reader)
 	if err != nil {
