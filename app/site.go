@@ -496,6 +496,7 @@ func _siteMachines(action string, id int) {
 
 						// Handle button clicks
 						doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
+							evt.PreventDefault()
 							// print("TODO - cancel the event, cleanup any temp attachments")
 							// doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
 							Session.Navigate("/")
