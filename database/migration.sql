@@ -198,4 +198,12 @@ insert into migration (name) values ('Extend user info');
 alter table task add is_read bool default false;
 alter table task add read_date timestamptz;
 
+insert into migration (name) values ('Extend task to track whether user has read it or not');
 
+-- Add photo to stoppage event
+
+alter table event add photo text not null default '';
+alter table event add photo_preview text not null default '';
+alter table event add photo_thumbnail text not null default '';
+
+insert into migration (name) values ('Add photo on event');

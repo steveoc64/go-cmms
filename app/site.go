@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/go-humble/router"
+	"github.com/gopherjs/gopherjs/js"
 	"github.com/steveoc64/formulate"
 	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
@@ -495,8 +496,9 @@ func _siteMachines(action string, id int) {
 
 						// Handle button clicks
 						doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
-							print("TODO - cancel the event, cleanup any temp attachments")
-							doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
+							// print("TODO - cancel the event, cleanup any temp attachments")
+							// doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
+							Session.Navigate("/")
 						})
 						doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
 							evt.PreventDefault()
@@ -510,6 +512,26 @@ func _siteMachines(action string, id int) {
 							}()
 							doc.QuerySelector("#raise-comp-issue").Class().Remove("md-show")
 						})
+
+						// add a handler on the photo field
+						if el := doc.QuerySelector("[name=Photo]").(*dom.HTMLInputElement); el != nil {
+							print("adding handler for photo upload")
+							el.AddEventListener("change", false, func(evt dom.Event) {
+								print("photo has changed")
+								files := el.Files()
+								fileReader := js.Global.Get("FileReader").New()
+								fileReader.Set("onload", func(e *js.Object) {
+									target := e.Get("target")
+									imgData := target.Get("result").String()
+									//print("imgdata =", imgData)
+									imgEl := doc.QuerySelector("[name=Photo-Preview").(*dom.HTMLImageElement)
+									imgEl.Src = imgData
+									d.Photo = imgData
+									imgEl.Class().Remove("hidden")
+								})
+								fileReader.Call("readAsDataURL", files[0])
+							})
+						}
 
 					} else {
 

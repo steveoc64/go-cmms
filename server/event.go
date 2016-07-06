@@ -1,10 +1,16 @@
 package main
 
 import (
+	"bytes"
+	"encoding/base64"
 	"fmt"
+	"image"
+	"image/jpeg"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/nfnt/resize"
 
 	"github.com/steveoc64/go-cmms/shared"
 )
@@ -34,10 +40,37 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 		Notes:     issue.Descr,
 		Priority:  1,
 		Status:    "Pending",
+		Photo:     issue.Photo,
+	}
+
+	// Process the photo if present
+	if issue.Photo != "" {
+
+		theImage := issue.Photo[23:]
+		reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(theImage))
+		m, _, err := image.Decode(reader)
+		if err != nil {
+			println("Decode Error", err.Error())
+		} else {
+			// create the thumbnail and a preview
+			var tb bytes.Buffer
+			thumb := resize.Resize(64, 0, m, resize.Lanczos3)
+			encoder := base64.NewEncoder(base64.StdEncoding, &tb)
+			jpeg.Encode(encoder, thumb, &jpeg.Options{Quality: 95})
+			evt.PhotoThumbnail = "data:image/jpeg;base64," + tb.String()
+
+			var pb bytes.Buffer
+			preview := resize.Resize(240, 0, m, resize.Lanczos3)
+			encoder = base64.NewEncoder(base64.StdEncoding, &pb)
+			jpeg.Encode(encoder, preview, &jpeg.Options{Quality: 95})
+			evt.PhotoPreview = "data:image/jpeg;base64," + pb.String()
+		}
 	}
 
 	DB.InsertInto("event").
-		Whitelist("site_id", "type", "machine_id", "tool_id", "tool_type", "created_by", "notes", "priority", "status").
+		Whitelist("site_id", "type", "machine_id", "tool_id", "tool_type", "created_by",
+			"notes", "priority", "status",
+			"photo", "photo_preview", "photo_thumbnail").
 		Record(evt).
 		Returning("id").
 		QueryScalar(id)
@@ -182,6 +215,12 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 
 		// log.Println("assignments for event", v.ID, "=", v.AssignedTo)
 		(*events)[i].AssignedTo = v.AssignedTo
+
+		// while we are here, dont bother with the full rez or preview photos ... blank them out
+		// to save transmission bandwidth
+		(*events)[i].Photo = ""
+		(*events)[i].PhotoPreview = ""
+		fmt.Printf("Evt %d: PhotoThumb %s\n", i, v.PhotoThumbnail)
 	}
 
 	logger(start, "Event.List",
@@ -247,6 +286,12 @@ func (e *EventRPC) ListCompleted(channel int, events *[]shared.Event) error {
 
 		// log.Println("assignments for event", v.ID, "=", v.AssignedTo)
 		(*events)[i].AssignedTo = v.AssignedTo
+
+		// while we are here, dont bother with the full rez or preview photos ... blank them out
+		// to save transmission bandwidth
+		(*events)[i].Photo = ""
+		(*events)[i].PhotoPreview = ""
+		fmt.Printf("Evt %d: PhotoThumb %s\n", i, v.PhotoThumbnail)
 	}
 
 	logger(start, "Event.ListCompleted",
@@ -272,6 +317,8 @@ func (e *EventRPC) Get(data shared.EventRPCData, event *shared.Event) error {
 			left join site s on s.id=m.site_id
 			left join users u on u.id=e.created_by
 		where e.id=$1`, id).QueryStruct(event)
+
+	event.Photo = ""
 
 	// fetch all assignments
 	DB.SQL(`select u.username

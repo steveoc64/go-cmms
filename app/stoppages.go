@@ -21,6 +21,8 @@ func _stoppageList(action string, id int) {
 	events := []shared.Event{}
 	rpcClient.Call("EventRPC.List", Session.Channel, &events)
 
+	print("events =", events)
+
 	form := formulate.ListForm{}
 	form.New("fa-pause-circle-o", "Current Stoppages")
 
@@ -35,6 +37,7 @@ func _stoppageList(action string, id int) {
 	form.Column("Site", "SiteName")
 	form.Column("Machine", "MachineName")
 	form.Column("Component", "ToolType")
+	form.ImgColumn("Photo", "PhotoThumbnail")
 	form.Column("Notes", "Notes")
 
 	switch Session.UserRole {
@@ -58,6 +61,18 @@ func _stoppageList(action string, id int) {
 
 	form.Render("stoppage-list", "main", events)
 
+	// manually display the images, until formulate is refactored
+	w := dom.GetWindow()
+	doc := w.Document()
+	for _, v := range events {
+		if v.PhotoThumbnail != "" {
+			ename := fmt.Sprintf(`[name=PhotoThumbnail-%d]`, v.ID)
+			print("ename = ", ename)
+			el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
+			el.Src = v.PhotoThumbnail
+		}
+	}
+
 	// completed events
 
 	if Session.UserRole == "Admin" {
@@ -75,6 +90,7 @@ func _stoppageList(action string, id int) {
 		cform.Column("Site", "SiteName")
 		cform.Column("Machine", "MachineName")
 		cform.Column("Component", "ToolType")
+		cform.ImgColumn("Photo", "PhotoThumbnail")
 		cform.Column("Notes", "Notes")
 		cform.Column("Status", "GetStatus")
 
@@ -94,6 +110,17 @@ func _stoppageList(action string, id int) {
 		div.SetID("cevent")
 		doc.QuerySelector("main").AppendChild(div)
 		cform.Render("cstoppage-list", "#cevent", cevents)
+
+		// manually display the images, until formulate is refactored
+		for _, v := range events {
+			if v.PhotoThumbnail != "" {
+				ename := fmt.Sprintf(`[name=PhotoThumbnail-%d]`, v.ID)
+				print("ename = ", ename)
+				el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
+				el.Src = v.PhotoThumbnail
+			}
+		}
+
 	}
 
 }
@@ -159,6 +186,9 @@ func _stoppageEdit(action string, id int) {
 			AddDisplay(1, "Raised By", "Username")
 
 		form.Row(1).
+			AddPreview(1, "Photo", "PhotoPreview")
+
+		form.Row(1).
 			AddBigTextarea(1, "Notes", "Notes")
 
 		form.Row(1).
@@ -173,6 +203,9 @@ func _stoppageEdit(action string, id int) {
 			AddDisplay(1, "Component", "ToolType").
 			AddDisplay(1, "StartDate", "DisplayDate").
 			AddDisplay(1, "Raised By", "Username")
+
+		form.Row(1).
+			AddPreview(1, "Photo", "PhotoPreview")
 
 		form.Row(1).
 			AddDisplayArea(1, "Notes", "Notes")
@@ -224,6 +257,14 @@ func _stoppageEdit(action string, id int) {
 
 	// All done, so render the form
 	form.Render("edit-form", "main", &event)
+
+	// If photo is blank, hide the preview
+	if event.PhotoPreview == "" {
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		doc.QuerySelector("[name=PhotoPreview-Preview]").Class().Add("hidden")
+	}
 
 	// and show the assignments
 	loadTemplate("stoppage-assigned-to", "[name=AssignedTo]", event)

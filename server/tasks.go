@@ -551,6 +551,7 @@ func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 	if !task.IsRead && task.AssignedTo != nil && conn.UserID == *task.AssignedTo {
 		println("Marking task as read")
 		DB.SQL(`update task set is_read=true, read_date=now() where id=$1`, data.ID).Exec()
+		conn.Broadcast("task", "update", data.ID)
 	}
 
 	logger(start, "Task.Get",

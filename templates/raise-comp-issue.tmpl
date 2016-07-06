@@ -16,14 +16,16 @@
 	    {{else}}
 	    	<textarea id="evtdesc">Problem with {{.NonTool}} on {{.Machine.Name}} machine.</textarea>
 	    {{end}}
+			<div class="row">
+				<button class="column button-outline md-close">Cancel</button>
+				<button class="column button-primary md-save">Raise Event</button>
+			</div>
 	    <label for="photo">Upload Photo</label>
-	    <input id="photo" name="photo" type="file">
+	    <!-- <input id="photo" name="photo" type="file"> -->
+	    <input type="file" name="Photo" multiple="multiple"><p>
+      <img class="photouppreview hidden" name="Photo-Preview">
 		</fieldset>
 	</form>
 	</div>
 
-	<div class="row">
-		<button class="column button-outline md-close">Cancel</button>
-		<button class="column button-primary md-save">Raise Event</button>
-	</div>
 </div>

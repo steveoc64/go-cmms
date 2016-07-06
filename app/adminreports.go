@@ -280,7 +280,7 @@ func phototest(context *router.Context) {
 
 		form.Render("photo-list", "main", photos)
 
-		// manually set thumbnails on the fields for now
+		// manually set thumbnails on the fields for now, until formulate is refactored
 		w := dom.GetWindow()
 		doc := w.Document()
 
