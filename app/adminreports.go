@@ -234,6 +234,8 @@ func adminUtils(context *router.Context) {
 			case "hashtag":
 				Session.Navigate("/hashtags")
 				return
+			case "phototest":
+				Session.Navigate("/phototest")
 			default:
 				print("ERROR - unknown utility", url)
 				return

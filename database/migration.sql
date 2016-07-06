@@ -187,6 +187,9 @@ create table migration (
 insert into migration (name) values ('Init Migration Database');
 
 alter table users add is_tech bool not null default false;
-update users set is_tech = true where role = 'Technician' or username = 'shane.voigt';
+update users set is_tech = true where role = 'Technician' or username = 'Shane Voigt';
+update users set use_mobile = true where sms <> '';
 
 insert into migration (name) values ('Extend user info');
+
+

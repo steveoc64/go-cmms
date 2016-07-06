@@ -14,6 +14,7 @@ type User struct {
 	Notes      string  `db:"notes"`
 	Sites      []Site  `db:"site"`
 	UseMobile  bool    `db:"use_mobile"`
+	IsTech     bool    `db:"is_tech"`
 }
 
 type UserRPCData struct {
