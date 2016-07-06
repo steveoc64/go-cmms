@@ -71,6 +71,20 @@ func SendSMS(number string, message string, ref string, user_id int) error {
 	if !Config.SMSOn {
 		return nil
 	}
+
+	// Get the user use_mobile flag, to see if they have Rx turned off for now
+
+	theUser := shared.User{}
+	userErr := DB.SQL("select username,use_mobile from users where id=$1", user_id).QueryStruct(&theUser)
+	if userErr != nil {
+		println("Cannot read user record for ID", user_id, userErr.Error())
+		return nil
+	}
+	if theUser.UseMobile {
+		println("User ID", user_id, theUser.Username, "has requested no SMS transmissions")
+		return nil
+	}
+
 	log.Println("Sending SMS to", number, ":", message)
 
 	resp, err := http.PostForm(

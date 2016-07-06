@@ -257,7 +257,7 @@ func phototest(context *router.Context) {
 		}, &photos)
 
 		form := formulate.ListForm{}
-		form.New("fa-instagram", "Photo List")
+		form.New("fa-camera-retro", "Photo List")
 
 		// Define the layout
 		form.Column("Name", "Name")
@@ -312,7 +312,7 @@ func phototestEdit(context *router.Context) {
 
 		BackURL := "/phototest"
 		form := formulate.EditForm{}
-		form.New("fa-instagram", "Photo Upload Tester")
+		form.New("fa-camera-retro", "Photo Upload Tester")
 
 		// Layout the fields
 
@@ -363,7 +363,7 @@ func phototestAdd(context *router.Context) {
 
 		BackURL := "/phototest"
 		form := formulate.EditForm{}
-		form.New("fa-instagram", "Photo Upload Tester")
+		form.New("fa-camera-retro", "Photo Upload Tester")
 
 		// Layout the fields
 
