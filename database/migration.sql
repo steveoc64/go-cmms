@@ -192,4 +192,10 @@ update users set use_mobile = true where sms <> '';
 
 insert into migration (name) values ('Extend user info');
 
+-- 2016 07 06
+-- Update task to track whether its been read or not
+
+alter table task add is_read bool default false;
+alter table task add read_date timestamptz;
+
 

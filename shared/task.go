@@ -171,6 +171,8 @@ type Task struct {
 	Parts             []TaskPart  `db:"parts"`
 	Checks            []TaskCheck `db:"checks"`
 	AllDone           bool        `db:"all_done"`
+	IsRead            bool        `db:"is_read"`
+	ReadDate          *time.Time  `db:"read_date"`
 }
 
 type TaskRPCData struct {

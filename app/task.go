@@ -435,6 +435,7 @@ func _taskList(action string, id int) {
 	switch Session.UserRole {
 	case "Admin", "Site Manager":
 		form.Column("User", "Username")
+		form.BoolColumn("Read", "IsRead")
 	}
 	form.Column("TaskID", "GetID")
 	form.Column("Date", "GetStartDate")
