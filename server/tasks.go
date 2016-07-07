@@ -427,6 +427,11 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 		}
 	}
 
+	for i, v := range *tasks {
+		if len(v.Descr) > 80 {
+			(*tasks)[i].Descr = fmt.Sprintf("%s ...", v.Descr[:80])
+		}
+	}
 	// // Read the sites that this user has access to
 	// err := DB.SQL(`select
 	// 	t.*,m.name as machine_name,s.name as site_name,u.username as username

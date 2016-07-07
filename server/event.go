@@ -216,7 +216,10 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 		// log.Println("assignments for event", v.ID, "=", v.AssignedTo)
 		(*events)[i].AssignedTo = v.AssignedTo
 
-		// while we are here, dont bother with the full rez or preview photos ... blank them out
+		// truncate long notes
+		if len(v.Notes) > 80 {
+			(*events)[i].Notes = fmt.Sprintf("%s ...", v.Notes[:80])
+		}
 		// to save transmission bandwidth
 		(*events)[i].Photo = ""
 		(*events)[i].PhotoPreview = ""
@@ -286,6 +289,13 @@ func (e *EventRPC) ListCompleted(channel int, events *[]shared.Event) error {
 
 		// log.Println("assignments for event", v.ID, "=", v.AssignedTo)
 		(*events)[i].AssignedTo = v.AssignedTo
+
+		// truncate long notes
+		if len(v.Notes) > 80 {
+			(*events)[i].Notes = fmt.Sprintf("%s ...", v.Notes[:80])
+		}
+
+		// while we are here, dont bother with the full rez or preview photos ... blank them out
 
 		// while we are here, dont bother with the full rez or preview photos ... blank them out
 		// to save transmission bandwidth
