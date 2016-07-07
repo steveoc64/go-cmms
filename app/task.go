@@ -331,11 +331,11 @@ func _taskEdit0(action string, id int) {
 			}
 
 			go func() {
-				done := false
+				updatedTask := shared.Task{}
 				rpcClient.Call("TaskRPC.Update", shared.TaskRPCData{
 					Channel: Session.Channel,
 					Task:    &task,
-				}, &done)
+				}, &updatedTask)
 				Session.Navigate(RefreshURL)
 			}()
 		})
@@ -452,8 +452,12 @@ func _taskEdit(action string, id int) {
 	form := formulate.EditForm{}
 	form.New("fa-server", title)
 
-	task.DisplayStartDate = task.StartDate.Format("Mon, Jan 2 2006")
-	task.DisplayDueDate = task.DueDate.Format("Mon, Jan 2 2006")
+	if task.StartDate != nil {
+		task.DisplayStartDate = task.StartDate.Format("Mon, Jan 2 2006")
+	}
+	if task.DueDate != nil {
+		task.DisplayDueDate = task.DueDate.Format("Mon, Jan 2 2006")
+	}
 	if task.Username == nil {
 		task.DisplayUsername = "Unassigned"
 	} else {
@@ -464,7 +468,7 @@ func _taskEdit(action string, id int) {
 	setActions := func(actionID int) {
 
 		switch Session.UserRole {
-		case "Admin":
+		case "Admin", "Site Manager":
 			form.ActionGrid("task-admin-actions", "#action-grid", task, func(url string) {
 				if strings.HasPrefix(url, "/sched") {
 					if task.SchedID != 0 {
@@ -524,7 +528,12 @@ func _taskEdit(action string, id int) {
 		partsTitle = "Parts Used - record qty for each part used - or leave blank if part was not needed on this job"
 	}
 
-	switch Session.UserRole {
+	useRole := Session.UserRole
+	if Session.CanAllocate {
+		useRole = "Admin"
+	}
+
+	switch useRole {
 	case "Admin":
 
 		techs := []shared.User{}
@@ -644,7 +653,7 @@ func _taskEdit(action string, id int) {
 		dom.GetWindow().Print()
 	})
 
-	if Session.UserRole == "Admin" {
+	if useRole == "Admin" {
 		form.DeleteEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			task.ID = id
@@ -659,32 +668,33 @@ func _taskEdit(action string, id int) {
 		})
 	}
 
-	if Session.UserRole == "Admin" ||
+	print("useRole =", useRole)
+	if useRole == "Admin" ||
 		(Session.UserRole == "Technician" && task.CompletedDate == nil) {
 
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&task)
 
-			w := dom.GetWindow()
-			doc := w.Document()
+			// w := dom.GetWindow()
+			// doc := w.Document()
 
-			// now get the parts array
-			for i, v := range task.Parts {
-				qtyUsed := doc.QuerySelector(fmt.Sprintf("[name=part-qty-used-%d]", v.PartID)).(*dom.HTMLInputElement)
-				notes := doc.QuerySelector(fmt.Sprintf("[name=part-notes-%d]", v.PartID)).(*dom.HTMLInputElement)
-				// print("Part ", v.PartID, "QtyUsed = ", qtyUsed.Value)
-				// print("Part ", v.PartID, "Notes = ", notes.Value)
-				task.Parts[i].QtyUsed, _ = strconv.ParseFloat(qtyUsed.Value, 64)
-				task.Parts[i].Notes = notes.Value
-			}
+			// // now get the parts array
+			// for i, v := range task.Parts {
+			// 	qtyUsed := doc.QuerySelector(fmt.Sprintf("[name=part-qty-used-%d]", v.PartID)).(*dom.HTMLInputElement)
+			// 	notes := doc.QuerySelector(fmt.Sprintf("[name=part-notes-%d]", v.PartID)).(*dom.HTMLInputElement)
+			// 	// print("Part ", v.PartID, "QtyUsed = ", qtyUsed.Value)
+			// 	// print("Part ", v.PartID, "Notes = ", notes.Value)
+			// 	task.Parts[i].QtyUsed, _ = strconv.ParseFloat(qtyUsed.Value, 64)
+			// 	task.Parts[i].Notes = notes.Value
+			// }
 
 			go func() {
-				done := false
+				updatedTask := shared.Task{}
 				rpcClient.Call("TaskRPC.Update", shared.TaskRPCData{
 					Channel: Session.Channel,
 					Task:    &task,
-				}, &done)
+				}, &updatedTask)
 				Session.Navigate(RefreshURL)
 			}()
 		})
@@ -702,7 +712,7 @@ func _taskEdit(action string, id int) {
 	doc := w.Document()
 
 	// on change of the labour hrs, update the all done flag
-	if Session.UserRole == "Admin" || task.CompletedDate == nil {
+	if useRole == "Admin" || task.CompletedDate == nil {
 		lh := doc.QuerySelector("[name=LabourHrs]").(*dom.HTMLInputElement)
 		lh.AddEventListener("change", false, func(evt dom.Event) {
 			wasDone := task.AllDone

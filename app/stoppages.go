@@ -276,23 +276,49 @@ func _stoppageEdit(action string, id int) {
 			Session.Navigate(url)
 		})
 	case "Site Manager":
-		form.ActionGrid("event-sm-actions", "#action-grid", event.ID, func(url string) {
-			Session.Navigate(url)
-		})
+		// lookup the current user, if can allocate, then give them the admin options
+		u := shared.User{}
+		rpcClient.Call("UserRPC.Get", shared.UserRPCData{
+			Channel: Session.Channel,
+			ID:      Session.UserID,
+		}, &u)
+		if u.CanAllocate {
+			form.ActionGrid("event-actions", "#action-grid", event, func(url string) {
+				Session.Navigate(url)
+			})
+		} else {
+			form.ActionGrid("event-sm-actions", "#action-grid", event.ID, func(url string) {
+				Session.Navigate(url)
+			})
+		}
 	}
 
 }
 
 func stoppageComplete(context *router.Context) {
 
-	if Session.UserRole != "Admin" {
-		return
-	}
-
 	id, err := strconv.Atoi(context.Params["id"])
 	if err != nil {
 		print(err.Error())
 		return
+	}
+	BackURL := fmt.Sprintf("/stoppage/%d", id)
+
+	if Session.UserRole != "Admin" {
+
+		go func() {
+
+			// read the can allocate flag to see if this is allowed or not
+			u := shared.User{}
+			rpcClient.Call("UserRPC.Get", shared.UserRPCData{
+				Channel: Session.Channel,
+				ID:      Session.UserID,
+			}, &u)
+			if !u.CanAllocate {
+				print("Not allowed to allocate tasks")
+				Session.Navigate(BackURL)
+			}
+		}()
 	}
 
 	go func() {
@@ -310,14 +336,28 @@ func stoppageComplete(context *router.Context) {
 }
 
 func stoppageNewTask(context *router.Context) {
-	if Session.UserRole != "Admin" {
-		return
-	}
-
 	id, err := strconv.Atoi(context.Params["id"])
 	if err != nil {
 		print(err.Error())
 		return
+	}
+	BackURL := fmt.Sprintf("/stoppage/%d", id)
+
+	if Session.UserRole != "Admin" {
+
+		// read the can allocate flag to see if this is allowed or not
+		go func() {
+
+			u := shared.User{}
+			rpcClient.Call("UserRPC.Get", shared.UserRPCData{
+				Channel: Session.Channel,
+				ID:      Session.UserID,
+			}, &u)
+			if !u.CanAllocate {
+				print("Not allowed to allocate tasks")
+				Session.Navigate(BackURL)
+			}
+		}()
 	}
 
 	go func() {
@@ -349,7 +389,6 @@ func stoppageNewTask(context *router.Context) {
 			Notes:       event.Notes,
 		}
 
-		BackURL := fmt.Sprintf("/stoppage/%d", id)
 		title := fmt.Sprintf("Raise Task for Stoppage - %06d", id)
 		form := formulate.EditForm{}
 		form.New("fa-sign-in", title)

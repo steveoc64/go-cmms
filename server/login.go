@@ -12,12 +12,13 @@ import (
 type LoginRPC struct{}
 
 type dbLoginResponse struct {
-	ID       int            `db:"id"`
-	Username string         `db:"username"`
-	Name     string         `db:"name"`
-	Role     string         `db:"role"`
-	SiteID   int            `db:"site_id"`
-	SiteName sql.NullString `db:"sitename"`
+	ID          int            `db:"id"`
+	Username    string         `db:"username"`
+	Name        string         `db:"name"`
+	Role        string         `db:"role"`
+	SiteID      int            `db:"site_id"`
+	SiteName    sql.NullString `db:"sitename"`
+	CanAllocate bool           `db:"can_allocate"`
 }
 
 func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) error {
@@ -41,7 +42,7 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 		// 	where lower(u.username) = lower('`, lc.Username, `') and lower(passwd) = lower('`, lc.Password, `')`)
 
 		err := DB.
-			Select("u.id,u.username,u.name,u.role,u.site_id,s.name as sitename").
+			Select("u.id,u.username,u.name,u.role,u.site_id,s.name as sitename,u.can_allocate as can_allocate").
 			From(`users u
 			left join site s on (s.id = u.site_id)`).
 			Where("lower(u.username) = lower($1) and lower(passwd) = lower($2)",
@@ -67,6 +68,7 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 			lr.Routes = getRoutes(res.ID, res.Role)
 			lr.Role = res.Role
 			lr.ID = res.ID
+			lr.CanAllocate = res.CanAllocate
 			if res.SiteName.Valid {
 				lr.Site = res.SiteName.String
 			}

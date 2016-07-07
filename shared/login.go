@@ -8,11 +8,12 @@ type LoginCredentials struct {
 }
 
 type LoginReply struct {
-	Result string
-	Token  string
-	Role   string
-	Site   string
-	ID     int
+	Result      string
+	Token       string
+	Role        string
+	Site        string
+	ID          int
+	CanAllocate bool
 	// Menu   []UserMenu
 	Routes []UserRoute
 }

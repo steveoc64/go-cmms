@@ -307,11 +307,17 @@ func (t *TaskRPC) Update(data shared.TaskRPCData, updatedTask *shared.Task) erro
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
+	canAllocate := false
+	DB.SQL(`select can_allocate from users where id=$1`, conn.UserID).QueryScalar(&canAllocate)
+	useRole := conn.UserRole
+	if canAllocate {
+		useRole = "Admin"
+	}
 
 	oldTask := shared.Task{}
 	DB.SQL(`select * from task where id=$1`, data.Task.ID).QueryStruct(&oldTask)
 
-	if conn.UserRole == "Admin" {
+	if useRole == "Admin" {
 
 		// Admin can re-assign the task to another user
 		DB.Update("task").

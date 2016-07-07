@@ -12,6 +12,7 @@ type GlobalSessionData struct {
 	Username      string
 	UserRole      string
 	UserID        int
+	CanAllocate   bool
 	Channel       int
 	Router        *router.Router
 	AppFn         map[string]router.Handler

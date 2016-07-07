@@ -293,9 +293,10 @@ func userEdit(context *router.Context) {
 			AddCheck(1, "Send Msgs", "UseMobile")
 
 		if Session.UserRole == "Admin" {
-			form.Row(4).
+			form.Row(5).
 				AddSelect(2, "Role", "Role", roles, "ID", "Name", 1, currentRole).
 				AddCheck(1, "Technician", "IsTech").
+				AddCheck(1, "Allocate Tasks ?", "CanAllocate").
 				AddDecimal(1, "Hourly Rate", "HourlyRate", 2, "1")
 		} else {
 			form.Row(3).

@@ -13,43 +13,43 @@ type UserRPC struct{}
 ///////////////////////////////////////////////////////////
 // SQL
 const UserGetQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech,u.can_allocate
 	from users u
 	where id=$1`
 
 const UserListQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech,u.can_allocate
 	from users u
 	order by u.username`
 
 const TechniciansListQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech,u.can_allocate
 	from users u
 	left join user_site x on x.user_id=u.id and x.site_id=$1
 	where u.is_tech = true and x.site_id=$1
 	order by u.username`
 
 const ManagersListQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech,u.can_allocate
 	from users u
 	left join user_site x on x.user_id=u.id and x.site_id=$1
 	where u.role='Site Manager' and x.site_id=$1
 	order by u.username`
 
 const ManagersAllQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech,u.can_allocate
 	from users u
 	where u.role='Site Manager'
 	order by u.username`
 
 const TechniciansAllQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech,u.can_allocate
 	from users u
 	where u.is_tech = true
 	order by u.username`
 
 const AdminsListQuery = `select 
-u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech
+u.id,u.username,u.passwd,u.email,u.role,u.sms,u.name,u.hourly_rate,u.use_mobile,u.is_tech,u.can_allocate
 	from users u
 	where u.role='Admin'
 	order by u.username`
@@ -137,7 +137,7 @@ func (u *UserRPC) Update(data shared.UserRPCData, done *bool) error {
 
 	DB.Update("users").
 		SetWhitelist(data.User, "username", "name", "passwd", "email", "sms",
-			"role", "hourly_rate", "use_mobile", "is_tech").
+			"role", "hourly_rate", "use_mobile", "is_tech", "can_allocate").
 		Where("id = $1", data.User.ID).
 		Exec()
 
@@ -159,7 +159,7 @@ func (u *UserRPC) Insert(data shared.UserRPCData, id *int) error {
 	conn := Connections.Get(data.Channel)
 
 	DB.InsertInto("users").
-		Whitelist("username", "name", "passwd", "email", "sms", "hourly_rate", "use_mobile", "is_tech").
+		Whitelist("username", "name", "passwd", "email", "sms", "hourly_rate", "use_mobile", "is_tech", "can_allocate").
 		Record(data.User).
 		Returning("id").
 		QueryScalar(id)

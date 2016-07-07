@@ -207,3 +207,8 @@ alter table event add photo_preview text not null default '';
 alter table event add photo_thumbnail text not null default '';
 
 insert into migration (name) values ('Add photo on event');
+
+-- User can allocate flag
+
+alter table users add can_allocate bool not null default false;
+insert into migration (name) values ('User can allocate flag');

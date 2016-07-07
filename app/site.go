@@ -68,7 +68,13 @@ func _siteMap(action string, id int) {
 		case "Admin":
 			loadTemplate("admin-actions", "#action-grid", nil)
 		case "Site Manager":
-			loadTemplate("site-manager-actions", "#action-grid", nil)
+			if Session.CanAllocate {
+				loadTemplate("site-supermanager-actions", "#action-grid", nil)
+
+			} else {
+				loadTemplate("site-manager-actions", "#action-grid", nil)
+
+			}
 		case "Technician":
 			loadTemplate("technician-actions", "#action-grid", nil)
 		}
