@@ -393,6 +393,7 @@ func partsList(context *router.Context) {
 				lastSelectedClass.Remove("listselected")
 			}
 			lastSelectedClass = li.Class()
+			print("LI class =", lastSelectedClass)
 			lastSelectedClass.Add("listselected")
 
 			dataType := li.GetAttribute("data-type")
