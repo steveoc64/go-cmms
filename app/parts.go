@@ -174,6 +174,68 @@ func partsList(context *router.Context) {
 		t := doc.QuerySelector(`[name="tree"]`)
 		t.SetInnerHTML("") // Init the tree panel
 
+		tlcBtn := doc.CreateElement("input").(*dom.HTMLInputElement)
+		tlcBtn.Type = "button"
+		tlcBtn.Class().Add("button-primary")
+		tlcBtn.Value = "New Category"
+		tlcBtn.AddEventListener("click", false, func(evt dom.Event) {
+			print("clicked on the add base level category btn", tree)
+
+			go func() {
+
+				// Create a fresh new parts category at the backend
+				newCatID := 0
+				rpcClient.Call("PartRPC.AddCategory", shared.PartRPCData{
+					Channel: Session.Channel,
+					ID:      0,
+				}, &newCatID)
+
+				// Read the new category back
+				newCat := shared.Category{}
+				rpcClient.Call("PartRPC.GetCategory", shared.PartRPCData{
+					Channel: Session.Channel,
+					ID:      newCatID,
+				}, &newCat)
+
+				// Append the new category to the tree widget
+				tree = append(tree, newCat)
+
+				// Manually create a new entry in the DOM for the newly created category
+				ul := doc.QuerySelector(".css-treeview").(*dom.HTMLUListElement)
+				widgetID := fmt.Sprintf("category-%d", newCatID)
+				li := doc.CreateElement("li")
+				li.SetID(widgetID)
+				chek := doc.CreateElement("input").(*dom.HTMLInputElement)
+				chek.Type = "checkbox"
+				li.AppendChild(chek)
+				label := doc.CreateElement("label")
+				label.SetAttribute("for", widgetID)
+				label.SetInnerHTML(newCat.Name)
+				label.SetAttribute("data-type", "category")
+				label.SetAttribute("data-id", fmt.Sprintf("%d", newCatID))
+				label.SetID(widgetID + "-label")
+				chek.SetAttribute("data-type", "category")
+				chek.SetAttribute("data-id", fmt.Sprintf("%d", newCatID))
+				chek.SetID(widgetID + "-chek")
+				li.AppendChild(label)
+				ul.AppendChild(li)
+
+				// add an empty list for the categories
+				ul2 := doc.CreateElement("ul").(*dom.HTMLUListElement)
+				li.AppendChild(ul2)
+
+				// add an empty list for the parts
+				ul3 := doc.CreateElement("ul")
+				li.AppendChild(ul3)
+				// ul.AppendChild(ul3)
+				// li3 := doc.CreateElement("li")
+				// li3.SetInnerHTML("(no parts)")
+				// ul3.AppendChild(li3)
+
+				currentCat = newCatID
+			}()
+		})
+
 		// Create the Tree's UL element
 		ul := doc.CreateElement("ul").(*dom.HTMLUListElement)
 		ul.SetClass("css-treeview")
@@ -182,6 +244,8 @@ func partsList(context *router.Context) {
 		addTree(tree, ul, 0)
 
 		t.AppendChild(ul)
+
+		t.AppendChild(tlcBtn)
 
 		// Handlers for the various buttons
 		btnAddPart := doc.QuerySelector(`[name=AddPart]`)
@@ -204,6 +268,8 @@ func partsList(context *router.Context) {
 				theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
 				// print("got ", theLI)
 				// theUL := theLI.LastChild().(*dom.HTMLUListElement)
+				cNodes := theLI.ChildNodes()
+				print("cnodes =", cNodes)
 				theUL := theLI.ChildNodes()[2].(*dom.HTMLUListElement)
 
 				print("got ", theLI, theUL)
@@ -226,11 +292,17 @@ func partsList(context *router.Context) {
 				li.AppendChild(label)
 				theUL.AppendChild(li)
 
+				// add an empty list for the categories
+				ul2 := doc.CreateElement("ul").(*dom.HTMLUListElement)
+				li.AppendChild(ul2)
+
+				// Add an empty list for the parts
 				ul3 := doc.CreateElement("ul")
-				theUL.AppendChild(ul3)
-				li3 := doc.CreateElement("li")
-				li3.SetInnerHTML("(no parts)")
-				ul3.AppendChild(li3)
+				li.AppendChild(ul3)
+				// theUL.AppendChild(ul3)
+				// li3 := doc.CreateElement("li")
+				// li3.SetInnerHTML("(no parts)")
+				// ul3.AppendChild(li3)
 			}()
 		})
 
