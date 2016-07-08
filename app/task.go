@@ -68,355 +68,6 @@ func taskEdit(context *router.Context) {
 	go _taskEdit("edit", id)
 }
 
-func _taskEdit0(action string, id int) {
-
-	BackURL := "/tasks"
-
-	switch action {
-	case "edit":
-		print("manually edit")
-	case "delete":
-		if id != Session.ID["task"] {
-			return
-		}
-		print("current record has been deleted")
-		Session.Navigate(BackURL)
-		return
-	default:
-		if id != Session.ID["task"] {
-			return
-		}
-	}
-
-	task := shared.Task{}
-
-	rpcClient.Call("TaskRPC.Get", shared.TaskRPCData{
-		Channel: Session.Channel,
-		ID:      id,
-	}, &task)
-
-	task.AllDone = calcAllDone(task)
-	// print("task with parts and checks attached =", task)
-
-	RefreshURL := fmt.Sprintf("/task/%d", id)
-	title := fmt.Sprintf("Task Details - %06d", id)
-	form := formulate.EditForm{}
-	form.New("fa-server", title)
-
-	task.DisplayStartDate = task.StartDate.Format("Mon, Jan 2 2006")
-	task.DisplayDueDate = task.DueDate.Format("Mon, Jan 2 2006")
-	if task.Username == nil {
-		task.DisplayUsername = "Unassigned"
-	} else {
-		task.DisplayUsername = *task.Username
-	}
-
-	// Define a function to add the actions and set all the callbacks
-	setActions := func(actionID int) {
-
-		switch Session.UserRole {
-		case "Admin":
-			form.ActionGrid("task-admin-actions", "#action-grid", task, func(url string) {
-				if strings.HasPrefix(url, "/sched") {
-					if task.SchedID != 0 {
-						c := &router.Context{
-							Path:        url,
-							InitialLoad: false,
-							Params: map[string]string{
-								"id":   fmt.Sprintf("%d", task.SchedID),
-								"back": fmt.Sprintf("/task/%d", task.ID),
-							},
-						}
-						schedEdit(c)
-					}
-				} else if strings.HasPrefix(url, "/stoppage") {
-					if task.EventID != 0 {
-						c := &router.Context{
-							Path:        url,
-							InitialLoad: false,
-							Params: map[string]string{
-								"id":   fmt.Sprintf("%d", task.EventID),
-								"back": fmt.Sprintf("/task/%d", task.ID),
-							},
-						}
-						stoppageEdit(c)
-					}
-				} else {
-					go func() {
-						done := false
-						rpcClient.Call("TaskRPC.Complete", shared.TaskRPCData{
-							Channel: Session.Channel,
-							Task:    &task,
-						}, &done)
-						Session.Navigate(BackURL)
-					}()
-				}
-			})
-		case "Technician":
-			form.ActionGrid("task-actions", "#action-grid", task, func(url string) {
-				go func() {
-					done := false
-					print("calling task.complete ???")
-					rpcClient.Call("TaskRPC.Complete", shared.TaskRPCData{
-						Channel: Session.Channel,
-						Task:    &task,
-					}, &done)
-					Session.Navigate(BackURL)
-				}()
-			})
-		}
-	}
-
-	// Layout the fields
-	partsTitle := ""
-	if task.SchedID != 0 {
-		partsTitle = "Parts Used - as specified on the maintenance schedule - all parts must have a Qty Used, or a note"
-	} else {
-		partsTitle = "Parts Used - record qty for each part used - or leave blank if part was not needed on this job"
-	}
-
-	switch Session.UserRole {
-	case "Admin":
-
-		techs := []shared.User{}
-		rpcClient.Call("UserRPC.GetTechnicians", shared.SiteRPCData{
-			Channel: Session.Channel,
-			ID:      0,
-		}, &techs)
-		assignedTo := 0
-		if task.AssignedTo != nil {
-			assignedTo = *task.AssignedTo
-		}
-
-		form.Row(3).
-			AddSelect(1, "User", "AssignedTo", techs, "ID", "Username", 0, assignedTo).
-			AddDisplay(1, "Start Date", "DisplayStartDate").
-			AddDisplay(1, "Due Date", "DisplayDueDate")
-
-		form.Row(3).
-			AddDisplay(1, "Site", "SiteName").
-			AddDisplay(1, "Machine", "MachineName").
-			AddDisplay(1, "Component", "Component")
-
-		form.Row(1).
-			AddTextarea(1, "Notes", "Log")
-
-		form.Row(1).
-			AddCustom(1, "Notes and CheckLists", "CheckList", "")
-
-		rateStr := ""
-		if task.LabourHrs != 0 {
-			rate := int(task.LabourCost / task.LabourHrs)
-			rateStr = fmt.Sprintf(" @ $%d/hr", rate)
-		}
-		form.Row(4).
-			AddDisplay(2, "Labour Est $", "LabourEst").
-			AddDecimal(1, fmt.Sprintf("Hours%s", rateStr), "LabourHrs", 2, "0.5").
-			AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1")
-
-		form.Row(4).
-			AddDisplay(2, "Material Est $", "MaterialEst").
-			AddDecimal(2, "Actual Material $", "MaterialCost", 2, "1")
-
-		form.Row(1).
-			AddCustom(1, partsTitle, "PartList", "")
-
-	case "Site Manager":
-		form.Row(3).
-			AddDisplay(1, "User", "DisplayUsername").
-			AddDisplay(1, "Start Date", "DisplayStartDate").
-			AddDisplay(1, "Due Date", "DisplayDueDate")
-
-		form.Row(3).
-			AddDisplay(1, "Site", "SiteName").
-			AddDisplay(1, "Machine", "MachineName").
-			AddDisplay(1, "Component", "Component")
-
-		form.Row(1).
-			AddDisplayArea(1, "Notes", "Log")
-
-		form.Row(1).
-			AddCustom(1, "Notes and CheckLists", "CheckList", "")
-
-		form.Row(4).
-			AddDisplay(2, "Labour Est $", "LabourEst").
-			AddDecimal(1, "Hours", "LabourHrs", 2, "0.5").
-			AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1")
-
-		form.Row(4).
-			AddDisplay(2, "Material Est $", "MaterialEst").
-			AddDecimal(2, "Actual Material $", "MaterialCost", 2, "1")
-
-		form.Row(1).
-			AddCustom(1, partsTitle, "PartList", "")
-
-	case "Technician":
-		row := form.Row(4).
-			AddDisplay(1, "Start Date", "DisplayStartDate").
-			AddDisplay(1, "Due Date", "DisplayDueDate").
-			// AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1").
-			// AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1").
-			AddDisplay(1, "Actual Material $", "MaterialCost")
-			// AddDisplay(1, "Actual Labour $", "LabourCost")
-
-		if task.CompletedDate == nil {
-			row.AddDecimal(1, "Hours", "LabourHrs", 2, "0.5")
-		} else {
-			row.AddDisplay(1, "Hours", "LabourHrs")
-		}
-
-		form.Row(3).
-			AddDisplay(1, "Site", "SiteName").
-			AddDisplay(1, "Machine", "MachineName").
-			AddDisplay(1, "Component", "Component")
-
-		if task.CompletedDate == nil {
-			form.Row(1).
-				AddTextarea(1, "Notes", "Log")
-		} else {
-			form.Row(1).
-				AddDisplayArea(1, "Notes", "Log")
-		}
-
-		form.Row(1).
-			AddCustom(1, "Notes and CheckLists", "CheckList", "")
-
-		form.Row(1).
-			AddCustom(1, partsTitle, "PartList", "")
-	}
-
-	// Add event handlers
-	form.CancelEvent(func(evt dom.Event) {
-		evt.PreventDefault()
-		Session.Navigate(BackURL)
-	})
-
-	form.PrintEvent(func(evt dom.Event) {
-		dom.GetWindow().Print()
-	})
-
-	if Session.UserRole == "Admin" {
-		form.DeleteEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			task.ID = id
-			go func() {
-				done := false
-				rpcClient.Call("TaskRPC.Delete", shared.TaskRPCData{
-					Channel: Session.Channel,
-					Task:    &task,
-				}, &done)
-				Session.Navigate(BackURL)
-			}()
-		})
-	}
-
-	if Session.UserRole == "Admin" ||
-		(Session.UserRole == "Technician" && task.CompletedDate == nil) {
-
-		form.SaveEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			form.Bind(&task)
-
-			w := dom.GetWindow()
-			doc := w.Document()
-
-			// now get the parts array
-			for i, v := range task.Parts {
-				qtyUsed := doc.QuerySelector(fmt.Sprintf("[name=part-qty-used-%d]", v.PartID)).(*dom.HTMLInputElement)
-				notes := doc.QuerySelector(fmt.Sprintf("[name=part-notes-%d]", v.PartID)).(*dom.HTMLInputElement)
-				// print("Part ", v.PartID, "QtyUsed = ", qtyUsed.Value)
-				// print("Part ", v.PartID, "Notes = ", notes.Value)
-				task.Parts[i].QtyUsed, _ = strconv.ParseFloat(qtyUsed.Value, 64)
-				task.Parts[i].Notes = notes.Value
-			}
-
-			go func() {
-				updatedTask := shared.Task{}
-				rpcClient.Call("TaskRPC.Update", shared.TaskRPCData{
-					Channel: Session.Channel,
-					Task:    &task,
-				}, &updatedTask)
-				Session.Navigate(RefreshURL)
-			}()
-		})
-
-	}
-
-	// All done, so render the form
-	form.Render("edit-form", "main", &task)
-
-	// Add the custom checklist
-	loadTemplate("task-check-list", "[name=CheckList]", task)
-	loadTemplate("task-part-list", "[name=PartList]", task)
-
-	w := dom.GetWindow()
-	doc := w.Document()
-
-	// on change of the labour hrs, update the all done flag
-	if Session.UserRole == "Admin" || task.CompletedDate == nil {
-		lh := doc.QuerySelector("[name=LabourHrs]").(*dom.HTMLInputElement)
-		lh.AddEventListener("change", false, func(evt dom.Event) {
-			wasDone := task.AllDone
-			task.LabourHrs, _ = strconv.ParseFloat(lh.Value, 64)
-			// fire off the change to the backend
-			form.Bind(&task)
-			go func() {
-				updatedTask := shared.Task{}
-				rpcClient.Call("TaskRPC.Update", shared.TaskRPCData{
-					Channel: Session.Channel,
-					Task:    &task,
-				}, &updatedTask)
-				if Session.UserRole == "Admin" {
-					w := dom.GetWindow()
-					doc := w.Document()
-					doc.QuerySelector("[name=LabourCost").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", updatedTask.LabourCost)
-					print("updated =", updatedTask.LabourCost)
-				}
-			}()
-
-			task.AllDone = calcAllDone(task)
-			if wasDone != task.AllDone {
-				setActions(2)
-			}
-		})
-	}
-
-	if el := doc.QuerySelector("[name=CheckList]"); el != nil {
-
-		el.AddEventListener("click", false, func(evt dom.Event) {
-			evt.PreventDefault()
-			clickedOn := evt.Target()
-			switch clickedOn.TagName() {
-			case "INPUT":
-				ie := clickedOn.(*dom.HTMLInputElement)
-				key, _ := strconv.Atoi(ie.GetAttribute("key"))
-				// print("clicked on key", key)
-
-				task.Checks[key-1].Done = true
-				now := time.Now()
-				task.Checks[key-1].DoneDate = &now
-				task.AllDone = calcAllDone(task)
-
-				// save to the backend
-				go func() {
-					done := false
-					rpcClient.Call("TaskRPC.Check", shared.TaskCheckUpdate{
-						Channel:   Session.Channel,
-						TaskCheck: &task.Checks[key-1],
-					}, &done)
-				}()
-				loadTemplate("task-check-list", "[name=CheckList]", task)
-				setActions(3)
-			}
-
-		})
-	}
-
-	// And attach actions
-
-	setActions(1)
-}
-
 func _taskEdit(action string, id int) {
 
 	BackURL := "/tasks"
@@ -1811,8 +1462,35 @@ func addTaskPartsTree(tree []shared.Category, ul *dom.HTMLUListElement, depth in
 				partID := fmt.Sprintf("part-%d", part.ID)
 				li2 := doc.CreateElement("li")
 				li2.SetID(partID)
-				li2.SetInnerHTML(fmt.Sprintf(`%s : %s`, part.StockCode, part.Name))
-				li2.Class().Add("stock-item")
+
+				span := doc.CreateElement("span")
+				span.SetInnerHTML(fmt.Sprintf(`%s : %s`, part.StockCode, part.Name))
+				li2.AppendChild(span)
+
+				/*
+					<div data-field-span=1>
+						<label>Stock code and part name</label>
+						<input type=number name=part-qty-id value=thevalue step=1>
+					</div>
+
+				*/
+				// div := doc.CreateElement("div")
+				// div.SetAttribute("data-field-span", "1")
+				// li2.AppendChild(div)
+
+				// label := doc.CreateElement("label").(*dom.HTMLLabelElement)
+				// label.SetInnerHTML(part.StockCode + " : " + part.Name)
+				// li2.AppendChild(label)
+
+				span2 := doc.CreateElement("span")
+				input := doc.CreateElement("input").(*dom.HTMLInputElement)
+				input.Type = "number"
+				input.Name = "part-qty-" + partID
+				input.Value = "123"
+				span2.AppendChild(input)
+				li2.AppendChild(span2)
+
+				// li2.Class().Add("stock-item")
 				li2.SetAttribute("data-type", "part")
 				li2.SetAttribute("data-id", fmt.Sprintf("%d", part.ID))
 				ul3.AppendChild(li2)
