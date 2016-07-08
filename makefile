@@ -72,7 +72,7 @@ appjs: dist/public/app.js
 dist/public/app.js: app/*.go shared/*.go
 	@mplayer -quiet audio/frontend-compile.ogg 2> /dev/null > /dev/null &
 	@mkdir -p dist/public/js
-	@gosimple app
+	cd app && gosimple
 	# cd app && gopherjs build *.go -o ../dist/public/app.js -m
 	# gopherjs build app/*.go -o dist/public/app.js -m
 	gopherjs build app/*.go -o dist/public/app.js -m
@@ -89,7 +89,7 @@ sv: dist/cmms-server
 
 dist/cmms-server: server/*.go shared/*.go
 	@mplayer -quiet audio/server-compile.oga 2> /dev/null > /dev/null &
-	@gosimple server
+	cd server && gosimple
 	go build -o dist/cmms-server server/*.go
 	@ls -l dist/cmms-server
 
