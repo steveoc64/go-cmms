@@ -1459,41 +1459,78 @@ func addTaskPartsTree(tree []shared.Category, ul *dom.HTMLUListElement, depth in
 		li.AppendChild(ul3)
 		if len(tv.Parts) > 0 {
 			for _, part := range tv.Parts {
+
 				partID := fmt.Sprintf("part-%d", part.ID)
+
 				li2 := doc.CreateElement("li")
-				li2.SetID(partID)
+				li2.Class().Add("part-editor")
 
-				span := doc.CreateElement("span")
-				span.SetInnerHTML(fmt.Sprintf(`%s : %s`, part.StockCode, part.Name))
-				li2.AppendChild(span)
+				s1 := doc.CreateElement("span")
+				s1.Class().Add("partlabel")
+				partLabel := doc.CreateElement("label").(*dom.HTMLLabelElement)
+				partLabel.SetInnerHTML(part.StockCode + " : " + part.Name)
+				partLabel.Class().Add("partlabel")
+				s1.AppendChild(partLabel)
 
-				/*
-					<div data-field-span=1>
-						<label>Stock code and part name</label>
-						<input type=number name=part-qty-id value=thevalue step=1>
-					</div>
+				s2 := doc.CreateElement("span")
+				s2.Class().Add("part-qty-input")
+				partInput := doc.CreateElement("input").(*dom.HTMLInputElement)
+				partInput.Type = "number"
+				partInput.Name = "part-qty-" + partID
+				partInput.Value = ""
+				partInput.Class().Add("part-qty-input")
+				s2.AppendChild(partInput)
 
-				*/
-				// div := doc.CreateElement("div")
-				// div.SetAttribute("data-field-span", "1")
-				// li2.AppendChild(div)
+				li2.AppendChild(s2)
+				li2.AppendChild(s1)
 
-				// label := doc.CreateElement("label").(*dom.HTMLLabelElement)
-				// label.SetInnerHTML(part.StockCode + " : " + part.Name)
-				// li2.AppendChild(label)
-
-				span2 := doc.CreateElement("span")
-				input := doc.CreateElement("input").(*dom.HTMLInputElement)
-				input.Type = "number"
-				input.Name = "part-qty-" + partID
-				input.Value = "123"
-				span2.AppendChild(input)
-				li2.AppendChild(span2)
-
-				// li2.Class().Add("stock-item")
-				li2.SetAttribute("data-type", "part")
-				li2.SetAttribute("data-id", fmt.Sprintf("%d", part.ID))
 				ul3.AppendChild(li2)
+
+				if false {
+
+					////
+					partID := fmt.Sprintf("part-%d", part.ID)
+					li2 := doc.CreateElement("li")
+					li2.Class().Add("file")
+					li2.SetID(partID)
+
+					span := doc.CreateElement("span")
+					span.Class().Add("partspan")
+					span.SetInnerHTML(fmt.Sprintf(`%s : %s`, part.StockCode, part.Name))
+					// li2.AppendChild(span)
+
+					/*
+						<div data-field-span=1>
+							<label>Stock code and part name</label>
+							<input type=number name=part-qty-id value=thevalue step=1>
+						</div>
+
+					*/
+					// div := doc.CreateElement("div")
+					// div.SetAttribute("data-field-span", "1")
+					// li2.AppendChild(div)
+
+					// label := doc.CreateElement("label").(*dom.HTMLLabelElement)
+					// label.SetInnerHTML(part.StockCode + " : " + part.Name)
+					// li2.AppendChild(label)
+
+					span2 := doc.CreateElement("span")
+					span2.Class().Add("qtyspan")
+					input := doc.CreateElement("input").(*dom.HTMLInputElement)
+					input.Type = "number"
+					input.Name = "part-qty-" + partID
+					input.Value = "123"
+					span2.AppendChild(input)
+					li2.AppendChild(span2)
+					// li2.AppendChild(input)
+
+					li2.AppendChild(span)
+
+					// li2.Class().Add("stock-item")
+					li2.SetAttribute("data-type", "part")
+					li2.SetAttribute("data-id", fmt.Sprintf("%d", part.ID))
+					ul3.AppendChild(li2)
+				}
 			}
 		} else {
 			if depth > 0 {

@@ -64,15 +64,17 @@ ol.tree
 			background: url(/img/css_tree/toggle-small-expand.png) 40px 0 no-repeat
 			margin: -0.938em 0 0 -44px /* 15px */
 			height: 1em
-			color: red
 
 		li input + ol > li
 			display: none
 			margin-left: -14px !important
 			padding-left: 1px
-			color: green
 
-	li label
+	li label .partlabel
+		background: red
+		display: inline-block
+
+	li label:not(.partlabel)
 		background: url(/img/css_tree/folder-horizontal.png) 15px 1px no-repeat
 		cursor: pointer
 		display: block
