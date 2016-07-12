@@ -25,8 +25,8 @@
 .css-treeview li.part-editor
 {
     background: transparent;
-    line-height: 22px;
-    height: 22px;
+    line-height: 32px;
+    height: 32px;
 }
 
 .css-treeview span.part-qty-input {
@@ -87,8 +87,8 @@
 
 .css-treeview input.part-qty-input
 {
-    line-height: 18px !important;
-    height: 18px !important;
+    line-height: 28px !important;
+    height: 28px !important;
     width: 120px !important;
     // background: red !important; 
     display: inline-block !important;
