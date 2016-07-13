@@ -308,41 +308,35 @@ func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
 	conn := Connections.Get(data.Channel)
 
 	// Generate the thumbnail
-	theImage := data.Photo.Photo[23:]
-	// print("The Image =", theImage[:80])
+
+	// theImage := data.Photo.Photo[23:]
+	theImage := ""
+	// println("The Image =", theImage[:80])
+	println("The Data =", data.Photo.Photo[:80])
+	switch data.Photo.Photo[:11] {
+	case "data:image/":
+		println("looks like an image", data.Photo.Photo[11:21])
+		if data.Photo.Photo[11:22] == "jpeg;base64" {
+			theImage = data.Photo.Photo[23:]
+		} else if data.Photo.Photo[11:21] == "png;base64" {
+			theImage = data.Photo.Photo[22:]
+		} else {
+			println("Unknown img format")
+			return nil
+		}
+	default:
+		println("unknown file format")
+		return nil
+	}
+
+	println("decode img data", theImage[:40])
+
 	reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(theImage))
 	m, _, err := image.Decode(reader)
 	if err != nil {
 		println("Decode Error", err.Error())
 		// log.Fatal(err)
 	} else {
-
-		// bounds := m.Bounds()
-
-		// // Calculate a 16-bin histogram for m's red, green, blue and alpha components.
-		// //
-		// // An image's bounds do not necessarily start at (0, 0), so the two loops start
-		// // at bounds.Min.Y and bounds.Min.X. Looping over Y first and X second is more
-		// // likely to result in better memory access patterns than X first and Y second.
-		// var histogram [16][4]int
-		// for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		// 	for x := bounds.Min.X; x < bounds.Max.X; x++ {
-		// 		r, g, b, a := m.At(x, y).RGBA()
-		// 		// A color's RGBA method returns values in the range [0, 65535].
-		// 		// Shifting by 12 reduces this to the range [0, 15].
-		// 		histogram[r>>12][0]++
-		// 		histogram[g>>12][1]++
-		// 		histogram[b>>12][2]++
-		// 		histogram[a>>12][3]++
-		// 	}
-		// }
-
-		// // Print the results.
-		// fmt.Printf("%-14s %6s %6s %6s %6s\n", "bin", "red", "green", "blue", "alpha")
-		// for i, x := range histogram {
-		// 	fmt.Printf("0x%04x-0x%04x: %6d %6d %6d %6d\n", i<<12, (i+1)<<12-1, x[0], x[1], x[2], x[3])
-		// }
-
 		// create the thumbnail and a preview
 		var tb bytes.Buffer
 		thumb := resize.Resize(64, 0, m, resize.Lanczos3)
@@ -355,15 +349,6 @@ func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
 		encoder = base64.NewEncoder(base64.StdEncoding, &pb)
 		jpeg.Encode(encoder, preview, &jpeg.Options{Quality: 95})
 		data.Photo.Preview = "data:image/jpeg;base64," + pb.String()
-
-		// out, err := os.Create(fmt.Sprintf("public/thumbs/%d.jpg", *newID))
-		// if err != nil {
-		// 	log.Fatal(err)
-		// }
-		// defer out.Close()
-
-		// // write new image to file
-		// jpeg.Encode(out, thumb, nil)
 	}
 
 	// Save the data, and get a new ID

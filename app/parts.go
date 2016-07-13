@@ -22,6 +22,7 @@ func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
 		li := doc.CreateElement("li")
 		li.SetID(widgetID)
 		chek := doc.CreateElement("input").(*dom.HTMLInputElement)
+		chek.Class().Add("cheka")
 		chek.Type = "checkbox"
 		li.AppendChild(chek)
 		label := doc.CreateElement("label")
@@ -29,6 +30,7 @@ func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
 		label.SetInnerHTML(tv.Name)
 		label.SetAttribute("data-type", "category")
 		label.SetAttribute("data-id", fmt.Sprintf("%d", tv.ID))
+		label.Class().Add("category")
 		label.SetID(widgetID + "-label")
 		chek.SetAttribute("data-type", "category")
 		chek.SetAttribute("data-id", fmt.Sprintf("%d", tv.ID))
@@ -201,11 +203,12 @@ func partsList(context *router.Context) {
 				tree = append(tree, newCat)
 
 				// Manually create a new entry in the DOM for the newly created category
-				ul := doc.QuerySelector(".css-treeview").(*dom.HTMLUListElement)
+				ul := doc.QuerySelector(".treeview").(*dom.HTMLUListElement)
 				widgetID := fmt.Sprintf("category-%d", newCatID)
 				li := doc.CreateElement("li")
 				li.SetID(widgetID)
 				chek := doc.CreateElement("input").(*dom.HTMLInputElement)
+				chek.Class().Add("cheka")
 				chek.Type = "checkbox"
 				li.AppendChild(chek)
 				label := doc.CreateElement("label")
@@ -213,6 +216,7 @@ func partsList(context *router.Context) {
 				label.SetInnerHTML(newCat.Name)
 				label.SetAttribute("data-type", "category")
 				label.SetAttribute("data-id", fmt.Sprintf("%d", newCatID))
+				label.Class().Add("category")
 				label.SetID(widgetID + "-label")
 				chek.SetAttribute("data-type", "category")
 				chek.SetAttribute("data-id", fmt.Sprintf("%d", newCatID))
@@ -238,7 +242,7 @@ func partsList(context *router.Context) {
 
 		// Create the Tree's UL element
 		ul := doc.CreateElement("ul").(*dom.HTMLUListElement)
-		ul.SetClass("css-treeview")
+		ul.SetClass("treeview")
 
 		// Recursively add elements to the tree
 		addTree(tree, ul, 0)
@@ -285,6 +289,7 @@ func partsList(context *router.Context) {
 				label.SetInnerHTML("New Category")
 				label.SetAttribute("data-type", "category")
 				label.SetAttribute("data-id", fmt.Sprintf("%d", newCat))
+				label.Class().Add("category")
 				label.SetID(widgetID + "-label")
 				chek.SetAttribute("data-type", "category")
 				chek.SetAttribute("data-id", fmt.Sprintf("%d", newCat))

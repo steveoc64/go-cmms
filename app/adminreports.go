@@ -286,7 +286,7 @@ func phototest(context *router.Context) {
 
 		for _, v := range photos {
 			ename := fmt.Sprintf(`[name=Thumbnail-%d]`, v.ID)
-			print("ename = ", ename)
+			print("ename = ", ename, v.ID)
 			el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
 			el.Src = v.Thumbnail
 		}

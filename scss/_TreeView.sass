@@ -1,0 +1,117 @@
+.treeview
+    -moz-user-select: none
+    -webkit-user-select: none
+    user-select: none
+
+    ul,li
+        padding: 0
+        margin: 0
+        list-style: none
+
+    li.part-editor
+        background: transparent
+        line-height: 2em
+        height: 2em
+
+    input.cheka
+        position: absolute
+        opacity: .4
+
+    a
+        color: #00f
+        text-decoration: none
+        height: 2em
+        line-height: 2em
+
+    a:hover
+        text-decoration: underline
+    
+    .stock-item
+        color: #004A66
+        text-decoration: none
+        height: 2em
+        line-height: 2em
+        // font-size: 20px;
+
+    .stock-item:hover
+        text-decoration: underline
+        background-color: #dde
+
+    input + label + ul
+        margin: 0 0 0 2em
+
+    input ~ ul
+        display: none
+
+    input:disabled + label
+        cursor: default
+        opacity: .6
+
+    input:checked:not(:disabled) ~ ul
+        display: block
+
+    label, label::before
+        cursor: pointer
+
+    input.part-qty-input
+        line-height: 3em !important
+        height: 3em !important
+        width: 12em !important
+        display: inline-block !important
+        border: 1px solid #002 !important
+
+    .category
+        display: inline-block
+        height: 1.6em
+        line-height: 2em
+        vertical-align: top       
+        margin: 0 0 0 22px  // top right bottom left 
+        background-position: 18px 0
+
+        &::before
+            content: " "
+            background: url("/img/css3-treeview/icons.png") no-repeat;
+            background-position: 0 -32px
+            display: inline-block
+            margin: 0 2px 0 0
+        
+    // label.category, label:category::before
+    //     background: url("/img/css3-treeview/icons.png") no-repeat;
+ 
+    // label.category, label.category::before
+    //     display: inline-block
+    //     height: 1.6em
+    //     line-height: 2em
+    //     vertical-align: middle       
+
+    // label.category
+    //     // background-position: 18px 0
+    //     background-position: 1px 0
+
+    // label.category::before
+    //     content: ""
+    //     width: 0
+    //     margin: 0 2px 0 0
+    //     vertical-align: middle
+    //     background-position: 0 -32px
+
+    label.partlabel
+        display: inline-block !important
+
+    label.partlabel::before
+        width: 44em
+        margin: 0 0 0 0
+ 
+    input:checked + label::before
+        background-position: 0 -16px
+ 
+/* webkit adjacent element selector bugfix */
+@media screen and (-webkit-min-device-pixel-ratio:0)
+    .treeview 
+        -webkit-animation: webkit-adjacent-element-selector-bugfix infinite 1s;
+ 
+    @-webkit-keyframes webkit-adjacent-element-selector-bugfix 
+        from 
+            padding: 0;
+        to 
+            padding: 0;

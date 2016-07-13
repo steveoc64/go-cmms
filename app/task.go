@@ -402,7 +402,7 @@ func _taskEdit(action string, id int) {
 
 			// Create the Tree's UL element
 			ul := doc.CreateElement("ul").(*dom.HTMLUListElement)
-			ul.SetClass("css-treeview")
+			ul.SetClass("treeview")
 
 			// Fetch the complete parts tree from the backend
 			go func() {

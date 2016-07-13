@@ -212,3 +212,16 @@ insert into migration (name) values ('Add photo on event');
 
 alter table users add can_allocate bool not null default false;
 insert into migration (name) values ('User can allocate flag');
+
+-- 2016 07 13
+-- additional photos on event
+
+
+create table phototest2 (
+	id serial not null primary key,
+	name text,
+	photo []text,
+	preview []text,
+	thumbnail []text
+);
+
