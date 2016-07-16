@@ -264,13 +264,13 @@ func machineTypes(context *router.Context) {
 		form.ImgColumn("Photo", "PhotoThumbnail")
 		form.BoolColumn("Elec", "Electrical")
 		form.BoolColumn("Hyd", "Hydraulic")
-		form.BoolColumn("Pn", "Pnuematic")
+		form.BoolColumn("Pnue", "Pnuematic")
 		form.BoolColumn("Lube", "Lube")
-		form.BoolColumn("Prn", "Printer")
-		form.BoolColumn("Cons", "Console")
+		form.BoolColumn("Prnt", "Printer")
+		form.BoolColumn("Cnsl", "Console")
 		form.BoolColumn("Unclr", "Uncoiler")
-		form.BoolColumn("Rollb", "Rollbed")
-		form.BoolColumn("Conv", "Conveyor")
+		form.BoolColumn("Rlbd", "Rollbed")
+		form.BoolColumn("Cnvyr", "Conveyor")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -389,6 +389,9 @@ func machineTypeEdit(context *router.Context) {
 		// Layout the fields
 		form.Row(1).
 			AddInput(1, "Name", "Name")
+
+		form.Row(1).
+			AddPreview(1, "Photo", "PhotoPreview")
 
 		form.Row(3).
 			AddCheck(1, "Electrical", "Electrical").

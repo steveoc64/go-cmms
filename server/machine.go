@@ -183,7 +183,8 @@ func (m *MachineRPC) GetMachineType(data shared.MachineTypeRPCData, machineType 
 	conn := Connections.Get(data.Channel)
 	// log.Println("conn", conn)
 
-	DB.Select(`*`).
+	DB.Select(`id,name,photo_preview,
+		electrical,hydraulic,pnuematic,lube,printer,console,uncoiler,rollbed,conveyor`).
 		From(`machine_type`).
 		Where(`id=$1`, data.ID).
 		QueryStruct(machineType)
