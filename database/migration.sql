@@ -225,3 +225,11 @@ create table phototest2 (
 	thumbnail []text
 );
 
+-- 2016 07 16
+-- more photos
+
+alter table machine_type add photo text not null default '';
+alter table machine_type add photo_preview text not null default '';
+alter table machine_type add photo_thumbnail text not null default '';
+
+insert into migration (name) values ('Add more photo fields');

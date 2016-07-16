@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/steveoc64/go-cmms/shared"
+	"itrak-cmms/shared"
 )
 
 // PartRPC exported struct for catching RPC calls

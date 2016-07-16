@@ -10,7 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/steveoc64/go-cmms/shared"
+	"itrak-cmms/shared"
+
 	"golang.org/x/net/websocket"
 )
 

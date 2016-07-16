@@ -9,7 +9,7 @@ import (
 	"time"
 
 	// "github.com/jung-kurt/gofpdf"
-	"github.com/steveoc64/go-cmms/shared"
+	"itrak-cmms/shared"
 	// "github.com/jung-kurt/gofpdf"
 	// "github.com/signintech/gopdf"
 )

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/steveoc64/go-cmms/shared"
+	"itrak-cmms/shared"
 )
 
 func GetSMSBalance() (int, error) {

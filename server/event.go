@@ -12,7 +12,7 @@ import (
 
 	"github.com/nfnt/resize"
 
-	"github.com/steveoc64/go-cmms/shared"
+	"itrak-cmms/shared"
 )
 
 type EventRPC struct{}

@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 
+	"itrak-cmms/shared"
+
 	"github.com/gopherjs/gopherjs/js"
-	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
 )
 

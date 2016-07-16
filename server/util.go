@@ -12,8 +12,9 @@ import (
 	"strings"
 	"time"
 
+	"itrak-cmms/shared"
+
 	"github.com/nfnt/resize"
-	"github.com/steveoc64/go-cmms/shared"
 )
 
 type UtilRPC struct{}

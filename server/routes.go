@@ -1,6 +1,6 @@
 package main
 
-import "github.com/steveoc64/go-cmms/shared"
+import "itrak-cmms/shared"
 
 func getRoutes(uid int, role string) []shared.UserRoute {
 

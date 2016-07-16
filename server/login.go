@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/steveoc64/go-cmms/shared"
+	"itrak-cmms/shared"
 )
 
 type LoginRPC struct{}

@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/steveoc64/go-cmms/shared"
+	"itrak-cmms/shared"
 )
 
 type MachineRPC struct{}
@@ -162,9 +162,10 @@ func (m *MachineRPC) MachineTypes(data shared.MachineRPCData, machineTypes *[]sh
 
 	// log.Println("here", data)
 	conn := Connections.Get(data.Channel)
-	// log.Println("conn", conn)
 
-	DB.Select(`*`).From(`machine_type`).OrderBy(`name`).QueryStructs(machineTypes)
+	DB.Select(`id,name,photo_thumbnail,
+		electrical,hydraulic,pnuematic,lube,printer,console,uncoiler,rollbed,conveyor`).
+		From(`machine_type`).OrderBy(`name`).QueryStructs(machineTypes)
 
 	logger(start, "Machine.MachineTypes",
 		fmt.Sprintf("Channel %d, User %d %s %s",

@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"strconv"
 
+	"itrak-cmms/shared"
+
 	"github.com/go-humble/router"
 	"github.com/steveoc64/formulate"
-	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
 )
 
-// "github.com/steveoc64/go-cmms/shared"
+// "itrak-cmms/shared"
 // "honnef.co/go/js/dom"
 
 // Show a list of all machines for the given site
@@ -260,6 +261,16 @@ func machineTypes(context *router.Context) {
 
 		// Define the layout
 		form.Column("Name", "Name")
+		form.ImgColumn("Photo", "PhotoThumbnail")
+		form.BoolColumn("Elec", "Electrical")
+		form.BoolColumn("Hyd", "Hydraulic")
+		form.BoolColumn("Pn", "Pnuematic")
+		form.BoolColumn("Lube", "Lube")
+		form.BoolColumn("Prn", "Printer")
+		form.BoolColumn("Cons", "Console")
+		form.BoolColumn("Unclr", "Uncoiler")
+		form.BoolColumn("Rollb", "Rollbed")
+		form.BoolColumn("Conv", "Conveyor")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -279,6 +290,19 @@ func machineTypes(context *router.Context) {
 		})
 
 		form.Render("machine-type", "main", data)
+
+		// manually patch the images in for now
+		// TODO - refactor the image display code to be part of the list widget
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		for _, v := range data {
+			if v.PhotoThumbnail != "" {
+				ename := fmt.Sprintf(`[name=PhotoThumbnail-%d]`, v.ID)
+				el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
+				el.Src = v.PhotoThumbnail
+			}
+		}
 
 	}()
 }

@@ -11,8 +11,9 @@ import (
 	"net"
 	"net/rpc"
 
+	"itrak-cmms/shared"
+
 	"github.com/gopherjs/websocket"
-	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
 )
 

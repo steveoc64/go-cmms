@@ -204,18 +204,21 @@ func (c *Component) GetClass() string {
 }
 
 type MachineType struct {
-	ID         int    `db:"id"`
-	Name       string `db:"name"`
-	Electrical bool   `db:"electrical"`
-	Hydraulic  bool   `db:"hydraulic"`
-	Pnuematic  bool   `db:"pnuematic"`
-	Lube       bool   `db:"lube"`
-	Printer    bool   `db:"printer"`
-	Console    bool   `db:"console"`
-	Uncoiler   bool   `db:"uncoiler"`
-	Rollbed    bool   `db:"rollbed"`
-	Conveyor   bool   `db:"conveyor"`
-	NumTools   int    `db:"num_tools"`
+	ID             int    `db:"id"`
+	Name           string `db:"name"`
+	Photo          string `db:"photo"`
+	PhotoPreview   string `db:"photo_preview"`
+	PhotoThumbnail string `db:"photo_thumbnail"`
+	Electrical     bool   `db:"electrical"`
+	Hydraulic      bool   `db:"hydraulic"`
+	Pnuematic      bool   `db:"pnuematic"`
+	Lube           bool   `db:"lube"`
+	Printer        bool   `db:"printer"`
+	Console        bool   `db:"console"`
+	Uncoiler       bool   `db:"uncoiler"`
+	Rollbed        bool   `db:"rollbed"`
+	Conveyor       bool   `db:"conveyor"`
+	NumTools       int    `db:"num_tools"`
 }
 
 type MachineTypeRPCData struct {

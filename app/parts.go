@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"strconv"
 
+	"itrak-cmms/shared"
+
 	"github.com/go-humble/router"
 	"github.com/steveoc64/formulate"
-	"github.com/steveoc64/go-cmms/shared"
 	"honnef.co/go/js/dom"
 )
 
