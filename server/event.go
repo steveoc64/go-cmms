@@ -1,16 +1,12 @@
 package main
 
 import (
-	"bytes"
-	"encoding/base64"
+
+	// "encoding/base64"
 	"fmt"
-	"image"
-	"image/jpeg"
 	"log"
 	"strings"
 	"time"
-
-	"github.com/nfnt/resize"
 
 	"itrak-cmms/shared"
 )
@@ -46,25 +42,26 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 	// Process the photo if present
 	if issue.Photo != "" {
 
-		theImage := issue.Photo[23:]
-		reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(theImage))
-		m, _, err := image.Decode(reader)
-		if err != nil {
-			println("Decode Error", err.Error())
-		} else {
-			// create the thumbnail and a preview
-			var tb bytes.Buffer
-			thumb := resize.Resize(64, 0, m, resize.Lanczos3)
-			encoder := base64.NewEncoder(base64.StdEncoding, &tb)
-			jpeg.Encode(encoder, thumb, &jpeg.Options{Quality: 95})
-			evt.PhotoThumbnail = "data:image/jpeg;base64," + tb.String()
+		decodePhoto(issue.Photo, &evt.PhotoPreview, &evt.PhotoThumbnail)
+		// theImage := issue.Photo[23:]
+		// reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(theImage))
+		// m, _, err := image.Decode(reader)
+		// if err != nil {
+		// 	println("Decode Error", err.Error())
+		// } else {
+		// 	// create the thumbnail and a preview
+		// 	var tb bytes.Buffer
+		// 	thumb := resize.Resize(64, 0, m, resize.Lanczos3)
+		// 	encoder := base64.NewEncoder(base64.StdEncoding, &tb)
+		// 	jpeg.Encode(encoder, thumb, &jpeg.Options{Quality: 95})
+		// 	evt.PhotoThumbnail = "data:image/jpeg;base64," + tb.String()
 
-			var pb bytes.Buffer
-			preview := resize.Resize(240, 0, m, resize.Lanczos3)
-			encoder = base64.NewEncoder(base64.StdEncoding, &pb)
-			jpeg.Encode(encoder, preview, &jpeg.Options{Quality: 95})
-			evt.PhotoPreview = "data:image/jpeg;base64," + pb.String()
-		}
+		// 	var pb bytes.Buffer
+		// 	preview := resize.Resize(240, 0, m, resize.Lanczos3)
+		// 	encoder = base64.NewEncoder(base64.StdEncoding, &pb)
+		// 	jpeg.Encode(encoder, preview, &jpeg.Options{Quality: 95})
+		// 	evt.PhotoPreview = "data:image/jpeg;base64," + pb.String()
+		// }
 	}
 
 	DB.InsertInto("event").
@@ -512,6 +509,16 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 		QueryScalar(&task.ID)
 
 	*id = task.ID
+
+	// if there is a new photo attached, then process it
+	if data.NewPhoto != "" {
+		task.Photo1 = data.NewPhoto
+		decodePhoto(task.Photo1, &task.Preview1, &task.Thumb1)
+		DB.Update("task").
+			SetWhitelist(task, "photo1", "preview1", "thumb1").
+			Where("id=$1", task.ID).
+			Exec()
+	}
 
 	// Stamp the event as assigned
 	DB.SQL(`update event set status='Assigned' where id=$1`, data.Event.ID).Exec()

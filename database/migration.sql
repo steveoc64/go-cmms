@@ -241,3 +241,19 @@ alter table category add machine_type int not null default 0;
 alter table category add machine_tool int not null default 0;
 
 insert into migration (name) values ('Add machine type link on category');
+
+-- Attach photos to the actual task
+
+alter table task add photo1 text not null default '';
+alter table task add photo2 text not null default '';
+alter table task add photo3 text not null default '';
+
+alter table task add preview1 text not null default '';
+alter table task add preview2 text not null default '';
+alter table task add preview3 text not null default '';
+
+alter table task add thumb1 text not null default '';
+alter table task add thumb2 text not null default '';
+alter table task add thumb3 text not null default '';
+
+insert into migration (name) values ('More photos on the task');

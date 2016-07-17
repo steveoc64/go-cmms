@@ -173,6 +173,18 @@ type Task struct {
 	AllDone           bool        `db:"all_done"`
 	IsRead            bool        `db:"is_read"`
 	ReadDate          *time.Time  `db:"read_date"`
+	StoppagePreview   string      `db:"stoppage_preview"`
+	StoppageThumbnail string      `db:"stoppage_thumbnail"`
+	NewPhoto          string      `db:"new_photo"`
+	Photo1            string      `db:"photo1"`
+	Photo2            string      `db:"photo2"`
+	Photo3            string      `db:"photo3"`
+	Preview1          string      `db:"preview1"`
+	Preview2          string      `db:"preview2"`
+	Preview3          string      `db:"preview3"`
+	Thumb1            string      `db:"thumb1"`
+	Thumb2            string      `db:"thumb2"`
+	Thumb3            string      `db:"thumb3"`
 }
 
 type TaskRPCData struct {

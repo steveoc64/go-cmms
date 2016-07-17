@@ -60,6 +60,8 @@ type AssignEvent struct {
 	DisplayDate string
 	Username    string
 	Notes       string
+	NewPhoto    string
+	Preview     string
 }
 
 type EventRPCData struct {

@@ -336,6 +336,11 @@ func (t *TaskRPC) Update(data shared.TaskRPCData, updatedTask *shared.Task) erro
 			Exec()
 	}
 
+	// If there is a new photo to be added to the task, then add it
+	if data.Task.NewPhoto != "" {
+		println("Adding new photo", data.Task.NewPhoto)
+	}
+
 	// If assigned to, then re-calc the labour cost if the hours have changed
 	if oldTask.LabourHrs != data.Task.LabourHrs {
 		if data.Task.AssignedTo != nil {
@@ -434,8 +439,26 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 	}
 
 	for i, v := range *tasks {
+
+		// clear out the photo and preview, just leave the thumb
+		(*tasks)[i].Photo1 = ""
+		(*tasks)[i].Photo2 = ""
+		(*tasks)[i].Photo3 = ""
+		(*tasks)[i].Preview1 = ""
+		(*tasks)[i].Preview2 = ""
+		(*tasks)[i].Preview3 = ""
+
+		// trim the description
 		if len(v.Descr) > 80 {
 			(*tasks)[i].Descr = fmt.Sprintf("%s ...", v.Descr[:80])
+		}
+
+		// get the parent stoppage thumbnail
+		thumb := ""
+		DB.SQL(`select photo_thumbnail from event where id=$1`, v.EventID).
+			QueryScalar(&thumb)
+		if thumb != "" {
+			(*tasks)[i].StoppageThumbnail = thumb
 		}
 	}
 	// // Read the sites that this user has access to
@@ -556,6 +579,9 @@ func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 
 	// Now get all the checks for this task
 	DB.SQL(`select * from task_check where task_id=$1`, data.ID).QueryStructs(&task.Checks)
+
+	// Get the parent stoppage thumbnail
+	DB.SQL(`select photo_preview from event where id=$1`, task.EventID).QueryScalar(&task.StoppagePreview)
 
 	// Now, if the user requesting this read is the person assigned to, then
 	// stamp the task as having been read

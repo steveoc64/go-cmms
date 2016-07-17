@@ -7,6 +7,8 @@ import (
 
 	"itrak-cmms/shared"
 
+	"github.com/gopherjs/gopherjs/js"
+
 	"github.com/go-humble/router"
 	"github.com/steveoc64/formulate"
 	"honnef.co/go/js/dom"
@@ -388,6 +390,8 @@ func stoppageNewTask(context *router.Context) {
 			StartDate:   &now1,
 			DueDate:     &now2,
 			Notes:       event.Notes,
+			NewPhoto:    "",
+			Preview:     event.PhotoPreview,
 		}
 
 		title := fmt.Sprintf("Raise Task for Stoppage - %06d", id)
@@ -414,6 +418,10 @@ func stoppageNewTask(context *router.Context) {
 			AddDate(1, "Workorder Start Date", "StartDate").
 			AddDate(1, "Workorder Due Date", "DueDate")
 
+		form.Row(2).
+			AddPhoto(1, "Photos", "NewPhoto").
+			AddPreview(1, "", "Preview")
+
 		form.Row(1).
 			AddBigTextarea(1, "Notes", "Notes")
 
@@ -437,6 +445,28 @@ func stoppageNewTask(context *router.Context) {
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &assign)
+
+		// on load new photo
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		// add a handler on the photo field
+		if el := doc.QuerySelector("[name=NewPhoto]").(*dom.HTMLInputElement); el != nil {
+			el.AddEventListener("change", false, func(evt dom.Event) {
+				files := el.Files()
+				fileReader := js.Global.Get("FileReader").New()
+				fileReader.Set("onload", func(e *js.Object) {
+					target := e.Get("target")
+					imgData := target.Get("result").String()
+					//print("imgdata =", imgData)
+					imgEl := doc.QuerySelector("[name=NewPhoto-Preview").(*dom.HTMLImageElement)
+					imgEl.Src = imgData
+					imgEl.Class().Remove("hidden")
+				})
+				fileReader.Call("readAsDataURL", files[0])
+			})
+
+		}
 
 	}()
 

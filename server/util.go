@@ -303,24 +303,23 @@ func (u *UtilRPC) Cats(channel int, result *string) error {
 	return nil
 }
 
-func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
-	start := time.Now()
+func decodePhoto(photo string, preview *string, thumbnail *string) error {
 
-	conn := Connections.Get(data.Channel)
-
-	// Generate the thumbnail
-
-	// theImage := data.Photo.Photo[23:]
+	if photo == "" {
+		print("photo is empty")
+		*preview = ""
+		*thumbnail = ""
+		return nil
+	}
 	theImage := ""
-	// println("The Image =", theImage[:80])
-	println("The Data =", data.Photo.Photo[:80])
-	switch data.Photo.Photo[:11] {
+	println("Decode Photo Data =", photo[:80], "...")
+	switch photo[:11] {
 	case "data:image/":
-		println("looks like an image", data.Photo.Photo[11:21])
-		if data.Photo.Photo[11:22] == "jpeg;base64" {
-			theImage = data.Photo.Photo[23:]
-		} else if data.Photo.Photo[11:21] == "png;base64" {
-			theImage = data.Photo.Photo[22:]
+		println("looks like an image", photo[11:21])
+		if photo[11:22] == "jpeg;base64" {
+			theImage = photo[23:]
+		} else if photo[11:21] == "png;base64" {
+			theImage = photo[22:]
 		} else {
 			println("Unknown img format")
 			return nil
@@ -330,8 +329,6 @@ func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
 		return nil
 	}
 
-	println("decode img data", theImage[:40])
-
 	reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(theImage))
 	m, _, err := image.Decode(reader)
 	if err != nil {
@@ -340,17 +337,27 @@ func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
 	} else {
 		// create the thumbnail and a preview
 		var tb bytes.Buffer
-		thumb := resize.Resize(64, 0, m, resize.Lanczos3)
+		thumbVar := resize.Resize(64, 0, m, resize.Lanczos3)
 		encoder := base64.NewEncoder(base64.StdEncoding, &tb)
-		jpeg.Encode(encoder, thumb, &jpeg.Options{Quality: 95})
-		data.Photo.Thumbnail = "data:image/jpeg;base64," + tb.String()
+		jpeg.Encode(encoder, thumbVar, &jpeg.Options{Quality: 95})
+		*thumbnail = "data:image/jpeg;base64," + tb.String()
 
 		var pb bytes.Buffer
-		preview := resize.Resize(240, 0, m, resize.Lanczos3)
+		previewVar := resize.Resize(240, 0, m, resize.Lanczos3)
 		encoder = base64.NewEncoder(base64.StdEncoding, &pb)
-		jpeg.Encode(encoder, preview, &jpeg.Options{Quality: 95})
-		data.Photo.Preview = "data:image/jpeg;base64," + pb.String()
+		jpeg.Encode(encoder, previewVar, &jpeg.Options{Quality: 95})
+		*preview = "data:image/jpeg;base64," + pb.String()
 	}
+
+	return nil
+}
+
+func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	decodePhoto(data.Photo.Photo, &data.Photo.Preview, &data.Photo.Thumbnail)
 
 	// Save the data, and get a new ID
 	DB.InsertInto("phototest").

@@ -8,6 +8,8 @@ import (
 
 	"itrak-cmms/shared"
 
+	"github.com/gopherjs/gopherjs/js"
+
 	"github.com/go-humble/router"
 	"github.com/steveoc64/formulate"
 	"honnef.co/go/js/dom"
@@ -208,6 +210,13 @@ func _taskEdit(action string, id int) {
 			AddDisplay(1, "Machine", "MachineName").
 			AddDisplay(1, "Component", "Component")
 
+		form.Row(5).
+			AddPhoto(1, "Photos", "NewPhoto").
+			AddPreview(1, "", "StoppagePreview").
+			AddPreview(1, "", "Preview1").
+			AddPreview(1, "", "Preview2").
+			AddPreview(1, "", "Preview3")
+
 		form.Row(1).
 			AddTextarea(1, "Notes", "Log")
 
@@ -241,6 +250,13 @@ func _taskEdit(action string, id int) {
 			AddDisplay(1, "Site", "SiteName").
 			AddDisplay(1, "Machine", "MachineName").
 			AddDisplay(1, "Component", "Component")
+
+		form.Row(5).
+			AddPhoto(1, "Photos", "NewPhoto").
+			AddPreview(1, "", "StoppagePreview").
+			AddPreview(1, "", "Preview1").
+			AddPreview(1, "", "Preview2").
+			AddPreview(1, "", "Preview3")
 
 		form.Row(1).
 			AddDisplayArea(1, "Notes", "Log")
@@ -279,6 +295,13 @@ func _taskEdit(action string, id int) {
 			AddDisplay(1, "Site", "SiteName").
 			AddDisplay(1, "Machine", "MachineName").
 			AddDisplay(1, "Component", "Component")
+
+		form.Row(5).
+			AddPhoto(1, "Photos", "NewPhoto").
+			AddPreview(1, "", "StoppagePreview").
+			AddPreview(1, "", "Preview1").
+			AddPreview(1, "", "Preview2").
+			AddPreview(1, "", "Preview3")
 
 		if task.CompletedDate == nil {
 			form.Row(1).
@@ -362,6 +385,24 @@ func _taskEdit(action string, id int) {
 
 	w := dom.GetWindow()
 	doc := w.Document()
+
+	// add a handler on the photo field
+	if el := doc.QuerySelector("[name=NewPhoto]").(*dom.HTMLInputElement); el != nil {
+		el.AddEventListener("change", false, func(evt dom.Event) {
+			files := el.Files()
+			fileReader := js.Global.Get("FileReader").New()
+			fileReader.Set("onload", func(e *js.Object) {
+				target := e.Get("target")
+				imgData := target.Get("result").String()
+				//print("imgdata =", imgData)
+				imgEl := doc.QuerySelector("[name=NewPhoto-Preview").(*dom.HTMLImageElement)
+				imgEl.Src = imgData
+				imgEl.Class().Remove("hidden")
+			})
+			fileReader.Call("readAsDataURL", files[0])
+		})
+
+	}
 
 	// on change of the labour hrs, update the all done flag
 	if useRole == "Admin" || task.CompletedDate == nil {
@@ -479,6 +520,7 @@ func _taskList(action string, id int) {
 		form.BoolColumn("Read", "IsRead")
 	}
 	form.Column("TaskID", "GetID")
+	form.ImgColumn("Photo", "StoppageThumbnail")
 	form.Column("Date", "GetStartDate")
 	// form.Column("Due", "GetDueDate")
 	form.Column("Site", "SiteName")
