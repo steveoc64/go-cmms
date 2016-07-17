@@ -384,7 +384,7 @@ func _siteMachines(action string, id int) {
 	data := SiteMachineData{}
 
 	nonTools := []string{
-		"Electrical", "Hydraulic", "Pnuematic", "Lube", "Printer", "Console", "Uncoiler", "Rollbed",
+		"Electrical", "Hydraulic", "Pnuematic", "Lube", "Printer", "Console", "Uncoiler", "Rollbed", "Conveyor",
 	}
 
 	RefreshURL := fmt.Sprintf("/sitemachines/%d", id)
@@ -400,6 +400,8 @@ func _siteMachines(action string, id int) {
 		Channel: Session.Channel,
 		ID:      id,
 	}, &data.Machines)
+
+	print("got machines", data.Machines)
 	if err != nil {
 		print("RPC error", err.Error())
 	} else {
@@ -437,11 +439,11 @@ func _siteMachines(action string, id int) {
 					for !foundOne && !hitEnd {
 						tooltype = t1.GetAttribute("tooltype")
 						if tooltype != "" {
-							print("clickd on ", t1.TagName(), " with tooltype =", tooltype)
+							// print("clickd on ", t1.TagName(), " with tooltype =", tooltype)
 							foundOne = true
 						} else {
 							t1 = t1.ParentElement()
-							print("stepping up to parent", t1.TagName())
+							// print("stepping up to parent", t1.TagName())
 							switch t1.TagName() {
 							case "div", "body", "DIV", "BODY", "HTML":
 								hitEnd = true

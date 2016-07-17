@@ -45,6 +45,12 @@ func (m *MachineRPC) Get(data shared.MachineRPCData, machine *shared.Machine) er
 		OrderBy("position,zindex,lower(name)").
 		QueryStructs(&machine.Components)
 
+	// fetch some basic info, flags and thumbnail from the parent machine type
+	DB.Select(`name,photo_thumbnail,electrical,hydraulic,pnuematic,lube,printer,console,uncoiler,rollbed,conveyor`).
+		From(`machine_type`).
+		Where(`id=$1`, machine.MachineType).
+		QueryStruct(&machine.MachineTypeData)
+
 	logger(start, "Machine.Get",
 		fmt.Sprintf("%d", data.ID),
 		machine.Name,
@@ -94,7 +100,7 @@ func (m *MachineRPC) Update(data shared.MachineRPCData, ok *bool) error {
 
 	DB.Update("machine").
 		SetWhitelist(data.Machine, "name", "serialnum", "descr", "notes",
-			"alerts_to", "tasks_to", "part_class").
+			"alerts_to", "tasks_to", "machine_type").
 		Where("id = $1", data.Machine.ID).
 		Exec()
 
@@ -119,7 +125,7 @@ func (m *MachineRPC) Insert(data shared.MachineRPCData, id *int) error {
 	*id = 0
 	DB.InsertInto("machine").
 		Columns("name", "serialnum", "descr", "notes", "site_id",
-			"alerts_to", "tasks_to", "part_class").
+			"alerts_to", "tasks_to", "machine_type").
 		Record(data.Machine).
 		Returning("id").
 		QueryScalar(id)

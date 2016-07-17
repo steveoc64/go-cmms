@@ -70,49 +70,63 @@
   </defs>
 
   <!-- Add picture for uncoiler -->
+  {{if .Uncoiler}}
   <g stroke="#114" stroke-width="2" class="fillhover">    
     <title>Raise Event on Uncoiler</title>
     <polygon points="30,90 0,148 60,148" fill="url(#grad1)"/>
     <circle cx="30" cy="90" r="30" fill="{{.NonToolBg}}"/>
   </g>
+  {{end}}
 
   <!-- Add buttons for elec, etc -->
+  {{if .Electrical}}
   <g stroke="#114" stroke-width="1" class="fillhover">
     <title>Electrical</title>
     <rect x="0" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
           fill="{{.NonToolBg}}"/>
     <image xlink:href="/img/elec.png" x="1" y="2" height="38px" width="38px"/>
   </g>  
+  {{end}}
+  {{if .Hydraulic}}
   <g stroke="#114" stroke-width="1" class="fillhover">
     <title>Hydraulic</title>
     <rect x="50" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
           fill="{{.NonToolBg}}"/>
     <image xlink:href="/img/hydraulic.png" x="51" y="2" height="38px" width="38px"/>
   </g>
+  {{end}}
+  {{if .Pnuematic}}
   <g stroke="#114" stroke-width="1" class="fillhover">
     <title>Pnuematic</title>
     <rect x="100" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
           fill="{{.NonToolBg}}"/>
     <image xlink:href="/img/pnue.png" x="101" y="2" height="38px" width="38px"/>
   </g>
+  {{end}}
+  {{if .Lube}}
   <g stroke="#114" stroke-width="1" class="fillhover">
     <title>Lube</title>
     <rect x="150" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
           fill="{{.NonToolBg}}"/>
     <image xlink:href="/img/lube.png" x="151" y="2" height="38px" width="38px"/>
   </g>
+  {{end}}
+  {{if .Printer}}
   <g stroke="#114" stroke-width="1" class="fillhover">
     <title>Printer</title>
     <rect x="200" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
           fill="{{.NonToolBg}}"/>
     <image xlink:href="/img/printer.png" x="201" y="2" height="38px" width="38px"/>
   </g>
+  {{end}}
+  {{if .Console}}
   <g stroke="#114" stroke-width="1" class="fillhover">
     <title>Console</title>
     <rect x="250" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
           fill="{{.NonToolBg}}"/>
     <image xlink:href="/img/console.png" x="251" y="2" height="38px" width="38px"/>
   </g>
+  {{end}}
 
   <!-- Add main rectangle -->
   <rect x="80" y="100" width="{{.SVGWidth2}}" 
@@ -123,6 +137,8 @@
   <g stroke="black" fill="{{.SVGStatus}}">
     <circle cx="{{.SVGX}}" cy="125" r="18"/>
   </g>
+
+  {{if .Rollbed}}
   <g stroke="#114" stroke-width="2" class="fillhover">
     <title>Roll Bed</title>
 
@@ -139,6 +155,7 @@
     <circle cx="200" cy="73" r="6" fill="#ccc"/>
     <circle cx="200" cy="87" r="6" fill="#ccc"/>
   </g>
+  {{end}}
 
   <!-- Now draw all the tools     -->
   {{range $index,$tool := .Tools}}
@@ -156,9 +173,11 @@
   {{end}}
 
   <!-- Now draw the conveyor -->
+  {{if .Conveyor}}
   <rect x="80" y="150" rx="10" ry="10" width="{{.SVGWidth2}}" 
     height="22" stroke="black" stroke-width="2" fill="url(#grad1)"
     class="hoverme"/>
   <text transform="translate(100 164)" style="font-size: 14;">Conveyor</text>
+  {{end}}
 
 </svg>

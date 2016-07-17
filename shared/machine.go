@@ -16,36 +16,37 @@ type MachineReq struct {
 }
 
 type Machine struct {
-	ID          int         `db:"id"`
-	SiteID      int         `db:"site_id"`
-	Name        string      `db:"name"`
-	Descr       string      `db:"descr"`
-	Make        string      `db:"make"`
-	Model       string      `db:"model"`
-	Serialnum   string      `db:"serialnum"`
-	IsRunning   bool        `db:"is_running"`
-	Status      string      `db:"status"`
-	Stopped     *time.Time  `db:"stopped_at"`
-	Started     *time.Time  `db:"started_at"`
-	Alert       *time.Time  `db:"alert_at"`
-	Picture     string      `db:"picture"`
-	SiteName    *string     `db:"site_name"`
-	Span        *string     `db:"span"`
-	Notes       string      `db:"notes"`
-	Electrical  string      `db:"electrical"`
-	Hydraulic   string      `db:"hydraulic"`
-	Pnuematic   string      `db:"pnuematic"`
-	Conveyor    string      `db:"conveyor"`
-	Printer     string      `db:"printer"`
-	Console     string      `db:"console"`
-	Rollbed     string      `db:"rollbed"`
-	Uncoiler    string      `db:"uncoiler"`
-	Lube        string      `db:"lube"`
-	AlertsTo    int         `db:"alerts_to"`
-	TasksTo     int         `db:"tasks_to"`
-	Components  []Component `db:"components"`
-	PartClass   int         `db:"part_class"`
-	MachineType int         `db:"machine_type"`
+	ID              int         `db:"id"`
+	SiteID          int         `db:"site_id"`
+	Name            string      `db:"name"`
+	Descr           string      `db:"descr"`
+	Make            string      `db:"make"`
+	Model           string      `db:"model"`
+	Serialnum       string      `db:"serialnum"`
+	IsRunning       bool        `db:"is_running"`
+	Status          string      `db:"status"`
+	Stopped         *time.Time  `db:"stopped_at"`
+	Started         *time.Time  `db:"started_at"`
+	Alert           *time.Time  `db:"alert_at"`
+	Picture         string      `db:"picture"`
+	SiteName        *string     `db:"site_name"`
+	Span            *string     `db:"span"`
+	Notes           string      `db:"notes"`
+	Electrical      string      `db:"electrical"`
+	Hydraulic       string      `db:"hydraulic"`
+	Pnuematic       string      `db:"pnuematic"`
+	Conveyor        string      `db:"conveyor"`
+	Printer         string      `db:"printer"`
+	Console         string      `db:"console"`
+	Rollbed         string      `db:"rollbed"`
+	Uncoiler        string      `db:"uncoiler"`
+	Lube            string      `db:"lube"`
+	AlertsTo        int         `db:"alerts_to"`
+	TasksTo         int         `db:"tasks_to"`
+	Components      []Component `db:"components"`
+	PartClass       int         `db:"part_class"`
+	MachineType     int         `db:"machine_type"`
+	MachineTypeData MachineType `db:"machine_type_data"`
 }
 
 type MachineRPCData struct {
@@ -110,6 +111,24 @@ func (m *Machine) SVGX() string {
 		i = 400
 	}
 	return fmt.Sprintf("%d", i-26)
+}
+
+func (m *Machine) ConveyorWheel(wheel int) string {
+	i := 200 + (len(m.Components) * 50)
+	if i < 300 {
+		i = 300
+	}
+	switch wheel {
+	case 1:
+		return "90"
+	case 2:
+		return fmt.Sprintf("%d", 90+(i/3))
+	case 3:
+		return fmt.Sprintf("%d", 90+(2*i/3))
+	case 4:
+		return fmt.Sprintf("%d", 90+i)
+	}
+	return "90"
 }
 
 func (m *Machine) SVGStatus() string {

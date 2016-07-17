@@ -80,7 +80,8 @@ func machineEdit(context *router.Context) {
 		machine := shared.Machine{}
 		users := []shared.User{}
 		technicians := []shared.User{}
-		classes := []shared.PartClass{}
+		// classes := []shared.PartClass{}
+		machineTypes := []shared.MachineType{}
 
 		rpcClient.Call("MachineRPC.Get", shared.MachineRPCData{
 			Channel: Session.Channel,
@@ -94,13 +95,17 @@ func machineEdit(context *router.Context) {
 			Channel: Session.Channel,
 			ID:      machine.SiteID,
 		}, &technicians)
-		rpcClient.Call("PartRPC.ClassList", Session.Channel, &classes)
+		// rpcClient.Call("PartRPC.ClassList", Session.Channel, &classes)
+		rpcClient.Call("MachineRPC.MachineTypes", shared.MachineRPCData{
+			Channel: Session.Channel,
+		}, &machineTypes)
 
 		BackURL := fmt.Sprintf("/site/machine/%d", machine.SiteID)
 		title := fmt.Sprintf("Machine Details - %s - %s", machine.Name, *machine.SiteName)
 		form := formulate.EditForm{}
 		form.New("fa-cogs", title)
 
+		print("machine =", machine)
 		// Layout the fields
 
 		form.Row(3).
@@ -109,9 +114,9 @@ func machineEdit(context *router.Context) {
 			Add(1, "Status", "text", "Status", "disabled")
 
 		form.Row(1).
-			AddSelect(1, "Machine Type (for classification of Parts)", "PartClass",
-				classes, "ID", "Name",
-				1, machine.PartClass)
+			AddSelect(1, "Machine Type", "MachineType",
+				machineTypes, "ID", "Name",
+				1, machine.MachineType)
 
 		form.Row(1).
 			AddInput(1, "Descrpition", "Descr")
@@ -439,7 +444,7 @@ func machineTypeEdit(context *router.Context) {
 					ID:          id,
 					MachineType: &machineType,
 				}, &done)
-				Session.Navigate(BackURL)
+				Session.Reload(context)
 			}()
 		})
 

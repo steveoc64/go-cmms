@@ -31,6 +31,10 @@ func (s *GlobalSessionData) Subscribe(msg string, fn MessageFunction) {
 	s.Subscriptions[msg] = fn
 }
 
+func (s *GlobalSessionData) Reload(context *router.Context) {
+	s.Router.Navigate(context.Path)
+}
+
 func main() {
 
 	initRouter()
