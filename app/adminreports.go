@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 
 	"itrak-cmms/shared"
@@ -282,15 +281,15 @@ func phototest(context *router.Context) {
 		form.Render("photo-list", "main", photos)
 
 		// manually set thumbnails on the fields for now, until formulate is refactored
-		w := dom.GetWindow()
-		doc := w.Document()
+		// w := dom.GetWindow()
+		// doc := w.Document()
 
-		for _, v := range photos {
-			ename := fmt.Sprintf(`[name=Thumbnail-%d]`, v.ID)
-			print("ename = ", ename, v.ID)
-			el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
-			el.Src = v.Thumbnail
-		}
+		// for _, v := range photos {
+		// 	ename := fmt.Sprintf(`[name=Thumbnail-%d]`, v.ID)
+		// 	print("ename = ", ename, v.ID)
+		// 	el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
+		// 	el.Src = v.Thumbnail
+		// }
 	}()
 }
 
