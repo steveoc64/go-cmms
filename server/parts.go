@@ -425,7 +425,8 @@ func (p *PartRPC) UpdateCategory(data shared.CategoryRPCData, done *bool) error 
 	conn := Connections.Get(data.Channel)
 
 	DB.Update("category").
-		SetWhitelist(data.Category, "name", "descr", "stock_code").
+		SetWhitelist(data.Category, "name", "descr", "stock_code",
+			"machine_type", "machine_tool").
 		Where("id = $1", data.Category.ID).
 		Exec()
 

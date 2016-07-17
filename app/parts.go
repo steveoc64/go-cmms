@@ -90,6 +90,14 @@ func partsList(context *router.Context) {
 		}, &tree)
 		print("got tree", tree)
 
+		machineTypes := []shared.MachineType{}
+		rpcClient.Call("MachineRPC.MachineTypes", shared.MachineRPCData{
+			Channel: Session.Channel,
+		}, &machineTypes)
+		print("machine types", machineTypes)
+
+		machineTools := []shared.MachineTypeTool{}
+
 		BackURL := "/"
 
 		form := formulate.EditForm{}
@@ -109,6 +117,11 @@ func partsList(context *router.Context) {
 		catPanel.AddRow(1).AddInput(1, "Category Name", "CatName")
 		catPanel.AddRow(1).AddInput(1, "Stock Code", "CatStockCode")
 		catPanel.AddRow(1).AddInput(1, "Description", "CatDescr")
+		catPanel.AddRow(2).
+			AddSelect(1, "Machine Type", "MachineType",
+				machineTypes, "ID", "Name", 0, 0).
+			AddSelect(1, "Tool", "MachineTool",
+				machineTools, "ID", "Name", 0, 0)
 
 		catPanel.Row(4).
 			AddButton(1, "Save", "SaveCat").

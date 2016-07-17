@@ -15,7 +15,7 @@
 
     input.cheka
         position: absolute
-        opacity: .4
+        opacity: .0
 
     a
         color: #00f
@@ -33,9 +33,9 @@
         line-height: 2em
         // font-size: 20px;
 
-    .stock-item:hover
-        text-decoration: underline
-        background-color: #dde
+        &:hover
+            text-decoration: underline
+            background-color: #dde
 
     input + label + ul
         margin: 0 0 0 2em
@@ -53,8 +53,8 @@
     label, label::before
         cursor: pointer
 
-    input.part-qty-input
-        line-height: 3em !important
+    .part-qty-input
+        line-height: 2em !important
         height: 3em !important
         width: 12em !important
         display: inline-block !important
@@ -68,6 +68,10 @@
         margin: 0 0 0 22px  // top right bottom left 
         background-position: 18px 0
 
+        &:hover
+            text-decoration: underline
+            background-color: #dde
+
         &::before
             content: " "
             background: url("/img/css3-treeview/icons.png") no-repeat;
@@ -75,25 +79,25 @@
             display: inline-block
             margin: 0 2px 0 0
         
-    // label.category, label:category::before
-    //     background: url("/img/css3-treeview/icons.png") no-repeat;
+    label.category, label:category::before
+        background: url("/img/css3-treeview/icons.png") no-repeat;
  
-    // label.category, label.category::before
-    //     display: inline-block
-    //     height: 1.6em
-    //     line-height: 2em
-    //     vertical-align: middle       
+    label.category, label.category::before
+        display: inline-block
+        height: 1.6em
+        line-height: 2em
+        vertical-align: middle       
 
-    // label.category
-    //     // background-position: 18px 0
-    //     background-position: 1px 0
+    label.category
+        // background-position: 18px 0
+        background-position: 1px 0
 
-    // label.category::before
-    //     content: ""
-    //     width: 0
-    //     margin: 0 2px 0 0
-    //     vertical-align: middle
-    //     background-position: 0 -32px
+    label.category::before
+        content: " "
+        width: 0
+        margin: 0 2px 0 0
+        vertical-align: middle
+        background-position: 0 -32px
 
     label.partlabel
         display: inline-block !important

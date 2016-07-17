@@ -233,3 +233,11 @@ alter table machine_type add photo_preview text not null default '';
 alter table machine_type add photo_thumbnail text not null default '';
 
 insert into migration (name) values ('Add more photo fields');
+
+-- 2016 07 17
+-- link category to machine type
+
+alter table category add machine_type int not null default 0;
+alter table category add machine_tool int not null default 0;
+
+insert into migration (name) values ('Add machine type link on category');

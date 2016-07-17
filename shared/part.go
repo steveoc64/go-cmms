@@ -13,15 +13,17 @@ type PartClass struct {
 }
 
 type Category struct {
-	ID         int        `db:"id"`
-	ParentID   int        `db:"parent_id"`
-	Name       string     `db:"name"`
-	Descr      string     `db:"descr"`
-	StockCode  string     `db:"stock_code"`
-	Parts      []Part     `db:"parts"`
-	Subcats    []Category `db:"subcats"`
-	NumParts   int        `db:"num_parts"`
-	NumSubcats int        `db:"num_subcats"`
+	ID          int        `db:"id"`
+	ParentID    int        `db:"parent_id"`
+	Name        string     `db:"name"`
+	Descr       string     `db:"descr"`
+	StockCode   string     `db:"stock_code"`
+	Parts       []Part     `db:"parts"`
+	Subcats     []Category `db:"subcats"`
+	NumParts    int        `db:"num_parts"`
+	NumSubcats  int        `db:"num_subcats"`
+	MachineType int        `db:"machine_type"`
+	MachineTool int        `db:"machine_tool"`
 }
 
 type CategoryRPCData struct {
