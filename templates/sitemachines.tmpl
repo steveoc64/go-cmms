@@ -156,23 +156,29 @@
             fill="{{.NonToolBg .Hydraulic}}"/>
       <image xlink:href="/img/hydraulic.png" x="51" y="2" height="38px" width="38px"/>
     </g>
-    <g stroke="#114" stroke-width="1" class="fillhover" tooltype="Component" component="Lube">
-      <title>Lube</title>
+    <g stroke="#114" stroke-width="1" class="fillhover" tooltype="Component" component="Pnuematic">
+      <title>Pnuematic</title>
       <rect x="100" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
             fill="{{.NonToolBg .Lube}}"/>
-      <image xlink:href="/img/lube.png" x="101" y="2" height="38px" width="38px"/>
+      <image xlink:href="/img/pnue.png" x="101" y="2" height="38px" width="38px"/>
+    </g>
+     <g stroke="#114" stroke-width="1" class="fillhover" tooltype="Component" component="Lube">
+      <title>Lube</title>
+      <rect x="150" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
+            fill="{{.NonToolBg .Lube}}"/>
+      <image xlink:href="/img/lube.png" x="151" y="2" height="38px" width="38px"/>
     </g>
     <g stroke="#114" stroke-width="1" class="fillhover" tooltype="Component" component="Printer">
       <title>Printer</title>
-      <rect x="150" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
+      <rect x="200" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
             fill="{{.NonToolBg .Printer}}"/>
-      <image xlink:href="/img/printer.png" x="151" y="2" height="38px" width="38px"/>
+      <image xlink:href="/img/printer.png" x="201" y="2" height="38px" width="38px"/>
     </g>
     <g stroke="#114" stroke-width="1" class="fillhover" tooltype="Component" component="Console">
       <title>Console</title>
-      <rect x="200" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
+      <rect x="250" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
             fill="{{.NonToolBg .Console}}"/>
-      <image xlink:href="/img/console.png" x="201" y="2" height="38px" width="38px"/>
+      <image xlink:href="/img/console.png" x="251" y="2" height="38px" width="38px"/>
     </g>
     
     <!-- Add main rectangle -->
@@ -184,7 +190,7 @@
     <g stroke="black" fill="{{.SVGStatus}}">
       <circle cx="{{.SVGX}}" cy="125" r="18"/>
     </g>
-    <g stroke="#114" stroke-width="2" class="fillhover">
+    <g stroke="#114" stroke-width="2" class="fillhover" tooltype="Component" component="Rollbed">
       <title>Roll Bed</title>
   
     <rect x="80" y="60" width="30" height="40" fill="{{.NonToolBg .Rollbed}}"/>
@@ -217,6 +223,13 @@
       </a>
     </svg>
     {{end}}
+
+  <!-- Now draw the conveyor -->
+  <rect x="80" y="150" rx="10" ry="10" width="{{.SVGWidth2}}" 
+    height="22" stroke="black" stroke-width="2" fill="url(#grad1)"
+    class="hoverme"/>
+  <text transform="translate(100 164)" style="font-size: 14;">Conveyor</text>
+
 
     </svg>
 

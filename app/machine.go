@@ -600,7 +600,7 @@ func machineTypeToolEdit(context *router.Context) {
 			ID:      id,
 		}, &machineType)
 
-		print("got machine type", machineType)
+		// print("got machine type", machineType)
 
 		machineTypeTool := shared.MachineTypeTool{}
 

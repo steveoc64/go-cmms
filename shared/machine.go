@@ -89,7 +89,7 @@ func (m *Machine) GetStatus(nontool string) string {
 }
 
 func (m *Machine) SVGWidth1() string {
-	i := 250 + (len(m.Components) * 50)
+	i := 300 + (len(m.Components) * 50)
 	if i < 400 {
 		i = 400
 	}
@@ -97,7 +97,7 @@ func (m *Machine) SVGWidth1() string {
 }
 
 func (m *Machine) SVGWidth2() string {
-	i := 170 + (len(m.Components) * 50)
+	i := 220 + (len(m.Components) * 50)
 	if i < 320 {
 		i = 320
 	}
@@ -105,7 +105,7 @@ func (m *Machine) SVGWidth2() string {
 }
 
 func (m *Machine) SVGX() string {
-	i := 250 + (len(m.Components) * 50)
+	i := 300 + (len(m.Components) * 50)
 	if i < 400 {
 		i = 400
 	}
@@ -160,7 +160,7 @@ type Component struct {
 }
 
 func (c *Component) SVGX(index int) string {
-	return fmt.Sprintf("%d", 250+(index*50))
+	return fmt.Sprintf("%d", 300+(index*50))
 }
 
 func (c *Component) SVGName(index int) string {
@@ -232,7 +232,7 @@ type MachineType struct {
 }
 
 func (m *MachineType) SVGWidth1() string {
-	i := 250 + (m.NumTools * 50)
+	i := 300 + (m.NumTools * 50)
 	if i < 400 {
 		i = 400
 	}
@@ -240,7 +240,7 @@ func (m *MachineType) SVGWidth1() string {
 }
 
 func (m *MachineType) SVGWidth2() string {
-	i := 170 + (m.NumTools * 50)
+	i := 220 + (m.NumTools * 50)
 	if i < 320 {
 		i = 320
 	}
@@ -248,7 +248,7 @@ func (m *MachineType) SVGWidth2() string {
 }
 
 func (m *MachineType) SVGX() string {
-	i := 250 + (m.NumTools * 50)
+	i := 300 + (m.NumTools * 50)
 	if i < 400 {
 		i = 400
 	}
@@ -276,7 +276,7 @@ type MachineTypeTool struct {
 }
 
 func (c *MachineTypeTool) SVGX(index int) string {
-	return fmt.Sprintf("%d", 250+(index*50))
+	return fmt.Sprintf("%d", 300+(index*50))
 }
 
 func (c *MachineTypeTool) SVGName(index int) string {
