@@ -220,9 +220,9 @@ insert into migration (name) values ('User can allocate flag');
 create table phototest2 (
 	id serial not null primary key,
 	name text,
-	photo []text,
-	preview []text,
-	thumbnail []text
+	photo text[],
+	preview text[],
+	thumbnail text[]
 );
 
 -- 2016 07 16

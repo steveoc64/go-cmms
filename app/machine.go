@@ -105,7 +105,6 @@ func machineEdit(context *router.Context) {
 		form := formulate.EditForm{}
 		form.New("fa-cogs", title)
 
-		print("machine =", machine)
 		// Layout the fields
 
 		form.Row(3).
@@ -117,6 +116,9 @@ func machineEdit(context *router.Context) {
 			AddSelect(1, "Machine Type", "MachineType",
 				machineTypes, "ID", "Name",
 				1, machine.MachineType)
+
+		form.Row(1).
+			AddCustom(1, "Diagram", "Diag", "")
 
 		form.Row(1).
 			AddInput(1, "Descrpition", "Descr")
@@ -156,7 +158,8 @@ func machineEdit(context *router.Context) {
 					Channel: Session.Channel,
 					Machine: &machine,
 				}, &done)
-				Session.Navigate(BackURL)
+				// Session.Navigate(BackURL)
+				Session.Reload(context)
 			}()
 		})
 
@@ -166,6 +169,29 @@ func machineEdit(context *router.Context) {
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &machine)
+
+		// render the machine diagram
+
+		loadTemplate("machine-diag", "[name=Diag]", &shared.RaiseIssue{Machine: &machine})
+
+		// on change the machine type, save and refresh
+		w := dom.GetWindow()
+		doc := w.Document()
+		el := doc.QuerySelector("[name=MachineType]")
+		if el != nil {
+			doc.QuerySelector("[name=MachineType]").AddEventListener("change", false, func(evt dom.Event) {
+				form.Bind(&machine)
+				go func() {
+					done := false
+					rpcClient.Call("MachineRPC.Update", shared.MachineRPCData{
+						Channel: Session.Channel,
+						Machine: &machine,
+					}, &done)
+					// Session.Navigate(BackURL)
+					Session.Reload(context)
+				}()
+			})
+		}
 
 		// And attach actions
 		form.ActionGrid("machine-actions", "#action-grid", machine.ID, func(url string) {
