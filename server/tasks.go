@@ -615,6 +615,14 @@ func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 	// Get the parent stoppage thumbnail
 	DB.SQL(`select photo_preview from event where id=$1`, task.EventID).QueryScalar(&task.StoppagePreview)
 
+	// and only pass our preview images
+	task.Photo1 = ""
+	task.Photo2 = ""
+	task.Photo3 = ""
+	task.Thumb1 = ""
+	task.Thumb2 = ""
+	task.Thumb3 = ""
+
 	// Now, if the user requesting this read is the person assigned to, then
 	// stamp the task as having been read
 	if !task.IsRead && task.AssignedTo != nil && conn.UserID == *task.AssignedTo {
