@@ -322,9 +322,18 @@ func machineTypes(context *router.Context) {
 
 		form.Render("machine-type", "main", data)
 
-		// w := dom.GetWindow()
-		// doc := w.Document()
+		w := dom.GetWindow()
+		doc := w.Document()
 
+		el := doc.QuerySelector(".grid-form")
+		print("el", el)
+		if el != nil {
+
+			doc.QuerySelector(".grid-form").AddEventListener("change", false, func(evt dom.Event) {
+				print("something changed")
+
+			})
+		}
 		// for _, v := range data {
 		// 	if v.PhotoThumbnail != "" {
 		// 		ename := fmt.Sprintf(`[name=PhotoThumbnail-%d]`, v.ID)
