@@ -521,6 +521,7 @@ func _taskList(action string, id int) {
 	}
 	form.Column("TaskID", "GetID")
 	form.ImgColumn("Photo", "StoppageThumbnail")
+	form.ImgColumn("Photo", "Thumb1")
 	form.Column("Date", "GetStartDate")
 	// form.Column("Due", "GetDueDate")
 	form.Column("Site", "SiteName")
@@ -1423,6 +1424,10 @@ func stoppageTaskList(context *router.Context) {
 
 		form.Column("User", "Username")
 		form.Column("TaskID", "ID")
+		form.ImgColumn("Photo", "StoppageThumbnail")
+		form.ImgColumn("Photo", "Thumb1")
+		// form.ImgColumn("", "Thumb2")
+		// form.ImgColumn("", "Thumb3")
 		form.Column("Date", "GetStartDate")
 		// form.Column("Due", "GetDueDate")
 		form.Column("Site", "SiteName")

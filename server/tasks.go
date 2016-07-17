@@ -337,8 +337,40 @@ func (t *TaskRPC) Update(data shared.TaskRPCData, updatedTask *shared.Task) erro
 	}
 
 	// If there is a new photo to be added to the task, then add it
+	// TEMP CODE - this needs to be refactored soon to handle proper arrays
+	// or split to another table
 	if data.Task.NewPhoto != "" {
-		println("Adding new photo", data.Task.NewPhoto)
+		// println("Adding new photo", data.Task.NewPhoto)
+		prev := ""
+		thumb := ""
+		decodePhoto(data.Task.NewPhoto, &prev, &thumb)
+		if oldTask.Photo1 == "" {
+			data.Task.Photo1 = data.Task.NewPhoto
+			data.Task.Preview1 = prev
+			data.Task.Thumb1 = thumb
+			DB.Update("task").
+				SetWhitelist(data.Task, "photo1", "preview1", "thumb1").
+				Where("id=$1", data.Task.ID).
+				Exec()
+		} else if oldTask.Photo2 == "" {
+			data.Task.Photo2 = data.Task.NewPhoto
+			data.Task.Preview2 = prev
+			data.Task.Thumb2 = thumb
+			DB.Update("task").
+				SetWhitelist(data.Task, "photo2", "preview2", "thumb2").
+				Where("id=$1", data.Task.ID).
+				Exec()
+
+		} else {
+			// overwrite slot 3 for now
+			data.Task.Photo3 = data.Task.NewPhoto
+			data.Task.Preview3 = prev
+			data.Task.Thumb3 = thumb
+			DB.Update("task").
+				SetWhitelist(data.Task, "photo3", "preview3", "thumb3").
+				Where("id=$1", data.Task.ID).
+				Exec()
+		}
 	}
 
 	// If assigned to, then re-calc the labour cost if the hours have changed
@@ -677,6 +709,21 @@ func (t *TaskRPC) StoppageList(data shared.TaskRPCData, tasks *[]shared.Task) er
 
 	if err != nil {
 		log.Println(err.Error())
+	}
+
+	// clear out the photos and previews, just return the thumbnails
+	// and get the thumbnail for the stoppage
+	for k, v := range *tasks {
+		(*tasks)[k].Photo1 = ""
+		(*tasks)[k].Photo2 = ""
+		(*tasks)[k].Photo3 = ""
+		(*tasks)[k].Preview1 = ""
+		(*tasks)[k].Preview2 = ""
+		(*tasks)[k].Preview3 = ""
+		sthumb := ""
+		DB.SQL("select photo_thumbnail from event where id=$1", v.EventID).
+			QueryScalar(&sthumb)
+		(*tasks)[k].StoppageThumbnail = sthumb
 	}
 
 	// logger(start, "Task.SiteList",
