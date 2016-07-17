@@ -17,6 +17,9 @@
         position: absolute
         opacity: .0
 
+    input.qtycheka
+        opacity: .3
+
     a
         color: #00f
         text-decoration: none
@@ -43,12 +46,12 @@
     input ~ ul
         display: none
 
+        &:checked:not(:disabled)
+            display: block
+
     input:disabled + label
         cursor: default
         opacity: .6
-
-    input:checked:not(:disabled) ~ ul
-        display: block
 
     label, label::before
         cursor: pointer
@@ -79,7 +82,7 @@
             display: inline-block
             margin: 0 2px 0 0
         
-    label.category, label:category::before
+    label.category, label.category::before
         background: url("/img/css3-treeview/icons.png") no-repeat;
  
     label.category, label.category::before
@@ -89,8 +92,8 @@
         vertical-align: middle       
 
     label.category
-        // background-position: 18px 0
-        background-position: 1px 0
+        background-position: 18px 0
+        // background-position: 1px 0
 
     label.category::before
         content: " "

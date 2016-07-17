@@ -1475,6 +1475,7 @@ func addTaskPartsTree(tree []shared.Category, ul *dom.HTMLUListElement, depth in
 		li := doc.CreateElement("li")
 		li.SetID(widgetID)
 		chek := doc.CreateElement("input").(*dom.HTMLInputElement)
+		chek.Class().Add("qtycheka")
 		chek.Type = "checkbox"
 		li.AppendChild(chek)
 		label := doc.CreateElement("label")
