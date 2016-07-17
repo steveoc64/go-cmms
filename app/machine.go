@@ -378,7 +378,7 @@ func machineTypeEdit(context *router.Context) {
 			ID:      id,
 		}, &machineType)
 
-		print("got machine type", machineType)
+		// print("got machine type", machineType)
 
 		BackURL := "/machinetypes"
 		title := fmt.Sprintf("Machine Type Details - %s", machineType.Name)
@@ -388,6 +388,9 @@ func machineTypeEdit(context *router.Context) {
 		// Layout the fields
 		form.Row(1).
 			AddInput(1, "Name", "Name")
+
+		form.Row(1).
+			AddCustom(1, "Diagram", "Diag", "")
 
 		form.Row(1).
 			AddPreview(1, "Photo", "PhotoPreview")
@@ -446,6 +449,10 @@ func machineTypeEdit(context *router.Context) {
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &machineType)
+
+		// Add a machine diag to the form
+		// print("mt =", machineType)
+		loadTemplate("machine-type-diag", "[name=Diag]", &machineType)
 
 		// And attach actions
 		form.ActionGrid("machine-type-actions", "#action-grid", id, func(url string) {

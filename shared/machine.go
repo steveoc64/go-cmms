@@ -90,17 +90,26 @@ func (m *Machine) GetStatus(nontool string) string {
 
 func (m *Machine) SVGWidth1() string {
 	i := 250 + (len(m.Components) * 50)
+	if i < 400 {
+		i = 400
+	}
 	return fmt.Sprintf("%d", i)
 }
 
 func (m *Machine) SVGWidth2() string {
 	i := 170 + (len(m.Components) * 50)
+	if i < 320 {
+		i = 320
+	}
 	return fmt.Sprintf("%d", i)
 }
 
 func (m *Machine) SVGX() string {
-	i := 250 + (len(m.Components) * 50) - 26
-	return fmt.Sprintf("%d", i)
+	i := 250 + (len(m.Components) * 50)
+	if i < 400 {
+		i = 400
+	}
+	return fmt.Sprintf("%d", i-26)
 }
 
 func (m *Machine) SVGStatus() string {
@@ -204,21 +213,54 @@ func (c *Component) GetClass() string {
 }
 
 type MachineType struct {
-	ID             int    `db:"id"`
-	Name           string `db:"name"`
-	Photo          string `db:"photo"`
-	PhotoPreview   string `db:"photo_preview"`
-	PhotoThumbnail string `db:"photo_thumbnail"`
-	Electrical     bool   `db:"electrical"`
-	Hydraulic      bool   `db:"hydraulic"`
-	Pnuematic      bool   `db:"pnuematic"`
-	Lube           bool   `db:"lube"`
-	Printer        bool   `db:"printer"`
-	Console        bool   `db:"console"`
-	Uncoiler       bool   `db:"uncoiler"`
-	Rollbed        bool   `db:"rollbed"`
-	Conveyor       bool   `db:"conveyor"`
-	NumTools       int    `db:"num_tools"`
+	ID             int               `db:"id"`
+	Name           string            `db:"name"`
+	Photo          string            `db:"photo"`
+	PhotoPreview   string            `db:"photo_preview"`
+	PhotoThumbnail string            `db:"photo_thumbnail"`
+	Electrical     bool              `db:"electrical"`
+	Hydraulic      bool              `db:"hydraulic"`
+	Pnuematic      bool              `db:"pnuematic"`
+	Lube           bool              `db:"lube"`
+	Printer        bool              `db:"printer"`
+	Console        bool              `db:"console"`
+	Uncoiler       bool              `db:"uncoiler"`
+	Rollbed        bool              `db:"rollbed"`
+	Conveyor       bool              `db:"conveyor"`
+	NumTools       int               `db:"num_tools"`
+	Tools          []MachineTypeTool `db:"tools"`
+}
+
+func (m *MachineType) SVGWidth1() string {
+	i := 250 + (m.NumTools * 50)
+	if i < 400 {
+		i = 400
+	}
+	return fmt.Sprintf("%d", i)
+}
+
+func (m *MachineType) SVGWidth2() string {
+	i := 170 + (m.NumTools * 50)
+	if i < 320 {
+		i = 320
+	}
+	return fmt.Sprintf("%d", i)
+}
+
+func (m *MachineType) SVGX() string {
+	i := 250 + (m.NumTools * 50)
+	if i < 400 {
+		i = 400
+	}
+	return fmt.Sprintf("%d", i-26)
+}
+
+func (m *MachineType) SVGStatus() string {
+	return "url(#GreenBtn)"
+}
+
+func (m *MachineType) NonToolBg() string {
+	return "url(#bgrad)"
 }
 
 type MachineTypeRPCData struct {
@@ -231,6 +273,26 @@ type MachineTypeTool struct {
 	MachineID int    `db:"machine_id"`
 	ID        int    `db:"position"`
 	Name      string `db:"name"`
+}
+
+func (c *MachineTypeTool) SVGX(index int) string {
+	return fmt.Sprintf("%d", 250+(index*50))
+}
+
+func (c *MachineTypeTool) SVGName(index int) string {
+	return fmt.Sprintf("%d", index+1)
+}
+
+func (c *MachineTypeTool) SVGFill() string {
+	return "white"
+}
+
+func (c *MachineTypeTool) SVGFill2(id int) string {
+	return "white"
+}
+
+func (c *MachineTypeTool) GetClass() string {
+	return "running"
 }
 
 type MachineTypeToolRPCData struct {

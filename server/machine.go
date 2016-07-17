@@ -189,8 +189,16 @@ func (m *MachineRPC) GetMachineType(data shared.MachineTypeRPCData, machineType 
 		Where(`id=$1`, data.ID).
 		QueryStruct(machineType)
 
+	// fetch the tool count
 	DB.SQL(`select count(*) as num_tools from machine_type_tool where machine_id=$1`, data.ID).
 		QueryScalar(&machineType.NumTools)
+
+	// fetch the actual tools
+	DB.Select(`position,name`).
+		From(`machine_type_tool`).
+		Where(`machine_id=$1`, data.ID).
+		OrderBy(`position`).
+		QueryStructs(&machineType.Tools)
 
 	logger(start, "Machine.GetMachineType",
 		fmt.Sprintf("Channel %d, ID %d User %d %s %s",
