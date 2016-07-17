@@ -336,7 +336,7 @@ func phototestEdit(context *router.Context) {
 			evt.PreventDefault()
 			print("update photo")
 			form.Bind(&photo)
-			print("bind the photo gives", photo)
+			// print("bind the photo gives", photo)
 			go func() {
 				done := false
 				rpcClient.Call("UtilRPC.UpdatePhoto", shared.PhotoRPCData{
