@@ -34,7 +34,7 @@ func Login(username string, passwd string, rem bool) {
 		Session.UserRole = lr.Role
 		Session.UserID = lr.ID
 		Session.CanAllocate = lr.CanAllocate
-		print("login =", Session)
+		// print("login =", Session)
 		hideLoginForm()
 	} else {
 		print("login failed")

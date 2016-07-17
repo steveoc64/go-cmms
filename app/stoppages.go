@@ -22,7 +22,7 @@ func _stoppageList(action string, id int) {
 	events := []shared.Event{}
 	rpcClient.Call("EventRPC.List", Session.Channel, &events)
 
-	print("events =", events)
+	// print("events =", events)
 
 	form := formulate.ListForm{}
 	form.New("fa-pause-circle-o", "Current Stoppages")
@@ -63,16 +63,16 @@ func _stoppageList(action string, id int) {
 	form.Render("stoppage-list", "main", events)
 
 	// manually display the images, until formulate is refactored
-	w := dom.GetWindow()
-	doc := w.Document()
-	for _, v := range events {
-		if v.PhotoThumbnail != "" {
-			ename := fmt.Sprintf(`[name=PhotoThumbnail-%d]`, v.ID)
-			print("ename = ", ename)
-			el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
-			el.Src = v.PhotoThumbnail
-		}
-	}
+	// w := dom.GetWindow()
+	// doc := w.Document()
+	// for _, v := range events {
+	// 	if v.PhotoThumbnail != "" {
+	// 		ename := fmt.Sprintf(`[name=PhotoThumbnail-%d]`, v.ID)
+	// 		print("ename = ", ename)
+	// 		el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
+	// 		el.Src = v.PhotoThumbnail
+	// 	}
+	// }
 
 	// completed events
 
@@ -113,14 +113,14 @@ func _stoppageList(action string, id int) {
 		cform.Render("cstoppage-list", "#cevent", cevents)
 
 		// manually display the images, until formulate is refactored
-		for _, v := range events {
-			if v.PhotoThumbnail != "" {
-				ename := fmt.Sprintf(`[name=PhotoThumbnail-%d]`, v.ID)
-				print("ename = ", ename)
-				el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
-				el.Src = v.PhotoThumbnail
-			}
-		}
+		// for _, v := range events {
+		// 	if v.PhotoThumbnail != "" {
+		// 		ename := fmt.Sprintf(`[name=PhotoThumbnail-%d]`, v.ID)
+		// 		print("ename = ", ename)
+		// 		el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
+		// 		el.Src = v.PhotoThumbnail
+		// 	}
+		// }
 
 	}
 
@@ -144,12 +144,12 @@ func _stoppageEdit(action string, id int) {
 
 	switch action {
 	case "edit":
-		print("manually edit")
+		// print("manually edit")
 	case "delete":
 		if id != Session.ID["event"] {
 			return
 		}
-		print("current record has been deleted")
+		// print("current record has been deleted")
 		Session.Navigate(BackURL)
 		return
 	default:

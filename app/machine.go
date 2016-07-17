@@ -253,7 +253,7 @@ func machineTypes(context *router.Context) {
 			Channel: Session.Channel,
 		}, &data)
 
-		print("got machine types", data)
+		// print("got machine types", data)
 		BackURL := "/"
 
 		form := formulate.ListForm{}
@@ -291,19 +291,18 @@ func machineTypes(context *router.Context) {
 
 		form.Render("machine-type", "main", data)
 
-		// manually patch the images in for now
-		// TODO - refactor the image display code to be part of the list widget
-		w := dom.GetWindow()
-		doc := w.Document()
+		// w := dom.GetWindow()
+		// doc := w.Document()
 
-		for _, v := range data {
-			if v.PhotoThumbnail != "" {
-				ename := fmt.Sprintf(`[name=PhotoThumbnail-%d]`, v.ID)
-				el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
-				el.Src = v.PhotoThumbnail
-			}
-		}
-
+		// for _, v := range data {
+		// 	if v.PhotoThumbnail != "" {
+		// 		ename := fmt.Sprintf(`[name=PhotoThumbnail-%d]`, v.ID)
+		// 		el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
+		// 		// print("img = ", el.Src)
+		// 		el.Src = v.PhotoThumbnail
+		// 	}
+		// }
+		// // print("fill in the img src inside the listform automatically")
 	}()
 }
 

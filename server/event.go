@@ -223,7 +223,7 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 		// to save transmission bandwidth
 		(*events)[i].Photo = ""
 		(*events)[i].PhotoPreview = ""
-		fmt.Printf("Evt %d: PhotoThumb %s\n", i, v.PhotoThumbnail)
+		// fmt.Printf("Evt %d: PhotoThumb %s\n", i, v.PhotoThumbnail)
 	}
 
 	logger(start, "Event.List",
@@ -301,7 +301,7 @@ func (e *EventRPC) ListCompleted(channel int, events *[]shared.Event) error {
 		// to save transmission bandwidth
 		(*events)[i].Photo = ""
 		(*events)[i].PhotoPreview = ""
-		fmt.Printf("Evt %d: PhotoThumb %s\n", i, v.PhotoThumbnail)
+		// fmt.Printf("Evt %d: PhotoThumb %s\n", i, v.PhotoThumbnail)
 	}
 
 	logger(start, "Event.ListCompleted",

@@ -168,7 +168,7 @@ func processAsync(method string, msg shared.AsyncMessage) {
 		Session.Channel = msg.ID
 		print("Set channel to", Session.Channel)
 	case "PingRPC.Ping":
-		print("Keepalive")
+		// print("Keepalive")
 	default:
 		print("Msg:", method, "Action:", msg.Action, "ID:", msg.ID)
 		fn := Session.Subscriptions[method]

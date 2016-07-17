@@ -69,7 +69,7 @@ dist/assets.log: assets/index.html assets/img/*  assets/fonts/* assets/css/*
 
 appjs: dist/public/app.js
 
-dist/public/app.js: app/*.go shared/*.go
+dist/public/app.js: app/*.go shared/*.go 
 	@mplayer -quiet audio/frontend-compile.ogg 2> /dev/null > /dev/null &
 	@mkdir -p dist/public/js
 	cd app && gosimple
