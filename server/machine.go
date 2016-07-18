@@ -366,3 +366,31 @@ func (m *MachineRPC) UpdateMachineTypeTool(data shared.MachineTypeToolRPCData, d
 	*done = true
 	return nil
 }
+
+func (m *MachineRPC) InsertMachineTypeTool(data shared.MachineTypeToolRPCData, id *int) error {
+	start := time.Now()
+	*id = 0
+
+	// log.Println("here", data.MachineType)
+	conn := Connections.Get(data.Channel)
+
+	// If there is already a record at this position, then shuffle them all down from here on
+	DB.SQL(`update machine_type_tool set position=(position+1) where machine_id=$1 and position >= $2`,
+		data.MachineTypeTool.MachineID,
+		data.MachineTypeTool.ID).
+		Exec()
+
+	DB.InsertInto("machine_type_tool").
+		Columns("machine_id", "position", "name").
+		Record(data.MachineTypeTool).
+		Exec()
+	*id = data.MachineTypeTool.ID
+
+	logger(start, "Machine.InsertMachineTypeTool",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d %v", *id, data.MachineTypeTool),
+		data.Channel, conn.UserID, "machine_type_tool", *id, true)
+
+	return nil
+}

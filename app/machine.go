@@ -608,7 +608,7 @@ func machineTypeToolAdd(context *router.Context) {
 					Channel:         Session.Channel,
 					MachineTypeTool: &machineTypeTool,
 				}, &newID)
-				print("added tool", newID)
+				print("added tool", machineTypeTool.ID)
 				Session.Navigate(BackURL)
 			}()
 		})
