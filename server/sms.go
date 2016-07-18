@@ -80,7 +80,7 @@ func SendSMS(number string, message string, ref string, user_id int) error {
 		println("Cannot read user record for ID", user_id, userErr.Error())
 		return nil
 	}
-	if theUser.UseMobile {
+	if !theUser.UseMobile {
 		println("User ID", user_id, theUser.Username, "has requested no SMS transmissions")
 		return nil
 	}
