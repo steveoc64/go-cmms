@@ -565,6 +565,13 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 		}
 	}
 
+	// trim the descr fields
+	for k, v := range *tasks {
+		if len(v.Descr) > 80 {
+			(*tasks)[k].Descr = fmt.Sprintf("%s ...", v.Descr[:80])
+		}
+	}
+
 	// // Read the sites that this user has access to
 	// err := DB.SQL(`select
 	// 	t.*,m.name as machine_name,s.name as site_name,u.username as username
