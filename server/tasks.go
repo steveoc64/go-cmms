@@ -732,6 +732,11 @@ func (t *TaskRPC) StoppageList(data shared.TaskRPCData, tasks *[]shared.Task) er
 		DB.SQL("select photo_thumbnail from event where id=$1", v.EventID).
 			QueryScalar(&sthumb)
 		(*tasks)[k].StoppageThumbnail = sthumb
+
+		// trim the descr field
+		if len(v.Descr) > 80 {
+			(*tasks)[k].Descr = v.Descr[:80] + "..."
+		}
 	}
 
 	// logger(start, "Task.SiteList",
