@@ -335,6 +335,12 @@ func (m *MachineRPC) DeleteMachineTypeTool(data shared.MachineTypeToolRPCData, d
 	DB.SQL(`delete from machine_type_tool where machine_id=$1 and position=$2`,
 		data.MachineID, data.ID).Exec()
 
+	// and now shuffle everything up by one from this point
+	DB.SQL(`update machine_type_tool set position=(position-1) where machine_id=$1 and position > $2`,
+		data.MachineID,
+		data.ID).
+		Exec()
+
 	logger(start, "Machine.DeleteMachineTypeTool",
 		fmt.Sprintf("Channel %d, Machine %d Tool %d User %d %s %s",
 			data.Channel, data.MachineID, data.ID, conn.UserID, conn.Username, conn.UserRole),
