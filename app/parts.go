@@ -23,9 +23,7 @@ func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
 		li := doc.CreateElement("li")
 		li.SetID(widgetID)
 		chek := doc.CreateElement("input").(*dom.HTMLInputElement)
-		chek.Class().Add("cheka")
 		chek.Type = "checkbox"
-		li.AppendChild(chek)
 		label := doc.CreateElement("label")
 		label.SetAttribute("for", widgetID)
 		label.SetInnerHTML(tv.Name)
@@ -37,6 +35,7 @@ func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
 		chek.SetAttribute("data-id", fmt.Sprintf("%d", tv.ID))
 		chek.SetID(widgetID + "-chek")
 		li.AppendChild(label)
+		li.AppendChild(chek)
 		ul.AppendChild(li)
 
 		if len(tv.Subcats) > 0 {
@@ -217,7 +216,7 @@ func partsList(context *router.Context) {
 				tree = append(tree, newCat)
 
 				// Manually create a new entry in the DOM for the newly created category
-				ul := doc.QuerySelector(".treeview").(*dom.HTMLUListElement)
+				ul := doc.QuerySelector(".simpletree").(*dom.HTMLUListElement)
 				widgetID := fmt.Sprintf("category-%d", newCatID)
 				li := doc.CreateElement("li")
 				li.SetID(widgetID)
@@ -256,7 +255,7 @@ func partsList(context *router.Context) {
 
 		// Create the Tree's UL element
 		ul := doc.CreateElement("ul").(*dom.HTMLUListElement)
-		ul.SetClass("treeview")
+		ul.SetClass("simpletree")
 
 		// Recursively add elements to the tree
 		addTree(tree, ul, 0)
@@ -477,7 +476,7 @@ func partsList(context *router.Context) {
 
 		// Add functions on the tree
 		// Handlers on the table itself
-		t.AddEventListener("click", false, func(evt dom.Event) {
+		ul.AddEventListener("click", false, func(evt dom.Event) {
 			// evt.PreventDefault()
 			li := evt.Target()
 			if lastSelectedClass != nil {
@@ -485,6 +484,8 @@ func partsList(context *router.Context) {
 			}
 			lastSelectedClass = li.Class()
 			// print("LI class =", lastSelectedClass)
+
+			// only add this if the target is a LI, otherwise it makes no sense to do this
 			lastSelectedClass.Add("listselected")
 
 			dataType := li.GetAttribute("data-type")

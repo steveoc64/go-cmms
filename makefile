@@ -44,6 +44,7 @@ dist/public/css/app.css: scss/*
 	@mplayer -quiet audio/attention.oga 2> /dev/null > /dev/null
 	@mkdir -p dist/public/css
 	cd scss && node-sass --output-style compressed app.sass ../dist/public/css/app.css
+	cd scss && node-sass app.sass ../dist/public/css/app.debug.css
 
 templegen: app/template.go 
 

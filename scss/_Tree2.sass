@@ -1,0 +1,43 @@
+ul.simpletree
+  padding: 0
+  margin: 0
+  width: 300px
+  // font-family: "Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif
+  list-style: none
+
+  li
+    position: relative
+    margin-left: -15px
+    list-style: none
+
+    input
+      position: absolute
+      left: 0
+      margin-left: 0
+      opacity: .2
+      z-index: 2
+      cursor: pointer
+      height: 1em
+      width: 1em
+      top: 0
+
+    label
+      background: url("/img/css3-treeview/icons.png") no-repeat
+      cursor: pointer
+      display: block
+      padding-left: 33px
+
+      &::before
+        background-position: -16px
+
+    input + ul > li
+      display: none
+      margin-left: -14px !important
+      padding-left: 1px
+
+    input:checked + ul > li
+      display: block
+      margin: 0 0 0.125em
+
+    input:checked + ul > li:last-child
+      margin: 0 0 0.063em
