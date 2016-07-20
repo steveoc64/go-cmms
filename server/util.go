@@ -305,14 +305,16 @@ func (u *UtilRPC) Cats(channel int, result *string) error {
 
 func decodePhoto(photo string, preview *string, thumbnail *string) error {
 
-	if photo == "" {
+	if photo == "" || len(photo) < 22 {
 		print("photo is empty")
 		*preview = ""
 		*thumbnail = ""
 		return nil
 	}
 	theImage := ""
-	println("Decode Photo Data =", photo[:80], "...")
+
+	// println("passed in", photo)
+	// println("Decode Photo Data =", photo[:80], "...")
 	switch photo[:11] {
 	case "data:image/":
 		println("looks like an image", photo[11:21])
