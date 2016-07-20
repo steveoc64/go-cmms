@@ -248,7 +248,7 @@ func (s *SiteRPC) MachineList(data shared.SiteRPCData, machines *[]shared.Machin
 			QueryStructs(&(*machines)[k].Components)
 
 		// and the machine type info as well
-		DB.Select(`name,photo_thumbnail,electrical,hydraulic,pnuematic,lube,printer,console,uncoiler,rollbed,conveyor`).
+		DB.Select(`name,photo_thumbnail,electrical,hydraulic,pnuematic,lube,printer,console,uncoiler,rollbed,conveyor,encoder,strip_guide`).
 			From(`machine_type`).
 			Where(`id=$1`, m.MachineType).
 			QueryStruct(&(*machines)[k].MachineTypeData)
