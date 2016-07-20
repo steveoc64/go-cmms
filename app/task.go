@@ -148,6 +148,17 @@ func _taskEdit(action string, id int) {
 						}
 						stoppageEdit(c)
 					}
+				} else if strings.HasPrefix(url, "/retransmit") {
+					print("re-transmit the SMS for this one")
+					go func() {
+						result := ""
+						rpcClient.Call("TaskRPC.Retransmit", shared.TaskRPCData{
+							Channel: Session.Channel,
+							Task:    &task,
+						}, &result)
+						print(result)
+						js.Global.Call("alert", result)
+					}()
 				} else {
 					go func() {
 						done := false

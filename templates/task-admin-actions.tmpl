@@ -17,6 +17,16 @@
 		</div>
 	</div>
 	{{end}}
+	{{if and .AssignedTo (not .IsRead)}}
+	<div class="action__item" url="/retransmit/{{.ID}}">
+		<div class="action__title">Re-Transmit SMS</div>
+		<div class="action__icon"><i class="fa fa-phone-square fa-lg"></i></div>
+		<div class="action__text">
+			Records indicate that this user hasn't read the Task yet.
+			Click to Re-Transmit the SMS message.
+		</div>
+	</div>
+	{{end}}
 	{{if .AllDone}}
 	<div class="action__item" url="/task/complete/{{.ID}}">
 		<div class="action__title">Complete Task</div>

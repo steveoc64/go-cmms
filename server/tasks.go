@@ -1589,3 +1589,56 @@ func (t *TaskRPC) Complete(data shared.TaskRPCData, done *bool) error {
 	*done = true
 	return nil
 }
+
+func (t *TaskRPC) Retransmit(data shared.TaskRPCData, result *string) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+	println("Task = ", data.Task)
+
+	machine := shared.Machine{}
+	DB.SQL(`select * from machine where id=$1`, data.Task.MachineID).QueryStruct(&machine)
+
+	phoneNumber := ""
+	DB.SQL(`select sms from users where id=$1`, data.Task.AssignedTo).QueryScalar(&phoneNumber)
+	println("Phone =", phoneNumber)
+
+	if phoneNumber != "" {
+		useMobile := true
+		DB.SQL(`select use_mobile from users where id=$1`, data.Task.AssignedTo).QueryScalar(&useMobile)
+
+		notes := data.Task.Descr
+		if len(notes) > 40 {
+			notes = notes[:40] + "..."
+		}
+		smsMsg := fmt.Sprintf("Task %06d:\n %s - %s : %s",
+			data.Task.ID,
+			notes,
+			machine.Name,
+			data.Task.CompType)
+
+		if Config.SMSOn {
+
+			if useMobile {
+				SendSMS(phoneNumber, smsMsg, fmt.Sprintf("%d", data.Task.ID), *data.Task.AssignedTo)
+				*result = "Sent: " + smsMsg + " to " + phoneNumber
+			} else {
+				*result = "User Has Requested no SMS, otherwise we would send: " + smsMsg + " to " + phoneNumber
+			}
+		} else {
+			log.Println("Will send SMS:", smsMsg, "to", phoneNumber)
+			*result = "SMS is turned off, but will send: " + smsMsg + " to " + phoneNumber
+		}
+
+	} else {
+		*result = "User has no phone number registered for SMS"
+	}
+
+	logger(start, "Task.Retransmit",
+		fmt.Sprintf("Channel %d, Task %d User %d %s %s",
+			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
+		"Retrans message",
+		data.Channel, conn.UserID, "task", data.Task.ID, false)
+
+	return nil
+}
