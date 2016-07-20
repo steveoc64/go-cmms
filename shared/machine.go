@@ -41,6 +41,8 @@ type Machine struct {
 	Rollbed         string      `db:"rollbed"`
 	Uncoiler        string      `db:"uncoiler"`
 	Lube            string      `db:"lube"`
+	Encoder         string      `db:"encoder"`
+	StripGuide      string      `db:"strip_guide"`
 	AlertsTo        int         `db:"alerts_to"`
 	TasksTo         int         `db:"tasks_to"`
 	Components      []Component `db:"components"`
@@ -84,6 +86,10 @@ func (m *Machine) GetStatus(nontool string) string {
 		return m.Uncoiler
 	case "Lube":
 		return m.Lube
+	case "Encoder":
+		return m.Encoder
+	case "StripGuide":
+		return m.StripGuide
 	default:
 		return "Running"
 	}
@@ -246,6 +252,8 @@ type MachineType struct {
 	Uncoiler       bool              `db:"uncoiler"`
 	Rollbed        bool              `db:"rollbed"`
 	Conveyor       bool              `db:"conveyor"`
+	Encoder        bool              `db:"encoder"`
+	StripGuide     bool              `db:"strip_guide"`
 	NumTools       int               `db:"num_tools"`
 	Tools          []MachineTypeTool `db:"tools"`
 }

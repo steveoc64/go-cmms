@@ -302,6 +302,8 @@ func machineTypes(context *router.Context) {
 		form.BoolColumn("Unclr", "Uncoiler")
 		form.BoolColumn("Rlbd", "Rollbed")
 		form.BoolColumn("Cnvyr", "Conveyor")
+		form.BoolColumn("Enc", "Encoder")
+		form.BoolColumn("SGd", "StripGuide")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -376,6 +378,10 @@ func machineTypeAdd(context *router.Context) {
 			AddCheck(1, "RollBed", "Rollbed").
 			AddCheck(1, "Conveyor", "Conveyor")
 
+		form.Row(3).
+			AddCheck(1, "Encoder", "Encoder").
+			AddCheck(1, "StripGuide", "StripGuide")
+
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
@@ -449,6 +455,10 @@ func machineTypeEdit(context *router.Context) {
 			AddCheck(1, "UnCoiler", "Uncoiler").
 			AddCheck(1, "RollBed", "Rollbed").
 			AddCheck(1, "Conveyor", "Conveyor")
+
+		form.Row(3).
+			AddCheck(1, "Encoder", "Encoder").
+			AddCheck(1, "StripGuide", "StripGuide")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {

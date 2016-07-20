@@ -384,7 +384,7 @@ func _siteMachines(action string, id int) {
 	data := SiteMachineData{}
 
 	nonTools := []string{
-		"Electrical", "Hydraulic", "Pnuematic", "Lube", "Printer", "Console", "Uncoiler", "Rollbed", "Conveyor",
+		"Electrical", "Hydraulic", "Pnuematic", "Lube", "Printer", "Console", "Uncoiler", "Rollbed", "Conveyor", "Encoder", "StripGuide",
 	}
 
 	RefreshURL := fmt.Sprintf("/sitemachines/%d", id)

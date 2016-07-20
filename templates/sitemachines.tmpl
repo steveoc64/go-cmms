@@ -205,22 +205,47 @@
       <circle cx="{{.SVGX}}" cy="125" r="18"/>
     </g>
 
+    machinetypedata = {{.MachineTypeData}}
+
+    {{if .MachineTypeData.Encoder}}
+    <g stroke="#114" stroke-width="2" class="fillhover">
+      <title>Encoder</title>
+      <rect x="80" y="60" width="30" height="40" fill="{{.NonToolBg .Encoder}}"/>
+      <image xlink:href="/img/encoder.png" x="81" y="62" height="38px" width="28px"/>
+    </g>
+    {{end}}
+
+    {{if .MachineTypeData.StripGuide}}
+    <g stroke="#114" stroke-width="2" class="fillhover">
+      <title>Strip Guide</title>
+      <rect x="115" y="60" width="30" height="40" fill="{{.NonToolBg .StripGuide}}"/>
+      <image xlink:href="/img/stripguide.png" x="116" y="62" height="38px" width="28px"/>
+    </g>
+    {{end}}
+
     {{if .MachineTypeData.Rollbed}}
     <g stroke="#114" stroke-width="2" class="fillhover" tooltype="Component" component="Rollbed">
       <title>Roll Bed</title>
-  
+ <!--  
     <rect x="80" y="60" width="30" height="40" fill="{{.NonToolBg .Rollbed}}"/>
       <circle cx="95" cy="73" r="6" fill="#ccc"/>
       <circle cx="95" cy="87" r="6" fill="#ccc"/>
     <rect x="115" y="60" width="30" height="40" fill="{{.NonToolBg .Rollbed}}"/>
       <circle cx="130" cy="73" r="6" fill="#ccc"/>
       <circle cx="130" cy="87" r="6" fill="#ccc"/>
+   -->    
     <rect x="150" y="60" width="30" height="40" fill="{{.NonToolBg .Rollbed}}"/>
       <circle cx="165" cy="73" r="6" fill="#ccc"/>
       <circle cx="165" cy="87" r="6" fill="#ccc"/>
     <rect x="185" y="60" width="30" height="40" fill="{{.NonToolBg .Rollbed}}"/>
       <circle cx="200" cy="73" r="6" fill="#ccc"/>
       <circle cx="200" cy="87" r="6" fill="#ccc"/>
+    <rect x="220" y="60" width="30" height="40" fill="{{.NonToolBg .Rollbed}}"/>
+      <circle cx="235" cy="73" r="6" fill="#ccc"/>
+      <circle cx="235" cy="87" r="6" fill="#ccc"/>
+    <rect x="255" y="60" width="30" height="40" fill="{{.NonToolBg .Rollbed}}"/>
+      <circle cx="270" cy="73" r="6" fill="#ccc"/>
+      <circle cx="270" cy="87" r="6" fill="#ccc"/>
     </g>
     {{end}}
 

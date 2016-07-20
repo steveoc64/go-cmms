@@ -46,7 +46,7 @@ func (m *MachineRPC) Get(data shared.MachineRPCData, machine *shared.Machine) er
 		QueryStructs(&machine.Components)
 
 	// fetch some basic info, flags and thumbnail from the parent machine type
-	DB.Select(`name,photo_thumbnail,electrical,hydraulic,pnuematic,lube,printer,console,uncoiler,rollbed,conveyor`).
+	DB.Select(`name,photo_thumbnail,electrical,hydraulic,pnuematic,lube,printer,console,uncoiler,rollbed,conveyor,encoder,strip_guide`).
 		From(`machine_type`).
 		Where(`id=$1`, machine.MachineType).
 		QueryStruct(&machine.MachineTypeData)
@@ -170,7 +170,7 @@ func (m *MachineRPC) MachineTypes(data shared.MachineRPCData, machineTypes *[]sh
 	conn := Connections.Get(data.Channel)
 
 	DB.Select(`id,name,photo_thumbnail,
-		electrical,hydraulic,pnuematic,lube,printer,console,uncoiler,rollbed,conveyor`).
+		electrical,hydraulic,pnuematic,lube,printer,console,uncoiler,rollbed,conveyor,encoder,strip_guide`).
 		From(`machine_type`).OrderBy(`name`).QueryStructs(machineTypes)
 
 	logger(start, "Machine.MachineTypes",
@@ -190,7 +190,7 @@ func (m *MachineRPC) GetMachineType(data shared.MachineTypeRPCData, machineType 
 	// log.Println("conn", conn)
 
 	DB.Select(`id,name,photo_preview,
-		electrical,hydraulic,pnuematic,lube,printer,console,uncoiler,rollbed,conveyor`).
+		electrical,hydraulic,pnuematic,lube,printer,console,uncoiler,rollbed,conveyor,encoder,strip_guide`).
 		From(`machine_type`).
 		Where(`id=$1`, data.ID).
 		QueryStruct(machineType)
@@ -227,7 +227,8 @@ func (m *MachineRPC) UpdateMachineType(data shared.MachineTypeRPCData, done *boo
 			"name",
 			"electrical", "hydraulic", "pnuematic",
 			"console", "printer", "lube",
-			"uncoiler", "rollbed", "conveyor").
+			"uncoiler", "rollbed", "conveyor",
+			"encoder", "strip_guide").
 		Where("id = $1", data.ID).
 		Exec()
 
@@ -271,7 +272,8 @@ func (m *MachineRPC) InsertMachineType(data shared.MachineTypeRPCData, id *int) 
 		Columns("name",
 			"electrical", "hydraulic", "pnuematic",
 			"console", "printer", "lube",
-			"uncoiler", "rollbed", "conveyor").
+			"uncoiler", "rollbed", "conveyor",
+			"encoder", "strip_guide").
 		Record(data.MachineType).
 		Returning("id").
 		QueryScalar(id)

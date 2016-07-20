@@ -257,3 +257,13 @@ alter table task add thumb2 text not null default '';
 alter table task add thumb3 text not null default '';
 
 insert into migration (name) values ('More photos on the task');
+
+-- 2016 07 20
+-- Add encoder and strip guide to the machine and machine type, and all the diagrams
+
+alter table machine add encoder text not null default 'Running';
+alter table machine add strip_guide text not null default 'Running';
+alter table machine_type add encoder bool default true;
+alter table machine_type add strip_guide bool default true;
+
+insert into migration (name) values ('Encoder and strip guide');
