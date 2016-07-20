@@ -99,7 +99,7 @@ run:
 	@mplayer -quiet audio/running.oga 2> /dev/null > /dev/null &
 	@cd dist && ./cmms-server
 
-install:
+install: sv
 	./terminate
 	cp -Rv dist/* ~/go-cmms/current
 	cd ~/go-cmms/current && nohup ./cmms-server &
