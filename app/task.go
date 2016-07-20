@@ -690,7 +690,7 @@ func machineSchedList(context *router.Context) {
 		form.Column("$ Labour", "LabourCost")
 		form.Column("$ Materials", "MaterialCost")
 		form.Column("Duration", "DurationDays")
-		form.Column("", "ShowPaused")
+		form.Column("Status", "ShowPaused")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -711,7 +711,8 @@ func machineSchedList(context *router.Context) {
 			Session.Navigate("/sched/" + key)
 		})
 
-		form.Render("machine-sched-list", "main", tasks)
+		// form.Render("machine-sched-list", "main", tasks)
+		form.Render("list-form", "main", tasks)
 	}()
 }
 
@@ -902,18 +903,20 @@ func schedEdit(context *router.Context) {
 
 			// interpret the Component from the grouped options
 			comp, _ := strconv.Atoi(task.Component)
-			// print("comp = ", comp)
+			// print("comp2 = ", comp)
+			// print("len comp = ", len(machine.Components))
 			if comp == 0 {
 				task.CompType = "A"
 				task.Component = compGen[0].Name
-			} else if comp < len(machine.Components) {
+			} else if comp <= len(machine.Components) {
 				task.CompType = "T"
 				task.ToolID = machine.Components[comp-1].ID
 				task.Component = compTools[comp-1].Name
 			} else {
 				task.CompType = "C"
 				offset := comp - len(machine.Components)
-				task.Component = compOther[offset-1].Name
+				// print("offset = ", offset)
+				task.Component = compOther[offset].Name
 			}
 
 			// convert the selected freq into a meaningful string
@@ -1248,18 +1251,20 @@ func machineSchedAdd(context *router.Context) {
 
 			// interpret the Component from the grouped options
 			comp, _ := strconv.Atoi(task.Component)
-			// print("comp = ", comp)
+			// print("comp1 = ", comp)
+			// print("len comp", len(machine.Components))
 			if comp == 0 {
 				task.CompType = "A"
 				task.Component = compGen[0].Name
-			} else if comp < len(machine.Components) {
+			} else if comp <= len(machine.Components) {
 				task.CompType = "T"
 				task.ToolID = machine.Components[comp-1].ID
 				task.Component = compTools[comp-1].Name
 			} else {
 				task.CompType = "C"
 				offset := comp - len(machine.Components)
-				task.Component = compOther[offset-1].Name
+				// print("offset = ", comp)
+				task.Component = compOther[offset].Name
 			}
 
 			// convert the selected freq into a meaningful string
