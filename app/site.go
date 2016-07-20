@@ -628,7 +628,7 @@ func _siteMachines(action string, id int) {
 									})
 								}
 								// attach event listeners to each non-tool menu item
-								for i, _ := range nonTools {
+								for i := range nonTools {
 									a := doc.GetElementByID(fmt.Sprintf("machine-nontool-%d", i))
 									a.AddEventListener("click", false, func(evt dom.Event) {
 										evt.PreventDefault()
@@ -686,4 +686,65 @@ func _siteMachines(action string, id int) {
 			} // range
 		} // switch user role
 	} // else
+}
+
+func siteSchedList(context *router.Context) {
+
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		site := shared.Site{}
+		rpcClient.Call("SiteRPC.Get", shared.SiteRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &site)
+		print("site", site)
+		tasks := []shared.SchedTask{}
+		rpcClient.Call("TaskRPC.ListSiteSched", shared.TaskRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &tasks)
+		print("tasks", tasks)
+
+		BackURL := fmt.Sprintf("/site/%d", id)
+
+		form := formulate.ListForm{}
+		form.New("fa-wrench", "All Sched Maints for - "+site.Name)
+
+		// Define the layout
+		form.Column("Machine", "MachineName")
+		form.Column("Tool / Component", "Component")
+		form.Column("Frequency", "ShowFrequency")
+		form.Column("Description", "Descr")
+		form.Column("$ Labour", "LabourCost")
+		form.Column("$ Materials", "MaterialCost")
+		form.Column("Duration", "DurationDays")
+		form.Column("Job Status", "ShowPaused")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		form.NewRowEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			print("TODO - popup a machine selection dialog, and then nav to /machine/sched/add/machine_id")
+			// Session.Navigate(fmt.Sprintf("/machine/sched/add/%d", id))
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
+		form.RowEvent(func(key string) {
+			Session.Navigate("/sched/" + key)
+		})
+
+		form.Render("list-form", "main", tasks)
+	}()
 }

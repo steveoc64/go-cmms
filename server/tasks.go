@@ -42,6 +42,31 @@ func (t *TaskRPC) ListMachineSched(data shared.MachineRPCData, tasks *[]shared.S
 	return nil
 }
 
+// Get all the sched tasks for the given site
+func (t *TaskRPC) ListSiteSched(data shared.TaskRPCData, tasks *[]shared.SchedTask) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	// Read the sites that this user has access to
+	err := DB.SQL(`select t.*,m.name as machine_name
+	  from sched_task t
+		left join machine m on m.id=t.machine_id
+		where m.site_id=$1
+		order by m.name`, data.ID).QueryStructs(tasks)
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	logger(start, "Task.ListSiteSched",
+		fmt.Sprintf("Data %d", data.ID),
+		fmt.Sprintf("%d tasks", len(*tasks)),
+		data.Channel, conn.UserID, "sched_task", 0, false)
+
+	return nil
+}
+
 // Get all the tasks that contain the given hash
 func (t *TaskRPC) ListHashSched(data shared.HashtagRPCData, tasks *[]shared.SchedTask) error {
 	start := time.Now()

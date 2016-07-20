@@ -8,6 +8,7 @@ import (
 type SchedTask struct {
 	ID            int        `db:"id"`
 	MachineID     int        `db:"machine_id"`
+	MachineName   string     `db:"machine_name"`
 	CompType      string     `db:"comp_type"`
 	ToolID        int        `db:"tool_id"`
 	Component     string     `db:"component"`
@@ -40,6 +41,7 @@ type SchedTaskRPCData struct {
 // NOTE - the times passed in the Format function are REFERENCE dates for the
 // formatter, these are not dates of your choosing. Please read docs for time.Parse()
 func (t *SchedTask) ShowFrequency() string {
+	print("decoding freq", t.Freq)
 	switch t.Freq {
 	case "Monthly":
 		return fmt.Sprintf("Monthly - Week %d", *t.Week)
@@ -76,7 +78,7 @@ func (t *SchedTask) ShowPaused() string {
 	if t.Paused {
 		return "PAUSED"
 	}
-	return ""
+	return "Running"
 }
 
 type SchedTaskPart struct {

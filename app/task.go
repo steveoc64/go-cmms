@@ -643,7 +643,7 @@ func hashtagUsed(context *router.Context) {
 		form.Column("$ Labour", "LabourCost")
 		form.Column("$ Materials", "MaterialCost")
 		form.Column("Duration", "DurationDays")
-		form.Column("", "ShowPaused")
+		form.Column("Job Status", "ShowPaused")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -655,7 +655,8 @@ func hashtagUsed(context *router.Context) {
 			Session.Navigate("/sched/" + key)
 		})
 
-		form.Render("hash-sched-list", "main", tasks)
+		// form.Render("hash-sched-list", "main", tasks)
+		form.Render("list-form", "main", tasks)
 	}()
 }
 
@@ -690,7 +691,7 @@ func machineSchedList(context *router.Context) {
 		form.Column("$ Labour", "LabourCost")
 		form.Column("$ Materials", "MaterialCost")
 		form.Column("Duration", "DurationDays")
-		form.Column("Status", "ShowPaused")
+		form.Column("Job Status", "ShowPaused")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
