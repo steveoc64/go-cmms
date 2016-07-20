@@ -229,7 +229,7 @@ func siteMachineAdd(context *router.Context) {
 			Add(1, "Status", "text", "Status", "disabled")
 
 		form.Row(1).
-			Add(1, "Descrpition", "text", "Descr", "")
+			Add(1, "Description", "text", "Descr", "")
 
 		form.Row(1).
 			Add(1, "Notes", "textarea", "Notes", "")
