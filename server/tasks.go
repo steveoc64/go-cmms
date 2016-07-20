@@ -1125,11 +1125,12 @@ func genTask(st shared.SchedTask, task *shared.Task, startDate time.Time, dueDat
 	descr := ""
 
 	for _, l := range lines {
-		if strings.HasPrefix(l, "- ") {
+		theLine := strings.TrimSpace(l)
+		if strings.HasPrefix(theLine, "- ") {
 			check := shared.TaskCheck{
 				TaskID: task.ID,
 				Seq:    seq,
-				Descr:  l[2:],
+				Descr:  theLine[2:],
 				Done:   false,
 			}
 
