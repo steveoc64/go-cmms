@@ -531,6 +531,7 @@ func _taskList(action string, id int) {
 		form.BoolColumn("Read", "IsRead")
 	}
 	form.Column("TaskID", "GetID")
+	form.Column("Src", "GetSource")
 	form.ImgColumn("Photo", "StoppageThumbnail")
 	form.ImgColumn("Photo", "Thumb1")
 	form.Column("Date", "GetStartDate")
@@ -540,7 +541,11 @@ func _taskList(action string, id int) {
 	form.Column("Component", "Component")
 	form.Column("Description", "Descr")
 	form.Column("Duration", "DurationDays")
-	form.Column("Hrs", "LabourHrs")
+
+	switch Session.UserRole {
+	case "Admin", "Site Mananger":
+		form.Column("$$", "TotalCost")
+	}
 
 	// Add event handlers
 	form.CancelEvent(func(evt dom.Event) {
@@ -570,6 +575,7 @@ func _taskList(action string, id int) {
 		cform.Column("User", "Username")
 	}
 	cform.Column("TaskID", "GetID")
+	cform.Column("Src", "GetSource")
 	cform.Column("Date", "GetStartDate")
 	// form.Column("Due", "GetDueDate")
 	cform.Column("Site", "SiteName")
@@ -578,13 +584,11 @@ func _taskList(action string, id int) {
 	cform.Column("Description", "Descr")
 	cform.Column("Duration", "DurationDays")
 
-	if Session.UserRole == "Admin" {
-		cform.Column("Hrs", "GetLabour")
-
-	} else {
-		cform.Column("Hrs", "LabourHrs")
-
+	switch Session.UserRole {
+	case "Admin", "Site Mananger":
+		cform.Column("$$", "TotalCost")
 	}
+
 	// cform.Column("Completed", "CompletedDate")
 	cform.Column("Completed", "GetCompletedDate")
 

@@ -203,6 +203,13 @@ func (t *Task) GetID() string {
 	return fmt.Sprintf("%06d", t.ID)
 }
 
+func (t *Task) GetSource() string {
+	if t.SchedID != 0 {
+		return "P"
+	}
+	return ""
+}
+
 func (t *Task) GetStartDate() string {
 	if t.StartDate == nil {
 		return ""
@@ -219,6 +226,16 @@ func (t *Task) GetDueDate() string {
 
 func (t *Task) GetLabour() string {
 	return fmt.Sprintf("%.2fHrs  $%d", t.LabourHrs, int(t.LabourCost))
+}
+
+func (t *Task) TotalCost() string {
+	totalCost := t.LabourCost + t.MaterialCost
+	if t.OtherCost != nil {
+		for _, v := range *t.OtherCost {
+			totalCost += v
+		}
+	}
+	return fmt.Sprintf("%.2f", totalCost)
 }
 
 func (t *Task) GetCompletedDate() string {
