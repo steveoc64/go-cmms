@@ -87,6 +87,7 @@ type Part struct {
 	QtyType              string     `db:"qty_type"`
 	Picture              string     `db:"picture"`
 	Notes                string     `db:"notes"`
+	SupplierInfo         string     `db:"supplier_info"`
 }
 
 type PartRPCData struct {
@@ -101,11 +102,12 @@ type PartTreeRPCData struct {
 }
 
 type PartPrice struct {
-	ID       int       `db:"id"`
-	PartID   int       `db:"part_id"`
-	DateFrom time.Time `db:"datefrom"`
-	Price    float64   `db:"price"`
-	Descr    string    `db:"descr"`
+	ID           int       `db:"id"`
+	PartID       int       `db:"part_id"`
+	DateFrom     time.Time `db:"datefrom"`
+	Price        float64   `db:"price"`
+	Descr        string    `db:"descr"`
+	SupplierInfo string    `db:"supplier_info"`
 }
 
 func (p *PartPrice) DateFromDisplay() string {

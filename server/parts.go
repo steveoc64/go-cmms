@@ -24,6 +24,7 @@ func (p *PartRPC) Get(data shared.PartRPCData, part *shared.Part) error {
 		log.Println(err.Error())
 	}
 
+	fmt.Printf("Part: %v\n", *part)
 	logger(start, "Part.Get",
 		fmt.Sprintf("%d", data.ID),
 		part.Name,
@@ -202,7 +203,7 @@ func (p *PartRPC) Update(data shared.PartRPCData, done *bool) error {
 	DB.Update("part").
 		SetWhitelist(data.Part,
 			"class", "name", "descr", "stock_code", "reorder_stocklevel",
-			"reorder_qty", "latest_price", "qty_type", "notes", "current_stock").
+			"reorder_qty", "latest_price", "qty_type", "notes", "current_stock", "supplier_info").
 		Where("id = $1", data.Part.ID).
 		Exec()
 
@@ -229,12 +230,13 @@ func (p *PartRPC) Update(data shared.PartRPCData, done *bool) error {
 			fmt.Sprintf("Updated by %s", conn.Username)).Exec()
 
 		partPrice := shared.PartPrice{
-			PartID: data.Part.ID,
-			Price:  data.Part.LatestPrice,
-			Descr:  fmt.Sprintf("Updated by %s", conn.Username),
+			PartID:       data.Part.ID,
+			Price:        data.Part.LatestPrice,
+			Descr:        fmt.Sprintf("Updated by %s", conn.Username),
+			SupplierInfo: data.Part.SupplierInfo,
 		}
 		DB.InsertInto("part_price").
-			Columns("part_id", "price", "descr").
+			Columns("part_id", "price", "descr", "supplier_info").
 			Record(partPrice).
 			Exec()
 		*done = false

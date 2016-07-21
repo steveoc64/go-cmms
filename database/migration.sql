@@ -267,3 +267,12 @@ alter table machine_type add encoder bool default true;
 alter table machine_type add strip_guide bool default true;
 
 insert into migration (name) values ('Encoder and strip guide');
+
+
+-- 2016 07 22
+-- Parts tree to task with additions to editting parts
+
+alter table part add supplier_info text not null default '';
+alter table part_price add supplier_info text not null default '';
+
+insert into migration (name) values ('Supplier info on part');

@@ -6,6 +6,8 @@ import (
 
 	"itrak-cmms/shared"
 
+	"github.com/gopherjs/gopherjs/js"
+
 	"github.com/go-humble/router"
 	"github.com/steveoc64/formulate"
 	"honnef.co/go/js/dom"
@@ -95,6 +97,9 @@ func partsList(context *router.Context) {
 		}, &machineTypes)
 		print("machine types", machineTypes)
 
+		// thePart := shared.Part{}
+		// theCat := shared.Category{}
+
 		machineTools := []shared.MachineTypeTool{}
 
 		BackURL := "/"
@@ -145,7 +150,8 @@ func partsList(context *router.Context) {
 			AddInput(1, "Qty Type", "QtyType")
 
 		partPanel.Row(4).
-			AddDisplay(2, "Last Price Update", "LastPriceDateDisplay").
+			// AddDisplay(2, "Last Price Update", "LastPriceDateDisplay").
+			AddInput(2, "Supplier Info", "SupplierInfo").
 			AddDecimal(1, "Latest Price", "LatestPrice", 2, "1").
 			AddDisplay(1, "Valuation", "ValuationString")
 
@@ -380,6 +386,7 @@ func partsList(context *router.Context) {
 				theLI := doc.QuerySelector(fmt.Sprintf("#part-%d", currentPart)).(*dom.HTMLLIElement)
 				// print("got ", theLI)
 				theLI.SetInnerHTML(fmt.Sprintf(`%s : %s`, thePart.StockCode, thePart.Name))
+				thePart.ValuationString = thePart.DisplayValuation()
 				swapper.Panels[1].Paint(&thePart)
 			}()
 		})
@@ -416,24 +423,62 @@ func partsList(context *router.Context) {
 		})
 
 		btnDelCat.AddEventListener("click", false, func(evt dom.Event) {
-			go func() {
-				parentCat := 0
-				rpcClient.Call("PartRPC.DelCategory", shared.PartRPCData{
-					Channel: Session.Channel,
-					ID:      currentCat,
-				}, &parentCat)
-				// print("Del Cat ", currentCat)
+			doIt := js.Global.Call("confirm", "Delete this category ?")
+			print("doIt", doIt)
+			if doIt {
 
-				// Find the LI element for the current Cat, and remove it
-				theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
-				// print("got ", theLI)
+				go func() {
+					parentCat := 0
+					rpcClient.Call("PartRPC.DelCategory", shared.PartRPCData{
+						Channel: Session.Channel,
+						ID:      currentCat,
+					}, &parentCat)
+					// print("Del Cat ", currentCat)
 
-				theLI.ParentNode().RemoveChild(theLI)
-				if parentCat != 0 {
+					// Find the LI element for the current Cat, and remove it
+					theLI := doc.QuerySelector(fmt.Sprintf("#category-%d", currentCat)).(*dom.HTMLLIElement)
+					// print("got ", theLI)
+
+					theLI.ParentNode().RemoveChild(theLI)
+					if parentCat != 0 {
+						theCat := shared.Category{}
+						rpcClient.Call("PartRPC.GetCategory", shared.PartRPCData{
+							Channel: Session.Channel,
+							ID:      parentCat,
+						}, &theCat)
+						// print("Cat", dataID, theCat)
+						currentCat = theCat.ID
+						doc.QuerySelector("[name=CatName]").(*dom.HTMLInputElement).Value = theCat.Name
+						doc.QuerySelector("[name=CatDescr]").(*dom.HTMLInputElement).Value = theCat.Descr
+						doc.QuerySelector("[name=CatStockCode]").(*dom.HTMLInputElement).Value = theCat.StockCode
+						swapper.Select(0)
+					}
+				}()
+			}
+			print("Delete current cat", currentCat)
+		})
+
+		btnDelPart.AddEventListener("click", false, func(evt dom.Event) {
+			doIt := js.Global.Call("confirm", "Delete this part ?")
+			print("doIt", doIt)
+			if doIt {
+
+				go func() {
+					rpcClient.Call("PartRPC.DelPart", shared.PartRPCData{
+						Channel: Session.Channel,
+						ID:      currentPart,
+					}, &currentCat)
+					// print("Del part ", currentPart)
+
+					// Find the LI element for the current Part, and remove it
+					theLI := doc.QuerySelector(fmt.Sprintf("#part-%d", currentPart)).(*dom.HTMLLIElement)
+					// print("got ", theLI)
+
+					theLI.ParentNode().RemoveChild(theLI)
 					theCat := shared.Category{}
 					rpcClient.Call("PartRPC.GetCategory", shared.PartRPCData{
 						Channel: Session.Channel,
-						ID:      parentCat,
+						ID:      currentCat,
 					}, &theCat)
 					// print("Cat", dataID, theCat)
 					currentCat = theCat.ID
@@ -441,37 +486,9 @@ func partsList(context *router.Context) {
 					doc.QuerySelector("[name=CatDescr]").(*dom.HTMLInputElement).Value = theCat.Descr
 					doc.QuerySelector("[name=CatStockCode]").(*dom.HTMLInputElement).Value = theCat.StockCode
 					swapper.Select(0)
-				}
-			}()
-			print("Delete current cat", currentCat)
-		})
-
-		btnDelPart.AddEventListener("click", false, func(evt dom.Event) {
-			go func() {
-				rpcClient.Call("PartRPC.DelPart", shared.PartRPCData{
-					Channel: Session.Channel,
-					ID:      currentPart,
-				}, &currentCat)
-				// print("Del part ", currentPart)
-
-				// Find the LI element for the current Part, and remove it
-				theLI := doc.QuerySelector(fmt.Sprintf("#part-%d", currentPart)).(*dom.HTMLLIElement)
-				// print("got ", theLI)
-
-				theLI.ParentNode().RemoveChild(theLI)
-				theCat := shared.Category{}
-				rpcClient.Call("PartRPC.GetCategory", shared.PartRPCData{
-					Channel: Session.Channel,
-					ID:      currentCat,
-				}, &theCat)
-				// print("Cat", dataID, theCat)
-				currentCat = theCat.ID
-				doc.QuerySelector("[name=CatName]").(*dom.HTMLInputElement).Value = theCat.Name
-				doc.QuerySelector("[name=CatDescr]").(*dom.HTMLInputElement).Value = theCat.Descr
-				doc.QuerySelector("[name=CatStockCode]").(*dom.HTMLInputElement).Value = theCat.StockCode
-				swapper.Select(0)
-			}()
-			print("Delete current part", currentPart)
+				}()
+				print("Delete current part", currentPart)
+			}
 		})
 
 		// Add functions on the tree
@@ -567,14 +584,42 @@ func partsList(context *router.Context) {
 						Channel: Session.Channel,
 						ID:      actualID,
 					}, &thePart)
-					// print("Part", dataID, thePart)
+					print("Part", dataID, thePart)
 					currentPart = thePart.ID
+					thePart.ValuationString = thePart.DisplayValuation()
 					swapper.Panels[1].Paint(&thePart)
+					doc.QuerySelector("[name=ValuationString]").(*dom.HTMLInputElement).Value = thePart.ValuationString
 					swapper.Select(1)
 					doc.QuerySelector(`[name=Name]`).(*dom.HTMLInputElement).Focus()
 
 				}()
 			}
+		})
+
+		// Auto calculate the valuation on change of fields
+		doc.QuerySelector("[name=CurrentStock]").AddEventListener("change", false, func(evt dom.Event) {
+			thePart := shared.Part{}
+			print("current stock count changes")
+			s := doc.QuerySelector("[name=CurrentStock]").(*dom.HTMLInputElement).Value
+			p := doc.QuerySelector("[name=LatestPrice]").(*dom.HTMLInputElement).Value
+			s1, _ := strconv.ParseFloat(s, 64)
+			p1, _ := strconv.ParseFloat(p, 64)
+			thePart.CurrentStock = s1
+			thePart.LatestPrice = p1
+			thePart.ValuationString = thePart.DisplayValuation()
+			doc.QuerySelector("[name=ValuationString]").(*dom.HTMLInputElement).Value = thePart.ValuationString
+		})
+		doc.QuerySelector("[name=LatestPrice]").AddEventListener("change", false, func(evt dom.Event) {
+			thePart := shared.Part{}
+			print("latest price changes")
+			s := doc.QuerySelector("[name=CurrentStock]").(*dom.HTMLInputElement).Value
+			p := doc.QuerySelector("[name=LatestPrice]").(*dom.HTMLInputElement).Value
+			s1, _ := strconv.ParseFloat(s, 64)
+			p1, _ := strconv.ParseFloat(p, 64)
+			thePart.CurrentStock = s1
+			thePart.LatestPrice = p1
+			thePart.ValuationString = thePart.DisplayValuation()
+			doc.QuerySelector("[name=ValuationString]").(*dom.HTMLInputElement).Value = thePart.ValuationString
 		})
 
 	}()
