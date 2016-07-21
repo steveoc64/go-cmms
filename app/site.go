@@ -745,6 +745,6 @@ func siteSchedList(context *router.Context) {
 			Session.Navigate("/sched/" + key)
 		})
 
-		form.Render("list-form", "main", tasks)
+		form.Render("site-sched-list", "main", tasks)
 	}()
 }

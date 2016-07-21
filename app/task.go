@@ -655,8 +655,7 @@ func hashtagUsed(context *router.Context) {
 			Session.Navigate("/sched/" + key)
 		})
 
-		// form.Render("hash-sched-list", "main", tasks)
-		form.Render("list-form", "main", tasks)
+		form.Render("hash-sched-list", "main", tasks)
 	}()
 }
 
@@ -712,8 +711,7 @@ func machineSchedList(context *router.Context) {
 			Session.Navigate("/sched/" + key)
 		})
 
-		// form.Render("machine-sched-list", "main", tasks)
-		form.Render("list-form", "main", tasks)
+		form.Render("machine-sched-list", "main", tasks)
 	}()
 }
 
@@ -827,13 +825,17 @@ func schedEdit(context *router.Context) {
 		}
 
 		compOther := []formulate.SelectOption{
-			{100, "RollBed"},
 			{101, "Uncoiler"},
-			{102, "Electrical"},
-			{103, "Hydraulic"},
-			{104, "Lube"},
-			{105, "Printer"},
-			{106, "Console"},
+			{102, "RollBed"},
+			{103, "Conveyor"},
+			{104, "Electrical"},
+			{105, "Hydraulic"},
+			{106, "Pnuematic"},
+			{107, "Lube"},
+			{108, "Printer"},
+			{109, "Console"},
+			{110, "Encoder"},
+			{111, "StripGuide"},
 		}
 
 		currentComp := 0
@@ -904,7 +906,7 @@ func schedEdit(context *router.Context) {
 
 			// interpret the Component from the grouped options
 			comp, _ := strconv.Atoi(task.Component)
-			// print("comp2 = ", comp)
+			print("comp2 = ", comp)
 			// print("len comp = ", len(machine.Components))
 			if comp == 0 {
 				task.CompType = "A"
@@ -916,8 +918,8 @@ func schedEdit(context *router.Context) {
 			} else {
 				task.CompType = "C"
 				offset := comp - len(machine.Components)
-				// print("offset = ", offset)
-				task.Component = compOther[offset].Name
+				print("edit offset = ", offset)
+				task.Component = compOther[offset-1].Name
 			}
 
 			// convert the selected freq into a meaningful string
@@ -1211,13 +1213,17 @@ func machineSchedAdd(context *router.Context) {
 		}
 
 		compOther := []formulate.SelectOption{
-			{100, "RollBed"},
 			{101, "Uncoiler"},
-			{102, "Electrical"},
-			{103, "Hydraulic"},
-			{104, "Lube"},
-			{105, "Printer"},
-			{106, "Console"},
+			{102, "RollBed"},
+			{103, "Conveyor"},
+			{104, "Electrical"},
+			{105, "Hydraulic"},
+			{106, "Pnuematic"},
+			{107, "Lube"},
+			{108, "Printer"},
+			{109, "Console"},
+			{110, "Encoder"},
+			{111, "StripGuide"},
 		}
 
 		form.Row(2).
@@ -1264,7 +1270,7 @@ func machineSchedAdd(context *router.Context) {
 			} else {
 				task.CompType = "C"
 				offset := comp - len(machine.Components)
-				// print("offset = ", comp)
+				print("offset = ", comp)
 				task.Component = compOther[offset].Name
 			}
 
