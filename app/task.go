@@ -1502,7 +1502,70 @@ func addTaskPartsTree(tree []shared.Category, ul *dom.HTMLUListElement, depth in
 		li := doc.CreateElement("li")
 		li.SetID(widgetID)
 		chek := doc.CreateElement("input").(*dom.HTMLInputElement)
-		chek.Class().Add("qtycheka")
+		chek.Type = "checkbox"
+		label := doc.CreateElement("label")
+		label.SetAttribute("for", widgetID)
+		label.SetInnerHTML(tv.Name)
+		label.SetAttribute("data-type", "category")
+		label.SetAttribute("data-id", fmt.Sprintf("%d", tv.ID))
+		// label.Class().Add("category")
+		label.SetID(widgetID + "-label")
+		chek.SetAttribute("data-type", "category")
+		chek.SetAttribute("data-id", fmt.Sprintf("%d", tv.ID))
+		chek.SetID(widgetID + "-chek")
+		li.AppendChild(label)
+		li.AppendChild(chek)
+		ul.AppendChild(li)
+
+		if len(tv.Subcats) > 0 {
+			ul2 := doc.CreateElement("ul").(*dom.HTMLUListElement)
+			li.AppendChild(ul2)
+			addTree(tv.Subcats, ul2, depth+1)
+		} else {
+			if depth == 0 {
+				ulempty := doc.CreateElement("ul")
+				li.AppendChild(ulempty)
+				liempty := doc.CreateElement("li")
+				liempty.SetInnerHTML("(no sub-categories)")
+				ulempty.AppendChild(liempty)
+			}
+		}
+
+		ul3 := doc.CreateElement("ul")
+		li.AppendChild(ul3)
+		if len(tv.Parts) > 0 {
+			for _, part := range tv.Parts {
+				partID := fmt.Sprintf("part-%d", part.ID)
+				li2 := doc.CreateElement("li")
+				li2.SetID(partID)
+				li2.SetInnerHTML(fmt.Sprintf(`%s : %s`, part.StockCode, part.Name))
+				li2.Class().Add("stock-item")
+				li2.SetAttribute("data-type", "part")
+				li2.SetAttribute("data-id", fmt.Sprintf("%d", part.ID))
+				ul3.AppendChild(li2)
+			}
+		} else {
+			if depth > 0 {
+				li3 := doc.CreateElement("li")
+				li3.SetInnerHTML("(no parts)")
+				ul3.AppendChild(li3)
+			}
+		}
+	}
+}
+
+func addTaskPartsTreeOld(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
+
+	w := dom.GetWindow()
+	doc := w.Document()
+	// print("adding from ", tree, " to ", ul)
+	// Add a LI for each category
+	for _, tv := range tree {
+		// print("Tree Value", i, tv)
+		widgetID := fmt.Sprintf("category-%d", tv.ID)
+		li := doc.CreateElement("li")
+		li.SetID(widgetID)
+		chek := doc.CreateElement("input").(*dom.HTMLInputElement)
 		chek.Type = "checkbox"
 		li.AppendChild(chek)
 		label := doc.CreateElement("label")
