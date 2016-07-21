@@ -1,129 +1,88 @@
-ul.simpletree
-  padding: 0
-  width: 300px
-  font-family: "Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif
-  
 .treeview
-    -moz-user-select: none
-    -webkit-user-select: none
-    user-select: none
+  -moz-user-select: none
+  -webkit-user-select: none
+  user-select: none
 
-    ul,li
-        padding: 0
-        margin: 0
-        list-style: none
+  ul
+    padding: 0
+    margin: 0
+    list-style: none
+    padding-left: 8px
 
-    li.part-editor
-        background: transparent
-        line-height: 2em
-        height: 2em
+  li
+    padding: 0
+    margin: 0
+    list-style: none
+    padding-left: 8px
 
-    input.cheka
-        position: absolute
-        opacity: .0
+  input
+    position: absolute
+    opacity: 0
+    display: inline-block
 
-    input.qtycheka
-        opacity: .3
+  input + label + ul
+    margin: 0 0 0 22px
 
-    a
-        color: #00f
-        text-decoration: none
-        height: 2em
-        line-height: 2em
+  input ~ ul
+    display: none
 
-    a:hover
-        text-decoration: underline
+  a
+    color: #00f
+    text-decoration: none
+    height: 16px
+    line-height: 16px
+
+    &:hover
+      text-decoration: underline
+
+  .stock-item
+    color: #004A66
+    text-decoration: none
+    height: 22px
+    line-height: 22px
+    font-size: 20px
+
+    &:hover
+      text-decoration: underline
+      background-color: #DDE
+
+  label, label:before
+    cursor: pointer
+    background: url("/img/css3-treeview/icons.png") no-repeat;
+
+  input:disabled + label
+    cursor: default
+    opacity: 0
+
+  input:checked:not(:disabled) ~ ul
+    display: block
     
-    .stock-item
-        color: #004A66
-        text-decoration: none
-        height: 2em
-        line-height: 2em
-        // font-size: 20px;
+  label, a, label:before
+    display: inline-block
+    height: 16px
+    line-height: 16px
+    vertical-align: middle
 
-        &:hover
-            text-decoration: underline
-            background-color: #dde
+  label
+    background-position: 18px 0
 
-    input + label + ul
-        margin: 0 0 0 2em
+  label:before
+    content: ""
+    width: 16px
+    margin: 0 22px 0 0
+    vertical-align: middle
+    background-position: 0 -16px
 
-    input ~ ul
-        display: none
-
-        &:checked:not(:disabled)
-            display: block
-
-    input:disabled + label
-        cursor: default
-        opacity: .6
-
-    label, label::before
-        cursor: pointer
-
-    .part-qty-input
-        line-height: 2em !important
-        height: 3em !important
-        width: 12em !important
-        display: inline-block !important
-        border: 1px solid #002 !important
-
-    .category
-        display: inline-block
-        height: 1.6em
-        line-height: 2em
-        vertical-align: top       
-        margin: 0 0 0 22px  // top right bottom left 
-        background-position: 18px 0
-
-        &:hover
-            text-decoration: underline
-            background-color: #dde
-
-        &::before
-            content: " "
-            background: url("/img/css3-treeview/icons.png") no-repeat;
-            background-position: 0 -32px
-            display: inline-block
-            margin: 0 2px 0 0
-        
-    label.category, label.category::before
-        background: url("/img/css3-treeview/icons.png") no-repeat;
+  input:checked + label::before
+    // background-position: 0 -16px;
+    background-position: 0 0
  
-    label.category, label.category::before
-        display: inline-block
-        height: 1.6em
-        line-height: 2em
-        vertical-align: middle       
-
-    label.category
-        background-position: 18px 0
-        // background-position: 1px 0
-
-    label.category::before
-        content: " "
-        width: 0
-        margin: 0 2px 0 0
-        vertical-align: middle
-        background-position: 0 -32px
-
-    label.partlabel
-        display: inline-block !important
-
-    label.partlabel::before
-        width: 44em
-        margin: 0 0 0 0
- 
-    input:checked + label::before
-        background-position: 0 -16px
- 
-/* webkit adjacent element selector bugfix */
 @media screen and (-webkit-min-device-pixel-ratio:0)
-    .treeview 
-        -webkit-animation: webkit-adjacent-element-selector-bugfix infinite 1s;
+  .css-treeview 
+    -webkit-animation: webkit-adjacent-element-selector-bugfix infinite 1s
  
-    @-webkit-keyframes webkit-adjacent-element-selector-bugfix 
-        from 
-            padding: 0;
-        to 
-            padding: 0;
+  @-webkit-keyframes webkit-adjacent-element-selector-bugfix 
+    from 
+      padding: 0
+    to 
+      padding: 0

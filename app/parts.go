@@ -29,7 +29,7 @@ func addTree(tree []shared.Category, ul *dom.HTMLUListElement, depth int) {
 		label.SetInnerHTML(tv.Name)
 		label.SetAttribute("data-type", "category")
 		label.SetAttribute("data-id", fmt.Sprintf("%d", tv.ID))
-		label.Class().Add("category")
+		// label.Class().Add("category")
 		label.SetID(widgetID + "-label")
 		chek.SetAttribute("data-type", "category")
 		chek.SetAttribute("data-id", fmt.Sprintf("%d", tv.ID))
@@ -108,9 +108,9 @@ func partsList(context *router.Context) {
 			Selected: 1,
 		}
 
-		form.Row(5).
-			AddCustom(2, "Parts Tree", "tree", "tree").
-			AddSwapper(3, "Details", &swapper)
+		form.Row(2).
+			AddCustom(1, "Parts Tree", "tree", "tree").
+			AddSwapper(1, "Details", &swapper)
 
 		catPanel := swapper.AddPanel("Category")
 		catPanel.AddRow(1).AddInput(1, "Category Name", "CatName")
@@ -216,12 +216,12 @@ func partsList(context *router.Context) {
 				tree = append(tree, newCat)
 
 				// Manually create a new entry in the DOM for the newly created category
-				ul := doc.QuerySelector(".simpletree").(*dom.HTMLUListElement)
+				ul := doc.QuerySelector(".treeview").(*dom.HTMLUListElement)
 				widgetID := fmt.Sprintf("category-%d", newCatID)
 				li := doc.CreateElement("li")
 				li.SetID(widgetID)
 				chek := doc.CreateElement("input").(*dom.HTMLInputElement)
-				chek.Class().Add("cheka")
+				// chek.Class().Add("cheka")
 				chek.Type = "checkbox"
 				li.AppendChild(chek)
 				label := doc.CreateElement("label")
@@ -229,7 +229,7 @@ func partsList(context *router.Context) {
 				label.SetInnerHTML(newCat.Name)
 				label.SetAttribute("data-type", "category")
 				label.SetAttribute("data-id", fmt.Sprintf("%d", newCatID))
-				label.Class().Add("category")
+				// label.Class().Add("category")
 				label.SetID(widgetID + "-label")
 				chek.SetAttribute("data-type", "category")
 				chek.SetAttribute("data-id", fmt.Sprintf("%d", newCatID))
@@ -255,7 +255,7 @@ func partsList(context *router.Context) {
 
 		// Create the Tree's UL element
 		ul := doc.CreateElement("ul").(*dom.HTMLUListElement)
-		ul.SetClass("simpletree")
+		ul.SetClass("treeview")
 
 		// Recursively add elements to the tree
 		addTree(tree, ul, 0)
@@ -302,7 +302,7 @@ func partsList(context *router.Context) {
 				label.SetInnerHTML("New Category")
 				label.SetAttribute("data-type", "category")
 				label.SetAttribute("data-id", fmt.Sprintf("%d", newCat))
-				label.Class().Add("category")
+				// label.Class().Add("category")
 				label.SetID(widgetID + "-label")
 				chek.SetAttribute("data-type", "category")
 				chek.SetAttribute("data-id", fmt.Sprintf("%d", newCat))
@@ -477,8 +477,45 @@ func partsList(context *router.Context) {
 		// Add functions on the tree
 		// Handlers on the table itself
 		ul.AddEventListener("click", false, func(evt dom.Event) {
-			// evt.PreventDefault()
+			evt.PreventDefault()
 			li := evt.Target()
+			print("click event on the list", evt, "with tag", li.TagName())
+
+			switch li.TagName() {
+			case "LI":
+				print("This could be a part or category, or a whole line")
+				theType := li.GetAttribute("data-type")
+				print("data-type", theType)
+				switch theType {
+				case "category", "part":
+					print("valid LI, proceed")
+				default:
+					// check that it has an ID
+					if li.ID() == "" {
+						print("Clicked on some empty line - ignore the click")
+						return
+					}
+					print("valid category header .. get the matching label and work from there")
+					li = li.FirstChild().(dom.Element)
+					print("li has morphed into", li)
+				}
+			case "LABEL":
+				print("This must be a category")
+			case "INPUT":
+				print("clicking on checkboxes in the tree is totally broken at the moment due to CSS weirdness, so eat the event and do nothing for now")
+				return
+				print("Lets toggle the input for now")
+				theInput := li.(*dom.HTMLInputElement)
+				print("theInput", theInput)
+				theInput.Checked = !theInput.Checked
+				print("Clicked on the input, so lets find the label")
+				li = li.ParentElement().FirstChild().(dom.Element)
+				print("li has morphed into", li)
+			default:
+				print("dont know what to do about that object type - do nothing")
+				return
+			}
+
 			if lastSelectedClass != nil {
 				lastSelectedClass.Remove("listselected")
 			}

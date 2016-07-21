@@ -20,20 +20,10 @@
     padding: 0;
     margin: 0;
     list-style: none;
+    padding-left: 8px;
 }
-/*
-.css-treeview li.part-editor
-{
-    background: transparent;
-    line-height: 32px;
-    height: 32px;
-}
-
-.css-treeview span.part-qty-input {
-    padding: 0px 22px 0px 0px;
-}
- */
-.css-treeview input:not(.part-qty-input)
+ 
+.css-treeview input
 {
     position: absolute;
     opacity: 0;
@@ -84,15 +74,6 @@
 {
     display: none;
 }
-
-.css-treeview input.part-qty-input
-{
-    line-height: 28px !important;
-    height: 28px !important;
-    width: 120px !important;
-    display: inline-block !important;
-    border: 1px solid #002 !important;
-}
  
 .css-treeview label,
 .css-treeview label::before
@@ -111,8 +92,8 @@
     display: block;
 }
  
-.css-treeview label:not(.partlabel),
-.css-treeview label:not(.partlabel)::before
+.css-treeview label,
+.css-treeview label::before
 {
     /*background: url("../pages/css3-treeview/example/icons.png") no-repeat;*/
     background: url("/img/css3-treeview/icons.png") no-repeat;
@@ -133,24 +114,13 @@
     background-position: 18px 0;
 }
  
-.css-treeview label:not(.partlabel)::before
+.css-treeview label::before
 {
     content: "";
     width: 16px;
     margin: 0 22px 0 0;
     vertical-align: middle;
     background-position: 0 -32px;
-}
-
-.css-treeview label.partlabel
-{
-    display: inline-block !important;
-}
-
-.css-treeview label.partlabel::before 
-{
-    width: 300px;
-    margin: 0 0 0 0;
 }
  
 .css-treeview input:checked + label::before
