@@ -302,7 +302,6 @@ func partsList(context *router.Context) {
 				li.SetID(widgetID)
 				chek := doc.CreateElement("input").(*dom.HTMLInputElement)
 				chek.Type = "checkbox"
-				li.AppendChild(chek)
 				label := doc.CreateElement("label")
 				label.SetAttribute("for", widgetID)
 				label.SetInnerHTML("New Category")
@@ -314,6 +313,7 @@ func partsList(context *router.Context) {
 				chek.SetAttribute("data-id", fmt.Sprintf("%d", newCat))
 				chek.SetID(widgetID + "-chek")
 				li.AppendChild(label)
+				li.AppendChild(chek)
 				theUL.AppendChild(li)
 
 				// add an empty list for the categories
@@ -424,8 +424,8 @@ func partsList(context *router.Context) {
 
 		btnDelCat.AddEventListener("click", false, func(evt dom.Event) {
 			doIt := js.Global.Call("confirm", "Delete this category ?")
-			print("doIt", doIt)
-			if doIt {
+			print("doIt", doIt, doIt.Bool())
+			if doIt.Bool() {
 
 				go func() {
 					parentCat := 0
@@ -460,8 +460,8 @@ func partsList(context *router.Context) {
 
 		btnDelPart.AddEventListener("click", false, func(evt dom.Event) {
 			doIt := js.Global.Call("confirm", "Delete this part ?")
-			print("doIt", doIt)
-			if doIt {
+			print("doIt", doIt, doIt.Bool())
+			if doIt.Bool() {
 
 				go func() {
 					rpcClient.Call("PartRPC.DelPart", shared.PartRPCData{

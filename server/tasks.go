@@ -1667,3 +1667,17 @@ func (t *TaskRPC) Retransmit(data shared.TaskRPCData, result *string) error {
 
 	return nil
 }
+
+func (t *TaskRPC) AddParts(data shared.TaskRPCPartData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	logger(start, "Task.AddParts",
+		fmt.Sprintf("Channel %d, Task %d Part %d Qty %.2f User %d %s %s",
+			data.Channel, data.ID, data.Part, data.Qty, conn.UserID, conn.Username, conn.UserRole),
+		"Set Qty",
+		data.Channel, conn.UserID, "task_part", data.ID, true)
+
+	return nil
+}

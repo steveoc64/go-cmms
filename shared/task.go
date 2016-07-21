@@ -195,6 +195,13 @@ type TaskRPCData struct {
 	Task    *Task
 }
 
+type TaskRPCPartData struct {
+	Channel int
+	ID      int
+	Part    int
+	Qty     float64
+}
+
 const (
 	dateDisplayFormat = "Mon, Jan 2 2006"
 )

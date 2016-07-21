@@ -188,9 +188,9 @@ func _taskEdit(action string, id int) {
 	// Layout the fields
 	partsTitle := ""
 	if task.SchedID != 0 {
-		partsTitle = "Parts Used - as specified on the maintenance schedule - all parts must have a Qty Used, or a note"
+		partsTitle = "Parts Used - as specified on the maintenance schedule"
 	} else {
-		partsTitle = "Parts Used - record qty for each part used - or leave blank if part was not needed on this job"
+		partsTitle = "Parts Used - record qty for each part used"
 	}
 
 	useRole := Session.UserRole
@@ -239,17 +239,20 @@ func _taskEdit(action string, id int) {
 			rate := int(task.LabourCost / task.LabourHrs)
 			rateStr = fmt.Sprintf(" @ $%d/hr", rate)
 		}
-		form.Row(4).
-			AddDisplay(2, "Labour Est $", "LabourEst").
+
+		form.Row(3).
 			AddDecimal(1, fmt.Sprintf("Hours%s", rateStr), "LabourHrs", 2, "0.5").
-			AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1")
+			AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1").
+			AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1")
 
-		form.Row(4).
-			AddDisplay(2, "Material Est $", "MaterialEst").
-			AddDecimal(2, "Actual Material $", "MaterialCost", 2, "1")
+		// form.Row(4).
+		// 	AddDisplay(2, "Labour Est $", "LabourEst").
+		// 	AddDecimal(1, fmt.Sprintf("Hours%s", rateStr), "LabourHrs", 2, "0.5").
+		// 	AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1")
 
-		form.Row(1).
-			AddCustom(1, partsTitle, "PartList", "")
+		// form.Row(4).
+		// 	AddDisplay(2, "Material Est $", "MaterialEst").
+		// 	AddDecimal(2, "Actual Material $", "MaterialCost", 2, "1")
 
 	case "Site Manager":
 		form.Row(3).
@@ -275,17 +278,19 @@ func _taskEdit(action string, id int) {
 		form.Row(1).
 			AddCustom(1, "Notes and CheckLists", "CheckList", "")
 
-		form.Row(4).
-			AddDisplay(2, "Labour Est $", "LabourEst").
+		form.Row(3).
 			AddDecimal(1, "Hours", "LabourHrs", 2, "0.5").
-			AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1")
+			AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1").
+			AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1")
 
-		form.Row(4).
-			AddDisplay(2, "Material Est $", "MaterialEst").
-			AddDecimal(2, "Actual Material $", "MaterialCost", 2, "1")
+		// form.Row(4).
+		// 	AddDisplay(2, "Labour Est $", "LabourEst").
+		// 	AddDecimal(1, "Hours", "LabourHrs", 2, "0.5").
+		// 	AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1")
 
-		form.Row(1).
-			AddCustom(1, partsTitle, "PartList", "")
+		// form.Row(4).
+		// 	AddDisplay(2, "Material Est $", "MaterialEst").
+		// 	AddDecimal(2, "Actual Material $", "MaterialCost", 2, "1")
 
 	case "Technician":
 		row := form.Row(4).
@@ -324,10 +329,47 @@ func _taskEdit(action string, id int) {
 
 		form.Row(1).
 			AddCustom(1, "Notes and CheckLists", "CheckList", "")
-
-		form.Row(1).
-			AddCustom(1, partsTitle, "PartList", "")
 	}
+
+	// create the swapper panels
+	swapper := formulate.Swapper{
+		Name:     "PartDetails",
+		Selected: 1,
+	}
+
+	form.Row(1).
+		AddCustom(1, "Parts Used", "PartsUsed", "hidden")
+
+	form.Row(2).
+		AddCustom(1, partsTitle, "PartList", "").
+		AddSwapper(1, "Part Details", &swapper)
+
+	catPanel := swapper.AddPanel("Category")
+	catPanel.AddRow(1).AddDisplay(1, "Category Name", "CatName")
+	catPanel.AddRow(1).AddDisplay(1, "Stock Code", "CatStockCode")
+	catPanel.AddRow(1).AddDisplay(1, "Description", "CatDescr")
+
+	// Layout the fields for Parts
+	partPanel := swapper.AddPanel("Part")
+
+	partPanel.Row(1).
+		AddDecimal(1, "Qty Used", "QtyUsed", 2, "1")
+
+	partPanel.Row(2).
+		AddDisplay(1, "Name", "Name").
+		AddDisplay(1, "Stock Code", "StockCode")
+
+	partPanel.Row(1).
+		AddDisplay(1, "Description", "Descr")
+
+	partPanel.Row(4).
+		AddDisplay(1, "ReOrder Level", "ReorderStocklevel").
+		AddDisplay(1, "ReOrder Qty", "ReorderQty").
+		AddDisplay(1, "Current Stock", "CurrentStock").
+		AddDisplay(1, "Qty Type", "QtyType")
+
+	partPanel.Row(1).
+		AddDisplay(1, "Notes", "Notes")
 
 	// Add event handlers
 	form.CancelEvent(func(evt dom.Event) {
@@ -397,6 +439,9 @@ func _taskEdit(action string, id int) {
 	w := dom.GetWindow()
 	doc := w.Document()
 
+	partsUsedEl := doc.QuerySelector("[name=PartsUsed]")
+	print("partsUsedEl", partsUsedEl)
+
 	// add a handler on the photo field
 	if el := doc.QuerySelector("[name=NewPhoto]").(*dom.HTMLInputElement); el != nil {
 		el.AddEventListener("change", false, func(evt dom.Event) {
@@ -447,7 +492,13 @@ func _taskEdit(action string, id int) {
 	// click on the parts button, expand the div to show a tree
 	if el := doc.QuerySelector("[name=parts-button]"); el != nil {
 		el.AddEventListener("click", false, func(evt dom.Event) {
+
+			var lastSelectedClass *dom.TokenList
+			currentCat := 0
+			currentPart := 0
+
 			evt.PreventDefault()
+
 			print("show parts tree here")
 
 			t := doc.QuerySelector(`[name="parts-tree-div"]`)
@@ -464,12 +515,129 @@ func _taskEdit(action string, id int) {
 					Channel:    Session.Channel,
 					CategoryID: 0,
 				}, &tree)
-				print("got tree", tree)
+				// print("got tree", tree)
 
 				// Recursively add elements to the tree
 				addTaskPartsTree(tree, ul, 0)
 
 				t.AppendChild(ul)
+
+				// Add a change function on the Qty field
+				doc.QuerySelector("[name=QtyUsed]").AddEventListener("change", false, func(evt dom.Event) {
+					print("Change in value of QtyUsed on task", currentPart, id)
+					qtyValue := doc.QuerySelector("[name=QtyUsed]").(*dom.HTMLInputElement).Value
+					print("qv", qtyValue)
+					qty, _ := strconv.ParseFloat(qtyValue, 64)
+					print("new qty", qty)
+
+					go func() {
+						done := false
+						rpcClient.Call("TaskRPC.AddParts", shared.TaskRPCPartData{
+							Channel: Session.Channel,
+							ID:      id,
+							Part:    currentPart,
+							Qty:     qty,
+						}, &done)
+
+					}()
+
+				})
+
+				// Add functions on the tree
+				ul.AddEventListener("click", false, func(evt dom.Event) {
+					evt.PreventDefault()
+					li := evt.Target()
+					// print("click event on the list", evt, "with tag", li.TagName())
+
+					switch li.TagName() {
+					case "LI":
+						// print("This could be a part or category, or a whole line")
+						theType := li.GetAttribute("data-type")
+						// print("data-type", theType)
+						switch theType {
+						case "category", "part":
+							// print("valid LI, proceed")
+						default:
+							// check that it has an ID
+							if li.ID() == "" {
+								// print("Clicked on some empty line - ignore the click")
+								return
+							}
+							// print("valid category header .. get the matching label and work from there")
+							li = li.FirstChild().(dom.Element)
+							// print("li has morphed into", li)
+						}
+					case "LABEL":
+						// print("This must be a category")
+					case "INPUT":
+						// print("clicking on checkboxes in the tree is totally broken at the moment due to CSS weirdness, so eat the event and do nothing for now")
+						return
+						// print("Lets toggle the input for now")
+						theInput := li.(*dom.HTMLInputElement)
+						// print("theInput", theInput)
+						theInput.Checked = !theInput.Checked
+						// print("Clicked on the input, so lets find the label")
+						li = li.ParentElement().FirstChild().(dom.Element)
+						// print("li has morphed into", li)
+					default:
+						// print("dont know what to do about that object type - do nothing")
+						return
+					}
+
+					if lastSelectedClass != nil {
+						lastSelectedClass.Remove("listselected")
+					}
+					lastSelectedClass = li.Class()
+					// print("LI class =", lastSelectedClass)
+
+					// only add this if the target is a LI, otherwise it makes no sense to do this
+					lastSelectedClass.Add("listselected")
+
+					dataType := li.GetAttribute("data-type")
+					dataID := li.GetAttribute("data-id")
+					actualID, _ := strconv.Atoi(dataID)
+					switch dataType {
+					case "category":
+						go func() {
+							theCat := shared.Category{}
+							rpcClient.Call("PartRPC.GetCategory", shared.PartRPCData{
+								Channel: Session.Channel,
+								ID:      actualID,
+							}, &theCat)
+							// print("Cat", dataID, theCat)
+							currentCat = theCat.ID
+							doc.QuerySelector("[name=CatName]").(*dom.HTMLInputElement).Value = theCat.Name
+							doc.QuerySelector("[name=CatDescr]").(*dom.HTMLInputElement).Value = theCat.Descr
+							doc.QuerySelector("[name=CatStockCode]").(*dom.HTMLInputElement).Value = theCat.StockCode
+
+							// print("expand out the cat", currentCat)
+							theCheka := doc.QuerySelector(fmt.Sprintf("#category-%d-chek", currentCat)).(*dom.HTMLInputElement)
+							theCheka.Checked = !theCheka.Checked
+
+							swapper.Select(0)
+							doc.QuerySelector(`[name=CatName]`).(*dom.HTMLInputElement).Focus()
+						}()
+						// print("Category", dataID)
+						swapper.Select(0)
+					case "part":
+						go func() {
+							thePart := shared.Part{}
+							rpcClient.Call("PartRPC.Get", shared.PartRPCData{
+								Channel: Session.Channel,
+								ID:      actualID,
+							}, &thePart)
+							// print("Part", dataID, thePart)
+							currentPart = thePart.ID
+							swapper.Panels[1].Paint(&thePart)
+							// thePart.ValuationString = thePart.DisplayValuation()
+							// doc.QuerySelector("[name=ValuationString]").(*dom.HTMLInputElement).Value = thePart.ValuationString
+							swapper.Select(1)
+							doc.QuerySelector(`[name=Name]`).(*dom.HTMLInputElement).Focus()
+
+						}()
+					}
+				})
+
 			}()
 		})
 	}
