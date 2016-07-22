@@ -1713,3 +1713,20 @@ func (t *TaskRPC) AddParts(data shared.TaskRPCPartData, newStockOnHand *float64)
 
 	return nil
 }
+
+func (t *TaskRPC) GetQtyUsed(data shared.TaskRPCPartData, qty *float64) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	// get the existing task_part qty
+	DB.SQL(`select qty_used from task_part where task_id=$1 and part_id=$2`, data.ID, data.Part).QueryScalar(qty)
+
+	logger(start, "Task.GetQtyUsed",
+		fmt.Sprintf("Channel %d, Task %d Part %d User %d %s %s",
+			data.Channel, data.ID, data.Part, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("Qty %.2f", *qty),
+		data.Channel, conn.UserID, "task_part", data.ID, false)
+
+	return nil
+}

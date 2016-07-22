@@ -638,8 +638,18 @@ func _taskEdit(action string, id int) {
 							swapper.Panels[1].Paint(&thePart)
 							// thePart.ValuationString = thePart.DisplayValuation()
 							// doc.QuerySelector("[name=ValuationString]").(*dom.HTMLInputElement).Value = thePart.ValuationString
+
+							// Now get the Qty used and populate that field
+							qtyUsed := 0.0
+							rpcClient.Call("TaskRPC.GetQtyUsed", shared.TaskRPCPartData{
+								Channel: Session.Channel,
+								ID:      id,
+								Part:    thePart.ID,
+							}, &qtyUsed)
 							swapper.Select(1)
-							doc.QuerySelector(`[name=Name]`).(*dom.HTMLInputElement).Focus()
+							qel := doc.QuerySelector("[name=QtyUsed]").(*dom.HTMLInputElement)
+							qel.Value = fmt.Sprintf("%.2f", qtyUsed)
+							qel.Focus()
 
 						}()
 					}
