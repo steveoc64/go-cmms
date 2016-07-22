@@ -274,5 +274,6 @@ insert into migration (name) values ('Encoder and strip guide');
 
 alter table part add supplier_info text not null default '';
 alter table part_price add supplier_info text not null default '';
+alter table part_price add descr text not null default '';
 
 insert into migration (name) values ('Supplier info on part');

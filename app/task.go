@@ -345,12 +345,15 @@ func _taskEdit(action string, id int) {
 		AddSwapper(1, "Part Details", &swapper)
 
 	catPanel := swapper.AddPanel("Category")
+	catPanel.BindWithForm = false
+
 	catPanel.AddRow(1).AddDisplay(1, "Category Name", "CatName")
 	catPanel.AddRow(1).AddDisplay(1, "Stock Code", "CatStockCode")
 	catPanel.AddRow(1).AddDisplay(1, "Description", "CatDescr")
 
 	// Layout the fields for Parts
 	partPanel := swapper.AddPanel("Part")
+	partPanel.BindWithForm = false
 
 	partPanel.Row(1).
 		AddDecimal(1, "Qty Used", "QtyUsed", 2, "1")
@@ -367,6 +370,9 @@ func _taskEdit(action string, id int) {
 		AddDisplay(1, "ReOrder Qty", "ReorderQty").
 		AddDisplay(1, "Current Stock", "CurrentStock").
 		AddDisplay(1, "Qty Type", "QtyType")
+
+	partPanel.Row(1).
+		AddDisplay(1, "Supplier Details", "SupplierInfo")
 
 	partPanel.Row(1).
 		AddDisplay(1, "Notes", "Notes")
@@ -531,14 +537,15 @@ func _taskEdit(action string, id int) {
 					print("new qty", qty)
 
 					go func() {
-						done := false
+						newStockLevel := 0.0
 						rpcClient.Call("TaskRPC.AddParts", shared.TaskRPCPartData{
 							Channel: Session.Channel,
 							ID:      id,
 							Part:    currentPart,
 							Qty:     qty,
-						}, &done)
-
+						}, &newStockLevel)
+						print("new stock level after using", qty, "=", newStockLevel)
+						doc.QuerySelector("[name=CurrentStock").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", newStockLevel)
 					}()
 
 				})

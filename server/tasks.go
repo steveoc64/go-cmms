@@ -1668,15 +1668,47 @@ func (t *TaskRPC) Retransmit(data shared.TaskRPCData, result *string) error {
 	return nil
 }
 
-func (t *TaskRPC) AddParts(data shared.TaskRPCPartData, done *bool) error {
+func (t *TaskRPC) AddParts(data shared.TaskRPCPartData, newStockOnHand *float64) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
 
+	// get the existing task_part, then remove it
+	oldTaskPart := shared.TaskPart{}
+	DB.SQL(`select * from task_part where task_id=$1 and part_id=$2`, data.ID, data.Part).QueryStruct(&oldTaskPart)
+	DB.SQL(`delete from task_part where task_id=$1 and part_id=$2`, data.ID, data.Part).Exec()
+
+	// insert a new task_part
+	DB.SQL(`insert into task_part
+		(task_id,part_id,qty_used,qty)
+		values ($1,$2,$3,0)`,
+		data.ID, data.Part, data.Qty).Exec()
+
+	// Calculate the stock difference
+	delta := data.Qty - oldTaskPart.QtyUsed
+
+	// println("OldQty", oldTaskPart.QtyUsed, "NewQty", data.Qty, "delta", delta)
+
+	// Update the stock on hand value on the part
+	oldStockOnHand := 0.0
+	DB.SQL(`select current_stock from part where id=$1`, data.Part).QueryScalar(&oldStockOnHand)
+	*newStockOnHand = oldStockOnHand - delta
+	// println("oldStockOnHand", oldStockOnHand, "newStockOnHand", *newStockOnHand)
+
+	DB.SQL(`update part set current_stock=$2 where id=$1`, data.Part, *newStockOnHand).Exec()
+
+	// Insert a stock audit record against the part
+	DB.SQL(`insert into part_stock
+		(part_id,stock_level,descr)
+		values ($1,$2,$3)`,
+		data.Part,
+		*newStockOnHand,
+		fmt.Sprintf("Used %.1f on Task %06d", delta, data.ID)).Exec()
+
 	logger(start, "Task.AddParts",
 		fmt.Sprintf("Channel %d, Task %d Part %d Qty %.2f User %d %s %s",
 			data.Channel, data.ID, data.Part, data.Qty, conn.UserID, conn.Username, conn.UserRole),
-		"Set Qty",
+		fmt.Sprintf("Delta %.2f", delta),
 		data.Channel, conn.UserID, "task_part", data.ID, true)
 
 	return nil
