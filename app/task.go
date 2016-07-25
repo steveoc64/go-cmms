@@ -516,6 +516,9 @@ func _taskEdit(action string, id int) {
 				expandAll(li)
 
 				// deselect the currently selected part
+				if lastSelectedClass != nil {
+					lastSelectedClass.Remove("listselected")
+				}
 				currentPartLI := doc.QuerySelector(fmt.Sprintf("#part-%d", currentPart))
 				if currentPartLI != nil {
 					currentPartLI.Class().Remove("listselected")
