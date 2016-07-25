@@ -493,6 +493,10 @@ func _taskEdit(action string, id int) {
 		})
 	}
 
+	var lastSelectedClass *dom.TokenList
+	currentCat := 0
+	currentPart := 0
+
 	// click on a button in the partsused area
 	if el := doc.QuerySelector("[name=PartsUsed]"); el != nil {
 		el.AddEventListener("click", false, func(evt dom.Event) {
@@ -507,6 +511,41 @@ func _taskEdit(action string, id int) {
 				// Now expand the tree to show the selected item
 				li := doc.QuerySelector(fmt.Sprintf("#part-%d", partID))
 				print("got LI", li)
+
+				// now walk up the tree from there, expanding the parent checkboxes
+				expandAll(li)
+
+				// deselect the currently selected part
+				currentPartLI := doc.QuerySelector(fmt.Sprintf("#part-%d", currentPart))
+				if currentPartLI != nil {
+					currentPartLI.Class().Remove("listselected")
+				}
+				lastSelectedClass = li.Class()
+				lastSelectedClass.Add("listselected")
+				go func() {
+					thePart := shared.Part{}
+					rpcClient.Call("PartRPC.Get", shared.PartRPCData{
+						Channel: Session.Channel,
+						ID:      partID,
+					}, &thePart)
+					// print("Part", dataID, thePart)
+					currentPart = thePart.ID
+					swapper.Panels[1].Paint(&thePart)
+					// thePart.ValuationString = thePart.DisplayValuation()
+					// doc.QuerySelector("[name=ValuationString]").(*dom.HTMLInputElement).Value = thePart.ValuationString
+
+					// Now get the Qty used and populate that field
+					qtyUsed := 0.0
+					rpcClient.Call("TaskRPC.GetQtyUsed", shared.TaskRPCPartData{
+						Channel: Session.Channel,
+						ID:      id,
+						Part:    thePart.ID,
+					}, &qtyUsed)
+					swapper.Select(1)
+					qel := doc.QuerySelector("[name=QtyUsed]").(*dom.HTMLInputElement)
+					qel.Value = fmt.Sprintf("%.2f", qtyUsed)
+					qel.Focus()
+				}()
 			}
 		})
 	}
@@ -514,10 +553,6 @@ func _taskEdit(action string, id int) {
 	// click on the parts button, expand the div to show a tree
 	if el := doc.QuerySelector("[name=parts-button]"); el != nil {
 		el.AddEventListener("click", false, func(evt dom.Event) {
-
-			var lastSelectedClass *dom.TokenList
-			currentCat := 0
-			currentPart := 0
 
 			evt.PreventDefault()
 
@@ -747,6 +782,30 @@ func showPartsButtons(id int) {
 			el.Class().Remove("hidden")
 		}()
 	}
+}
+
+func expandAll(li dom.Element) {
+	print("expanding", li)
+	ul := li.ParentElement()
+	print("parent UL", ul)
+	if ul == nil {
+		return
+	}
+	prevInput := ul.PreviousSibling()
+	print("prevInput", prevInput)
+	if prevInput == nil {
+		return
+	}
+	// got the parent checkbox, so expand it out
+	prevInput.(*dom.HTMLInputElement).Checked = true
+
+	parentLI := ul.ParentElement()
+	print("parent LI", parentLI)
+	if parentLI == nil {
+		return
+	}
+	// recursion
+	expandAll(parentLI)
 }
 
 func taskList(context *router.Context) {
