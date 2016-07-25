@@ -186,12 +186,7 @@ func _taskEdit(action string, id int) {
 	}
 
 	// Layout the fields
-	partsTitle := ""
-	if task.SchedID != 0 {
-		partsTitle = "Parts Used - as specified on the maintenance schedule"
-	} else {
-		partsTitle = "Parts Used - record qty for each part used"
-	}
+	partsTitle = "Parts Used - record qty for each part used"
 
 	useRole := Session.UserRole
 	if Session.CanAllocate {
