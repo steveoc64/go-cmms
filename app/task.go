@@ -437,6 +437,7 @@ func _taskEdit(action string, id int) {
 
 	// All done, so render the form
 	form.Render("edit-form", "main", &task)
+	showPartsButtons(id)
 
 	// Add the custom checklist
 	loadTemplate("task-check-list", "[name=CheckList]", task)
@@ -444,9 +445,6 @@ func _taskEdit(action string, id int) {
 
 	w := dom.GetWindow()
 	doc := w.Document()
-
-	partsUsedEl := doc.QuerySelector("[name=PartsUsed]")
-	print("partsUsedEl", partsUsedEl)
 
 	// add a handler on the photo field
 	if el := doc.QuerySelector("[name=NewPhoto]").(*dom.HTMLInputElement); el != nil {
@@ -491,6 +489,24 @@ func _taskEdit(action string, id int) {
 			task.AllDone = calcAllDone(task)
 			if wasDone != task.AllDone {
 				setActions(2)
+			}
+		})
+	}
+
+	// click on a button in the partsused area
+	if el := doc.QuerySelector("[name=PartsUsed]"); el != nil {
+		el.AddEventListener("click", false, func(evt dom.Event) {
+			evt.PreventDefault()
+
+			switch evt.Target().TagName() {
+			case "INPUT":
+				btn := evt.Target().(*dom.HTMLInputElement)
+				partID, _ := strconv.Atoi(btn.GetAttribute("part-id"))
+				print("clicked on a btn", btn, partID)
+
+				// Now expand the tree to show the selected item
+				li := doc.QuerySelector(fmt.Sprintf("#part-%d", partID))
+				print("got LI", li)
 			}
 		})
 	}
@@ -546,6 +562,9 @@ func _taskEdit(action string, id int) {
 						}, &newStockLevel)
 						print("new stock level after using", qty, "=", newStockLevel)
 						doc.QuerySelector("[name=CurrentStock").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", newStockLevel)
+
+						// populate the parts button display
+						showPartsButtons(id)
 					}()
 
 				})
@@ -693,6 +712,41 @@ func _taskEdit(action string, id int) {
 	// And attach actions
 
 	setActions(1)
+}
+
+func showPartsButtons(id int) {
+	print("populate the parts buttons")
+	w := dom.GetWindow()
+	doc := w.Document()
+	if el := doc.QuerySelector("[name=PartsUsed]"); el != nil {
+		print("here with el", el)
+		// el.Class().Add("hidden")
+		div := el.(*dom.HTMLDivElement)
+		print("div", div)
+		go func() {
+			parts := []shared.TaskPart{}
+			rpcClient.Call("TaskRPC.GetParts", shared.TaskRPCData{
+				Channel: Session.Channel,
+				ID:      id,
+			}, &parts)
+			print("got parts", parts)
+			el.SetInnerHTML("") //  clear out the div
+
+			for _, v := range parts {
+				print("adding btn for", v)
+				btn := doc.CreateElement("input").(*dom.HTMLInputElement)
+				btn.Class().SetString("button button-outline")
+				// btn.Class().SetString("button")
+				btn.Type = "button"
+				// btn.Value = fmt.Sprintf("%.1f x %s %s", v.QtyUsed, v.StockCode, v.PartName)
+				btn.Value = fmt.Sprintf("%.1f x %s", v.QtyUsed, v.PartName)
+				btn.SetAttribute("part-id", fmt.Sprintf("%d", v.PartID))
+				div.AppendChild(btn)
+				print("added btn", btn)
+			}
+			el.Class().Remove("hidden")
+		}()
+	}
 }
 
 func taskList(context *router.Context) {

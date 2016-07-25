@@ -1678,11 +1678,13 @@ func (t *TaskRPC) AddParts(data shared.TaskRPCPartData, newStockOnHand *float64)
 	DB.SQL(`select * from task_part where task_id=$1 and part_id=$2`, data.ID, data.Part).QueryStruct(&oldTaskPart)
 	DB.SQL(`delete from task_part where task_id=$1 and part_id=$2`, data.ID, data.Part).Exec()
 
-	// insert a new task_part
-	DB.SQL(`insert into task_part
+	// insert a new task_part if the qut is not zero
+	if data.Qty != 0.0 {
+		DB.SQL(`insert into task_part
 		(task_id,part_id,qty_used,qty)
 		values ($1,$2,$3,0)`,
-		data.ID, data.Part, data.Qty).Exec()
+			data.ID, data.Part, data.Qty).Exec()
+	}
 
 	// Calculate the stock difference
 	delta := data.Qty - oldTaskPart.QtyUsed
@@ -1729,4 +1731,26 @@ func (t *TaskRPC) GetQtyUsed(data shared.TaskRPCPartData, qty *float64) error {
 		data.Channel, conn.UserID, "task_part", data.ID, false)
 
 	return nil
+}
+
+func (t *TaskRPC) GetParts(data shared.TaskRPCData, parts *[]shared.TaskPart) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`select t.*,p.name as part_name,p.stock_code
+		from task_part t
+		left join part p on p.id=t.part_id
+		where t.task_id=$1
+		order by p.name`, data.ID).
+		QueryStructs(parts)
+
+	logger(start, "Task.GetParts",
+		fmt.Sprintf("Channel %d, Task %d User %d %s %s",
+			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("Got %d parts", len(*parts)),
+		data.Channel, conn.UserID, "task_part", data.ID, false)
+
+	return nil
+
 }

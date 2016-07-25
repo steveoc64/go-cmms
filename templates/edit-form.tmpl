@@ -88,8 +88,15 @@
           {{end}}
           {{if eq .Type "photo"}}
             {{if .PhotoUpload}}
-              <input type="file" name="{{.Model}}" multiple="multiple" class="no-print"><p>
+            <div class="image-upload">
+              <label for="file-input">
+                <img src="/img/addPhoto.png"/>
+              </label>
+              <input id="file-input" type="file" name="{{.Model}}" class="no-print"/><p>
               <img class="photouppreview hidden no-print" name="{{.Model}}-Preview">
+            </div>
+              <!-- <input type="file" name="{{.Model}}" multiple="multiple" class="no-print"><p> -->
+              <!-- <img class="photouppreview hidden no-print" name="{{.Model}}-Preview"> -->
             {{end}}
             {{if .Preview}}
               <img class="photopreview hidden" name="{{.Model}}-Preview">
