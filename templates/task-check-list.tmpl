@@ -1,7 +1,7 @@
 <pre>{{.Descr}}</pre>
 {{range .Checks}}
 <div class="row row-wrap" style="flex-wrap: wrap">
-	<div class="column column-50">
+	<div class="column">
 		<input type="checkbox" id="seq-{{.Seq}}" key="{{.Seq}}" {{if .Done}}checked{{end}}>
 		<label class="label-inline" for="seq-{{.Seq}}">
 			{{.Descr}} {{if .DoneDate}} (Complete {{.ShowDoneDate}}){{end}}
