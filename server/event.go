@@ -103,6 +103,14 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 			fieldName = "uncoiler"
 		case "Rollbed":
 			fieldName = "rollbed"
+		case "Pnuematic":
+			fieldName = "pnuematic"
+		case "Encoder":
+			fieldName = "encoder"
+		case "Conveyor":
+			fieldName = "conveyor"
+		case "StripGuide":
+			fieldName = "strip_guide"
 		}
 		if fieldName != "" {
 			DB.SQL(fmt.Sprintf("update machine set %s='Needs Attention' where id=$1", fieldName), evt.MachineID).Exec()
@@ -409,6 +417,14 @@ func (e *EventRPC) Complete(data shared.EventRPCData, done *bool) error {
 			fieldName = "uncoiler"
 		case "Rollbed":
 			fieldName = "rollbed"
+		case "Pnuematic":
+			fieldName = "pnuematic"
+		case "Conveyor":
+			fieldName = "conveyor"
+		case "Encoder":
+			fieldName = "encoder"
+		case "StripGuide":
+			fieldName = "strip_guide"
 		}
 		if fieldName != "" {
 			DB.SQL(fmt.Sprintf("update machine set %s='Running' where id=$1", fieldName), event.MachineID).Exec()
@@ -432,6 +448,10 @@ func (e *EventRPC) Complete(data shared.EventRPCData, done *bool) error {
 		machine.Console != "Running" ||
 		machine.Rollbed != "Running" ||
 		machine.Uncoiler != "Running" ||
+		machine.Pnuematic != "Running" ||
+		machine.Encoder != "Running" ||
+		machine.StripGuide != "Running" ||
+		machine.Conveyor != "Running" ||
 		machine.Lube != "Running" {
 		machineIsClear = false
 	}

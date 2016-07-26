@@ -166,7 +166,7 @@
     <g stroke="#114" stroke-width="1" class="fillhover" tooltype="Component" component="Pnuematic">
       <title>Pnuematic</title>
       <rect x="100" y="0" width="40" rx="3" ry="3" height="40" class="bhover"
-            fill="{{.NonToolBg .Lube}}"/>
+            fill="{{.NonToolBg .Pnuematic}}"/>
       <image xlink:href="/img/pnue.png" x="101" y="2" height="38px" width="38px"/>
     </g>
     {{end}}
@@ -208,7 +208,7 @@
     machinetypedata = {{.MachineTypeData}}
 
     {{if .MachineTypeData.Encoder}}
-    <g stroke="#114" stroke-width="2" class="fillhover">
+    <g stroke="#114" stroke-width="2" class="fillhover" tooltype="Component" component="Encoder">
       <title>Encoder</title>
       <rect x="80" y="60" width="30" height="40" fill="{{.NonToolBg .Encoder}}"/>
       <image xlink:href="/img/encoder.png" x="81" y="62" height="38px" width="28px"/>
@@ -216,7 +216,7 @@
     {{end}}
 
     {{if .MachineTypeData.StripGuide}}
-    <g stroke="#114" stroke-width="2" class="fillhover">
+    <g stroke="#114" stroke-width="2" class="fillhover" tooltype="Component" component="StripGuide">
       <title>Strip Guide</title>
       <rect x="115" y="60" width="30" height="40" fill="{{.NonToolBg .StripGuide}}"/>
       <image xlink:href="/img/stripguide.png" x="116" y="62" height="38px" width="28px"/>
@@ -270,7 +270,8 @@
   {{if .MachineTypeData.Conveyor}}
   <g stroke="#114" stroke-width="1" class="fillhover" tooltype="Component" component="Conveyor">
     <rect x="80" y="150" rx="10" ry="10" width="{{.SVGWidth2}}" 
-      height="22" stroke="black" stroke-width="2" fill="url(#grad1)"/>
+      height="22" stroke="black" stroke-width="2" fill="{{.NonToolBg .Conveyor}}"/>
+      <!-- height="22" stroke="black" stroke-width="2" fill="url(#grad1)"/> -->
     <!-- <text transform="translate(100 164)" style="font-size: 14;">Conveyor</text> -->
     <circle cx="{{.ConveyorWheel 1}}" cy="161" r="9" fill="#ccc"/>
     <circle cx="{{.ConveyorWheel 2}}" cy="161" r="9" fill="#ccc"/>
