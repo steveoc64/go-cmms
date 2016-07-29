@@ -628,27 +628,31 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 		log.Println("Will send SMS:", smsMsg, "to", phoneNumber)
 	}
 
-	// Now add the parts to the task based on the dataset for the type of machine
-	partClass := 0
-	DB.SQL(`select part_class from machine where id=$1`, task.MachineID).QueryScalar(&partClass)
-	if partClass != 0 {
-		// log.Println("part class =", partClass)
-		parts := []shared.Part{}
-		DB.SQL(`select * from part where class=$1`, partClass).QueryStructs(&parts)
-		for _, v := range parts {
+	if false {
+		// HET - yactn are no longer tightly coupled to the 3aAaya
 
-			taskPart := shared.TaskPart{
-				TaskID: task.ID,
-				PartID: v.ID,
-				Qty:    0,
-				Notes:  "",
+		// Now add the parts to the task based on the dataset for the type of machine
+		partClass := 0
+		DB.SQL(`select part_class from machine where id=$1`, task.MachineID).QueryScalar(&partClass)
+		if partClass != 0 {
+			// log.Println("part class =", partClass)
+			parts := []shared.Part{}
+			DB.SQL(`select * from part where class=$1`, partClass).QueryStructs(&parts)
+			for _, v := range parts {
+
+				taskPart := shared.TaskPart{
+					TaskID: task.ID,
+					PartID: v.ID,
+					Qty:    0,
+					Notes:  "",
+				}
+				// log.Println("got part", taskPart)
+
+				DB.InsertInto("task_part").
+					Whitelist("task_id", "part_id", "qty", "notes").
+					Record(taskPart).
+					Exec()
 			}
-			// log.Println("got part", taskPart)
-
-			DB.InsertInto("task_part").
-				Whitelist("task_id", "part_id", "qty", "notes").
-				Record(taskPart).
-				Exec()
 		}
 	}
 

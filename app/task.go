@@ -752,21 +752,21 @@ func showPartsButtons(id int) {
 	w := dom.GetWindow()
 	doc := w.Document()
 	if el := doc.QuerySelector("[name=PartsUsed]"); el != nil {
-		print("here with el", el)
+		// print("here with el", el)
 		// el.Class().Add("hidden")
 		div := el.(*dom.HTMLDivElement)
-		print("div", div)
+		// print("div", div)
 		go func() {
 			parts := []shared.TaskPart{}
 			rpcClient.Call("TaskRPC.GetParts", shared.TaskRPCData{
 				Channel: Session.Channel,
 				ID:      id,
 			}, &parts)
-			print("got parts", parts)
+			// print("got parts", parts)
 			el.SetInnerHTML("") //  clear out the div
 
 			for _, v := range parts {
-				print("adding btn for", v)
+				// print("adding btn for", v)
 				btn := doc.CreateElement("input").(*dom.HTMLInputElement)
 				btn.Class().SetString("button button-outline")
 				// btn.Class().SetString("button")
@@ -775,7 +775,7 @@ func showPartsButtons(id int) {
 				btn.Value = fmt.Sprintf("%.1f x %s", v.QtyUsed, v.PartName)
 				btn.SetAttribute("part-id", fmt.Sprintf("%d", v.PartID))
 				div.AppendChild(btn)
-				print("added btn", btn)
+				// print("added btn", btn)
 			}
 			el.Class().Remove("hidden")
 		}()

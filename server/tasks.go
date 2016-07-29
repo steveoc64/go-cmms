@@ -415,13 +415,17 @@ func (t *TaskRPC) Update(data shared.TaskRPCData, updatedTask *shared.Task) erro
 		}
 	}
 
-	for _, v := range data.Task.Parts {
-		// log.Println("part = ", v)
+	if false {
+		// dont want to do this anymore, and the parts are not so tightly coupled to the task now
 
-		DB.Update("task_part").
-			SetWhitelist(v, "notes", "qty_used").
-			Where("task_id=$1 and part_id=$2", data.Task.ID, v.PartID).
-			Exec()
+		for _, v := range data.Task.Parts {
+			// log.Println("part = ", v)
+
+			DB.Update("task_part").
+				SetWhitelist(v, "notes", "qty_used").
+				Where("task_id=$1 and part_id=$2", data.Task.ID, v.PartID).
+				Exec()
+		}
 	}
 
 	logger(start, "Task.Update",
