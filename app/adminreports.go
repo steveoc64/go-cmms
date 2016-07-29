@@ -373,6 +373,9 @@ func phototestAdd(context *router.Context) {
 		form.Row(1).
 			AddPhoto(1, "Photo", "Photo")
 
+		// form.Row(1).
+		// 	AddCustom(1, "Sample Form", "Sample", "")
+
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
@@ -385,9 +388,11 @@ func phototestAdd(context *router.Context) {
 
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			print("add photo")
+			// print("add photo")
 			form.Bind(&photo)
-			print("bind the photo gives", photo)
+			// print("bind the photo gives", photo)
+			// js.Global.Call("alert", "here")
+			// js.Global.Call("alert", fmt.Sprintf("photo %v", photo))
 			go func() {
 				newID := 0
 				rpcClient.Call("UtilRPC.AddPhoto", shared.PhotoRPCData{
@@ -401,6 +406,8 @@ func phototestAdd(context *router.Context) {
 		// All done, so render the form
 		form.Render("edit-form", "main", &photo)
 
+		// form.Render("fileupload", "[name=Sample]", nil)
+
 		// add a handler on the photo field
 		w := dom.GetWindow()
 		doc := w.Document()
@@ -408,13 +415,28 @@ func phototestAdd(context *router.Context) {
 			el.AddEventListener("change", false, func(evt dom.Event) {
 				files := el.Files()
 				fileReader := js.Global.Get("FileReader").New()
+				// js.Global.Call("alert", "filereadr")
+				// js.Global.Call("alert", fileReader)
 				fileReader.Set("onload", func(e *js.Object) {
+					// js.Global.Call("alert", "onload")
 					target := e.Get("target")
 					imgData := target.Get("result").String()
-					//print("imgdata =", imgData)
-					imgEl := doc.QuerySelector("[name=Photo-Preview").(*dom.HTMLImageElement)
+					// js.Global.Call("alert", "imgData")
+					// js.Global.Call("alert", imgData[:88])
+					// js.Global.Call("alert", "about to get the PhotoPreview element")
+					imgEl := doc.QuerySelector(`.photouppreview`).(*dom.HTMLImageElement)
+					// js.Global.Call("alert", imgEl)
+					// imgEl2 := doc.QuerySelector(`[name="PhotoPreview"]`).(*dom.HTMLImageElement)
+					// js.Global.Call("alert", imgEl2)
 					imgEl.Src = imgData
+					// imgEl.SetAttribute("src", imgData)
 					imgEl.Class().Remove("hidden")
+					// js.Global.Call("alert", "unhide the preview")
+				})
+				fileReader.Set("onerror", func(e *js.Object) {
+					err := e.Get("target").Get("error")
+					print("Error reading file", err)
+					// js.Global.Call("alert", fmt.Sprintf("Error: %s", err))
 				})
 				fileReader.Call("readAsDataURL", files[0])
 			})

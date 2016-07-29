@@ -89,20 +89,24 @@
           {{if eq .Type "photo"}}
             {{if .PhotoUpload}}
             <div class="image-upload">
+              <span>
               <label for="file-input">
-                <img src="/img/addPhoto.png"/>
+                <img src="/img/addPhoto.png">
               </label>
-              <input id="file-input" type="file" name="{{.Model}}" class="no-print"/><p>
-              <img class="photouppreview hidden no-print" name="{{.Model}}-Preview">
+              <input id="file-input" type="file" accept="image/*" capture="camera" name="{{.Model}}" class="no-print"/><p>
+              </span>
+              <span>
+                <img class="photouppreview hidden no-print" name="{{.Model}}Preview">
+              </span>
             </div>
               <!-- <input type="file" name="{{.Model}}" multiple="multiple" class="no-print"><p> -->
               <!-- <img class="photouppreview hidden no-print" name="{{.Model}}-Preview"> -->
             {{end}}
             {{if .Preview}}
-              <img class="photopreview hidden" name="{{.Model}}-Preview">
+              <img class="photopreview hidden" name="{{.Model}}Preview">
             {{end}}
             {{if .Thumbnail}}
-              <img class="photothumbnail hidden" name="{{.Model}}-Preview">
+              <img class="photothumbnail hidden" name="{{.Model}}Preview">
             {{end}}
           {{end}}
           {{if eq .Type "date"}}

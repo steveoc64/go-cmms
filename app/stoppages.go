@@ -266,7 +266,7 @@ func _stoppageEdit(action string, id int) {
 		w := dom.GetWindow()
 		doc := w.Document()
 
-		doc.QuerySelector("[name=PhotoPreview-Preview]").Class().Add("hidden")
+		doc.QuerySelector("[name=PhotoPreviewPreview]").Class().Add("hidden")
 	}
 
 	// and show the assignments
@@ -459,7 +459,7 @@ func stoppageNewTask(context *router.Context) {
 					target := e.Get("target")
 					imgData := target.Get("result").String()
 					//print("imgdata =", imgData)
-					imgEl := doc.QuerySelector("[name=NewPhoto-Preview").(*dom.HTMLImageElement)
+					imgEl := doc.QuerySelector("[name=NewPhotoPreview]").(*dom.HTMLImageElement)
 					imgEl.Src = imgData
 					imgEl.Class().Remove("hidden")
 				})

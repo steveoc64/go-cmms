@@ -535,7 +535,7 @@ func _siteMachines(action string, id int) {
 									target := e.Get("target")
 									imgData := target.Get("result").String()
 									//print("imgdata =", imgData)
-									imgEl := doc.QuerySelector("[name=Photo-Preview").(*dom.HTMLImageElement)
+									imgEl := doc.QuerySelector("[name=PhotoPreview]").(*dom.HTMLImageElement)
 									imgEl.Src = imgData
 									d.Photo = imgData
 									imgEl.Class().Remove("hidden")

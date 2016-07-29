@@ -450,7 +450,7 @@ func _taskEdit(action string, id int) {
 				target := e.Get("target")
 				imgData := target.Get("result").String()
 				//print("imgdata =", imgData)
-				imgEl := doc.QuerySelector("[name=NewPhoto-Preview").(*dom.HTMLImageElement)
+				imgEl := doc.QuerySelector("[name=NewPhotoPreview]").(*dom.HTMLImageElement)
 				imgEl.Src = imgData
 				imgEl.Class().Remove("hidden")
 			})
@@ -476,7 +476,7 @@ func _taskEdit(action string, id int) {
 				if Session.UserRole == "Admin" {
 					w := dom.GetWindow()
 					doc := w.Document()
-					doc.QuerySelector("[name=LabourCost").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", updatedTask.LabourCost)
+					doc.QuerySelector("[name=LabourCost]").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", updatedTask.LabourCost)
 					print("updated =", updatedTask.LabourCost)
 				}
 			}()
@@ -594,7 +594,7 @@ func _taskEdit(action string, id int) {
 							Qty:     qty,
 						}, &newStockLevel)
 						print("new stock level after using", qty, "=", newStockLevel)
-						doc.QuerySelector("[name=CurrentStock").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", newStockLevel)
+						doc.QuerySelector("[name=CurrentStock]").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", newStockLevel)
 
 						// populate the parts button display
 						showPartsButtons(id)

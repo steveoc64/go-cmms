@@ -299,7 +299,7 @@ func _taskEdit0(action string, id int) {
 				if Session.UserRole == "Admin" {
 					w := dom.GetWindow()
 					doc := w.Document()
-					doc.QuerySelector("[name=LabourCost").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", updatedTask.LabourCost)
+					doc.QuerySelector("[name=LabourCost]").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", updatedTask.LabourCost)
 					print("updated =", updatedTask.LabourCost)
 				}
 			}()

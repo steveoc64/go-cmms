@@ -314,7 +314,7 @@ func decodePhoto(photo string, preview *string, thumbnail *string) error {
 	theImage := ""
 
 	// println("passed in", photo)
-	// println("Decode Photo Data =", photo[:80], "...")
+	println("Decode Photo Data =", photo[:80], "...")
 	switch photo[:11] {
 	case "data:image/":
 		println("looks like an image", photo[11:21])
@@ -358,6 +358,9 @@ func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
+	// print("addphoto", data)
+	// print("addphoto", data.Photo)
+	// print("addphoto", data.Photo.Photo)
 
 	decodePhoto(data.Photo.Photo, &data.Photo.Preview, &data.Photo.Thumbnail)
 
