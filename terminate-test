@@ -1,0 +1,3 @@
+killall -q cmms-test-server
+#taskkill /IM cmms-server.exe /F
+exit 0

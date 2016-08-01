@@ -95,9 +95,16 @@ dist/cmms-server: server/*.go shared/*.go
 	@ls -l dist/cmms-server
 
 run: 
-	./terminate
-	@mplayer -quiet audio/running.oga 2> /dev/null > /dev/null &
-	@cd dist && ./cmms-server
+	#./terminate
+	#@mplayer -quiet audio/running.oga 2> /dev/null > /dev/null &
+	#@cd dist && ./cmms-server
+
+testsvr: sv
+	./terminate-test
+	cp -Rv dist/* ~/go-cmms-test/current
+	rm ~/go-cmms-test/current/config.json
+	cp server/config.json.test ~/go-cmms-test/current/config.json
+	cd ~/go-cmms-test/current && mv cmms-server cmms-test-server &&  nohup ./cmms-test-server &
 
 install: sv
 	./terminate
