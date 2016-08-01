@@ -42,15 +42,19 @@ func calcAllDone(task shared.Task) bool {
 		}
 	}
 
-	for _, v := range task.Parts {
-		// check first if there is an expected Qty
-		// if expected Qty == 0, then these are optional parts
-		// as the part list was generated from a stoppage
-		if v.Qty != 0.0 {
-			print("part has qty of", v.Qty)
-			if v.QtyUsed == 0 && v.Notes == "" {
-				print("Task has an incomplete part record for part", v)
-				return false
+	if false {
+		// task parts not tightly coupled to task anymore
+
+		for _, v := range task.Parts {
+			// check first if there is an expected Qty
+			// if expected Qty == 0, then these are optional parts
+			// as the part list was generated from a stoppage
+			if v.Qty != 0.0 {
+				print("part has qty of", v.Qty)
+				if v.QtyUsed == 0 && v.Notes == "" {
+					print("Task has an incomplete part record for part", v)
+					return false
+				}
 			}
 		}
 	}

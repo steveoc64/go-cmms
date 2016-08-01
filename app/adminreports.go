@@ -429,7 +429,7 @@ func phototestAdd(context *router.Context) {
 					// imgEl2 := doc.QuerySelector(`[name="PhotoPreview"]`).(*dom.HTMLImageElement)
 					// js.Global.Call("alert", imgEl2)
 					imgEl.Src = imgData
-					// imgEl.SetAttribute("src", imgData)
+					imgEl.SetAttribute("src", imgData)
 					imgEl.Class().Remove("hidden")
 					// js.Global.Call("alert", "unhide the preview")
 				})
