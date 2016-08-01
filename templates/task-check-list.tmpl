@@ -1,4 +1,9 @@
-<pre>{{.Descr}}</pre>
+{{$hdr := .GetHeaderText}}
+{{$body := .GetDescrText}}
+{{if $hdr}}
+	<h2>{{$hdr}}</h2>
+{{end}}
+<pre>{{$body}}</pre>
 {{range .Checks}}
 <div class="row row-wrap" style="flex-wrap: wrap">
 	<div class="column">

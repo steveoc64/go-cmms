@@ -2,6 +2,7 @@ package shared
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -268,6 +269,32 @@ func (t *Task) DurationHrs() string {
 		return "1 Hour"
 	}
 	return fmt.Sprintf("%d Hours", hrs)
+}
+
+func (t Task) GetHeaderText() string {
+	// Get any lines in the .Descr field that start with !
+	lines := strings.Split(t.Descr, "\n")
+	for _, v := range lines {
+		if v[:1] == `!` {
+			return v[1:]
+		}
+	}
+	return ""
+}
+
+func (t Task) GetDescrText() string {
+	// Strip any lines that begin with !
+	lines := strings.Split(t.Descr, "\n")
+	retval := ""
+	for i, v := range lines {
+		if i > 0 {
+			retval += "\n"
+		}
+		if v[:1] != `!` {
+			retval += v
+		}
+	}
+	return retval
 }
 
 type Hashtag struct {
