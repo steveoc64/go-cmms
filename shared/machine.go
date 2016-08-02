@@ -165,6 +165,7 @@ func (m *Machine) NonToolBg(status string) string {
 
 type Component struct {
 	MachineID   int    `db:"machine_id"`
+	MTT         int    `db:"mtt_id"`
 	Position    int    `db:"position"`
 	ZIndex      int    `db:"zindex"`
 	ID          int    `db:"id"`
@@ -298,7 +299,8 @@ type MachineTypeRPCData struct {
 
 type MachineTypeTool struct {
 	MachineID int    `db:"machine_id"`
-	ID        int    `db:"position"`
+	ID        int    `db:"id"`
+	Position  int    `db:"position"`
 	Name      string `db:"name"`
 }
 

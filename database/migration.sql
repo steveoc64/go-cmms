@@ -277,3 +277,11 @@ alter table part_price add supplier_info text not null default '';
 alter table part_price add descr text not null default '';
 
 insert into migration (name) values ('Supplier info on part');
+
+-- 2016 08 02
+-- Tightly couple machine type tool and machine (instance) component
+
+alter table machine_type_tool add id serial not null;
+alter table component add mtt_id int not null default 0;
+
+insert into migration (name) values ('Machine component tied to MTT ID');

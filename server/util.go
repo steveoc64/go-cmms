@@ -216,6 +216,37 @@ func (u *UtilRPC) Parts(channel int, result *string) error {
 	return nil
 }
 
+// Patch up the Machine Components to point to the correct Machine Type Tool by ID
+func (u *UtilRPC) MTT(channel int, result *string) error {
+	start := time.Now()
+
+	conn := Connections.Get(channel)
+	*result = ""
+
+	if conn.UserRole == "Admin" && conn.Username == "steve" {
+		r := "Processing Parts\n"
+
+		components := []shared.Component{}
+
+		DB.SQL(`select * from component`).QueryStructs(&components)
+
+		// patched := 0
+		for _, c := range components {
+			r += fmt.Sprintf("Component %d: %s", c.ID, c.Name)
+
+		}
+
+	}
+
+	logger(start, "Util.MTT",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			channel, conn.UserID, conn.Username, conn.UserRole),
+		*result,
+		channel, conn.UserID, "component", 0, true)
+
+	return nil
+}
+
 // Construct the parts categories for bootstrap
 func (u *UtilRPC) Cats(channel int, result *string) error {
 	start := time.Now()

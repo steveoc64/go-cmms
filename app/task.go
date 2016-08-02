@@ -1178,8 +1178,8 @@ func schedEdit(context *router.Context) {
 			AddNumber(1, "Duration (days)", "DurationDays", "1")
 
 		// Add a DIV that we can attach panels to
-		form.Row(1).
-			AddCustom(1, "Parts Required", "PartsPicker", "")
+		// form.Row(1).
+		// AddCustom(1, "Parts Required", "PartsPicker", "")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -1308,84 +1308,87 @@ func schedEdit(context *router.Context) {
 			}
 		})
 
-		// Plug in the PartsPicker widget
-		loadTemplate("parts-picker", "[name=PartsPicker]", task)
+		if false {
 
-		if el := doc.QuerySelector("[name=PartsPicker]"); el != nil {
+			// Plug in the PartsPicker widget
+			loadTemplate("parts-picker", "[name=PartsPicker]", task)
 
-			el.AddEventListener("click", false, func(evt dom.Event) {
-				evt.PreventDefault()
-				clickedOn := evt.Target()
-				switch clickedOn.TagName() {
-				case "INPUT":
-					ie := clickedOn.(*dom.HTMLInputElement)
-					key, _ := strconv.Atoi(ie.GetAttribute("key"))
-					// print("clicked on key", key)
+			if el := doc.QuerySelector("[name=PartsPicker]"); el != nil {
 
-					// Get the selected partreq from the task
-					for i, v := range task.PartsRequired {
-						if v.PartID == key {
-							// popup a dialog to edit the relationship
+				el.AddEventListener("click", false, func(evt dom.Event) {
+					evt.PreventDefault()
+					clickedOn := evt.Target()
+					switch clickedOn.TagName() {
+					case "INPUT":
+						ie := clickedOn.(*dom.HTMLInputElement)
+						key, _ := strconv.Atoi(ie.GetAttribute("key"))
+						// print("clicked on key", key)
 
-							req := shared.PartReqEdit{
-								Channel: Session.Channel,
-								Task:    task,
-								Part:    &task.PartsRequired[i],
-							}
+						// Get the selected partreq from the task
+						for i, v := range task.PartsRequired {
+							if v.PartID == key {
+								// popup a dialog to edit the relationship
 
-							// print("which has a part of ", v)
-							loadTemplate("edit-part-req", "#edit-part-req", req)
-							doc.QuerySelector("#edit-part-req").Class().Add("md-show")
-							doc.QuerySelector("#partreq-qty").(*dom.HTMLInputElement).Focus()
+								req := shared.PartReqEdit{
+									Channel: Session.Channel,
+									Task:    task,
+									Part:    &task.PartsRequired[i],
+								}
 
-							// Cancel the popup
-							doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
-								// print("Cancel Editing the part req")
-								doc.QuerySelector("#edit-part-req").Class().Remove("md-show")
-							})
+								// print("which has a part of ", v)
+								loadTemplate("edit-part-req", "#edit-part-req", req)
+								doc.QuerySelector("#edit-part-req").Class().Add("md-show")
+								doc.QuerySelector("#partreq-qty").(*dom.HTMLInputElement).Focus()
 
-							el.AddEventListener("keyup", false, func(evt dom.Event) {
-								if evt.(*dom.KeyboardEvent).KeyCode == 27 {
-									evt.PreventDefault()
-									// print("Esc out of dialog")
+								// Cancel the popup
+								doc.QuerySelector(".md-close").AddEventListener("click", false, func(evt dom.Event) {
+									// print("Cancel Editing the part req")
 									doc.QuerySelector("#edit-part-req").Class().Remove("md-show")
-								}
-							})
+								})
 
-							// Save the popup
-							doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
-								evt.PreventDefault()
-								doc.QuerySelector("#edit-part-req").Class().Remove("md-show")
-								// print("Save the part req")
+								el.AddEventListener("keyup", false, func(evt dom.Event) {
+									if evt.(*dom.KeyboardEvent).KeyCode == 27 {
+										evt.PreventDefault()
+										// print("Esc out of dialog")
+										doc.QuerySelector("#edit-part-req").Class().Remove("md-show")
+									}
+								})
 
-								qty, _ := strconv.ParseFloat(doc.QuerySelector("#partreq-qty").(*dom.HTMLInputElement).Value, 64)
-								notes := doc.QuerySelector("#partreq-notes").(*dom.HTMLTextAreaElement).Value
+								// Save the popup
+								doc.QuerySelector(".md-save").AddEventListener("click", false, func(evt dom.Event) {
+									evt.PreventDefault()
+									doc.QuerySelector("#edit-part-req").Class().Remove("md-show")
+									// print("Save the part req")
 
-								// print("in save, req still =", req)
-								req.Part.Qty = qty
-								req.Part.Notes = notes
+									qty, _ := strconv.ParseFloat(doc.QuerySelector("#partreq-qty").(*dom.HTMLInputElement).Value, 64)
+									notes := doc.QuerySelector("#partreq-notes").(*dom.HTMLTextAreaElement).Value
 
-								// print("qty =", qty, "notes =", notes)
+									// print("in save, req still =", req)
+									req.Part.Qty = qty
+									req.Part.Notes = notes
 
-								if qty > 0.0 {
-									ie.Checked = true
-								} else {
-									ie.Checked = false
-								}
+									// print("qty =", qty, "notes =", notes)
 
-								go func() {
-									done := false
-									rpcClient.Call("TaskRPC.SchedPart", req, &done)
-									// print("updated at backend")
-								}()
-							})
-							break // dont need to look at the rest
+									if qty > 0.0 {
+										ie.Checked = true
+									} else {
+										ie.Checked = false
+									}
+
+									go func() {
+										done := false
+										rpcClient.Call("TaskRPC.SchedPart", req, &done)
+										// print("updated at backend")
+									}()
+								})
+								break // dont need to look at the rest
+							}
 						}
+
 					}
 
-				}
-
-			})
+				})
+			}
 		}
 
 		// Add some action buttons for this schedule
