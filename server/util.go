@@ -224,17 +224,29 @@ func (u *UtilRPC) MTT(channel int, result *string) error {
 	*result = ""
 
 	if conn.UserRole == "Admin" && conn.Username == "steve" {
-		r := "Processing Parts\n"
+		r := "Processing Machine Type Tools\n"
 
 		components := []shared.Component{}
 
-		DB.SQL(`select * from component`).QueryStructs(&components)
+		DB.SQL(`select * from component order by machine_id,position`).QueryStructs(&components)
+
+		mt := 0
+		mtt := 0
 
 		// patched := 0
 		for _, c := range components {
-			r += fmt.Sprintf("Component %d: %s", c.ID, c.Name)
+
+			DB.SQL(`select machine_type from machine where id=$1`, c.MachineID).QueryScalar(&mt)
+			DB.SQL(`select id from machine_type_tool where machine_id=$1 and position=$2`, mt, c.Position).QueryScalar(&mtt)
+			r += fmt.Sprintf("Component ID %d: Machine %d:%d MT %d MTT %d  %s\n",
+				c.ID,
+				c.MachineID, c.Position,
+				mt, mtt,
+				c.Name)
+			DB.SQL(`update component set mtt_id=$1 where id=$2`, mtt, c.ID).Exec()
 
 		}
+		*result = r
 
 	}
 
