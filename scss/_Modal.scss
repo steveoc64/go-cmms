@@ -27,8 +27,10 @@ perspective effects (not including the modals and the overlay).
 	position: fixed;
 	top: 50%;
 	left: 50%;
-	width: 75%;
-	max-width: 650px;
+	// width: 75%;
+	width: 100%;
+	// max-width: 650px;
+	max-width: 1280px;
 	min-width: 320px;
 	height: auto;
 	z-index: 2000;
@@ -411,9 +413,9 @@ perspective effects (not including the modals and the overlay).
 	-ms-transform: scale(2);
 	transform: scale(2);
 	opacity: 0;
-	-webkit-transition: all 0.3s;
-	-moz-transition: all 0.3s;
-	transition: all 0.3s;
+	-webkit-transition: all 0.6s;
+	-moz-transition: all 0.6s;
+	transition: all 0.6s;
 }
 
 .md-show.md-effect-11 .md-content {

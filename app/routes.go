@@ -120,6 +120,18 @@ func enableRoutes(Role string) {
 			"sitemachines": siteMachines,
 		}
 	}
+
+	w := dom.GetWindow()
+	doc := w.Document()
+
+	if el := doc.QuerySelector("#show-image"); el != nil {
+		print("Adding click event for photo view")
+		el.AddEventListener("click", false, func(evt dom.Event) {
+			el.Class().Remove("md-show")
+			// doc.QuerySelector("#show-image").Class().Remove("md-show")
+		})
+	}
+
 }
 
 func initRouter() {

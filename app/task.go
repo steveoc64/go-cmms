@@ -556,9 +556,7 @@ func _taskEdit(action string, id int) {
 
 	// Click on the photo to expand it
 	if el := doc.QuerySelector("[name=Preview1Preview]").(*dom.HTMLImageElement); el != nil {
-		print("there is a preview1 element")
 		el.AddEventListener("click", false, func(evt dom.Event) {
-			print("clicked on preview1", task.PhotoID1)
 			evt.PreventDefault()
 			go func() {
 				myPhoto := shared.Photo{}
@@ -566,7 +564,6 @@ func _taskEdit(action string, id int) {
 					Channel: Session.Channel,
 					ID:      task.PhotoID1,
 				}, &myPhoto)
-				print("got photo", myPhoto.Photo[:22])
 				if myPhoto.Photo != "" {
 					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
 						doc.QuerySelector("#show-image").Class().Add("md-show")
@@ -579,9 +576,7 @@ func _taskEdit(action string, id int) {
 
 	// Click on the photo to expand it
 	if el := doc.QuerySelector("[name=Preview2Preview]").(*dom.HTMLImageElement); el != nil {
-		print("there is a preview2 element")
 		el.AddEventListener("click", false, func(evt dom.Event) {
-			print("clicked on preview2", task.PhotoID2)
 			evt.PreventDefault()
 			go func() {
 				myPhoto := shared.Photo{}
@@ -589,12 +584,11 @@ func _taskEdit(action string, id int) {
 					Channel: Session.Channel,
 					ID:      task.PhotoID2,
 				}, &myPhoto)
-				print("got photo", myPhoto.Photo[:22])
 				if myPhoto.Photo != "" {
-					print("full photo is", myPhoto.Photo[:44])
-					el.Class().Remove("photopreview")
-					el.Class().Add("photofull")
-					el.Src = myPhoto.Photo
+					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
+						doc.QuerySelector("#show-image").Class().Add("md-show")
+						el2.Src = myPhoto.Photo
+					}
 				}
 			}()
 		})
@@ -602,9 +596,7 @@ func _taskEdit(action string, id int) {
 
 	// Click on the photo to expand it
 	if el := doc.QuerySelector("[name=Preview3Preview]").(*dom.HTMLImageElement); el != nil {
-		print("there is a preview3 element")
 		el.AddEventListener("click", false, func(evt dom.Event) {
-			print("clicked on preview3", task.PhotoID3)
 			evt.PreventDefault()
 			go func() {
 				myPhoto := shared.Photo{}
@@ -612,12 +604,11 @@ func _taskEdit(action string, id int) {
 					Channel: Session.Channel,
 					ID:      task.PhotoID3,
 				}, &myPhoto)
-				print("got photo", myPhoto.Photo[:22])
 				if myPhoto.Photo != "" {
-					print("full photo is", myPhoto.Photo[:44])
-					el.Class().Remove("photopreview")
-					el.Class().Add("photofull")
-					el.Src = myPhoto.Photo
+					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
+						doc.QuerySelector("#show-image").Class().Add("md-show")
+						el2.Src = myPhoto.Photo
+					}
 				}
 			}()
 		})
