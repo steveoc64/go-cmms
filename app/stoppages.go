@@ -436,13 +436,13 @@ func stoppageNewTask(context *router.Context) {
 			print("binding")
 			form.Bind(&assign)
 			print("send event with photo in background")
+			Session.Navigate(BackURL)
 
 			go func() {
 				newID := 0
 				rpcClient.Call("EventRPC.Workorder", assign, &newID)
 				print("new Task raised", newID)
 			}()
-			Session.Navigate(BackURL)
 		})
 
 		// All done, so render the form
