@@ -1754,7 +1754,7 @@ func stoppageTaskList(context *router.Context) {
 
 		form.Column("User", "Username")
 		form.Column("TaskID", "ID")
-		form.ImgColumn("Photo", "StoppageThumbnail")
+		form.ImgColumn("Event", "StoppageThumbnail")
 		form.ImgColumn("Photo", "Thumb1")
 		// form.ImgColumn("", "Thumb2")
 		// form.ImgColumn("", "Thumb3")

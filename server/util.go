@@ -259,6 +259,111 @@ func (u *UtilRPC) MTT(channel int, result *string) error {
 	return nil
 }
 
+// Move all photos into their own table
+func (u *UtilRPC) PhotoMove(channel int, result *string) error {
+	start := time.Now()
+
+	conn := Connections.Get(channel)
+	*result = ""
+
+	if conn.UserRole == "Admin" && conn.Username == "steve" {
+		r := "Processing Photos into their own tables\n"
+
+		println("events")
+		events := []shared.Event{}
+		DB.SQL(`select id,photo,photo_preview,photo_thumbnail from event where length(photo)>0`).QueryStructs(&events)
+
+		// patched := 0
+		for k, v := range events {
+			r += fmt.Sprintf("Event %d\n", v.ID)
+			println(k, ":", v.ID)
+
+			id := 0
+			pf := strings.Split(v.Photo, `,`)
+			phototype := pf[0]
+
+			if v.Photo != "" {
+				DB.SQL(`insert into photo (datatype,entity,entity_id,data,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+					phototype, `event`, v.ID, v.Photo, v.PhotoPreview, v.PhotoThumbnail).
+					QueryScalar(&id)
+				r += fmt.Sprintf("Event Photo1 %d\n", v.ID)
+			}
+		}
+
+		// now strip the photos from the events table
+		// DB.SQL(`alter table event drop photo`).Exec()
+		// DB.SQL(`alter table event drop photo_preview`).Exec()
+		// DB.SQL(`alter table event drop photo_thumbnail`).Exec()
+
+		println("tasks")
+		tasks := []shared.Task{}
+		DB.SQL(`select id,photo1,photo2,photo3,preview1,preview2,preview3,thumb1,thumb2,thumb3 from task where length(photo1)>0`).QueryStructs(&tasks)
+
+		// patched := 0
+		for k, v := range tasks {
+			r += fmt.Sprintf("Task %d\n", v.ID)
+			println(k, ":", v.ID)
+
+			id := 0
+			pf := strings.Split(v.Photo1, `,`)
+			phototype := pf[0]
+
+			if v.Photo1 != "" {
+				DB.SQL(`insert into photo (datatype,entity,entity_id,data,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+					phototype, `task`, v.ID, v.Photo1, v.Preview1, v.Thumb1).
+					QueryScalar(&id)
+				println("Added photo", id)
+				r += fmt.Sprintf("Task Photo1 %d\n", v.ID)
+			}
+
+			if v.Photo2 != "" {
+				DB.SQL(`insert into photo (datatype,entity,entity_id,data,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+					phototype, `task`, v.ID, v.Photo2, v.Preview2, v.Thumb2).
+					QueryScalar(&id)
+				r += fmt.Sprintf("Task Photo2 %d\n", v.ID)
+			}
+
+			if v.Photo3 != "" {
+				DB.SQL(`insert into photo (datatype,entity,entity_id,data,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+					phototype, `task`, v.ID, v.Photo3, v.Preview3, v.Thumb3).
+					QueryScalar(&id)
+				r += fmt.Sprintf("Task Photo3 %d\n", v.ID)
+			}
+		}
+
+		// Copy over the phototest elements
+		ptest := []shared.Phototest{}
+		DB.SQL(`select * from phototest`).QueryStructs(&ptest)
+		for k, v := range ptest {
+			r += fmt.Sprintf("PhotoTest %d\n", v.ID)
+			println(k, ":", v.ID)
+
+			id := 0
+			pf := strings.Split(v.Photo, `,`)
+			phototype := pf[0]
+
+			if v.Photo != "" {
+				DB.SQL(`insert into photo (datatype,entity,entity_id,data,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+					phototype, `test`, v.ID, v.Photo, v.Preview, v.Thumbnail).
+					QueryScalar(&id)
+				println("Added photo", id)
+				r += fmt.Sprintf("Test Photo %d\n", v.ID)
+			}
+		}
+
+		*result = r
+
+	}
+
+	logger(start, "Util.PhotoMove",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			channel, conn.UserID, conn.Username, conn.UserRole),
+		*result,
+		channel, conn.UserID, "photo", 0, true)
+
+	return nil
+}
+
 // Construct the parts categories for bootstrap
 func (u *UtilRPC) Cats(channel int, result *string) error {
 	start := time.Now()
@@ -405,20 +510,22 @@ func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
 	// print("addphoto", data.Photo)
 	// print("addphoto", data.Photo.Photo)
 
-	decodePhoto(data.Photo.Photo, &data.Photo.Preview, &data.Photo.Thumbnail)
+	decodePhoto(data.Photo.Photo, &data.Photo.Preview, &data.Photo.Thumb)
 
 	// Save the data, and get a new ID
-	DB.InsertInto("phototest").
-		Columns("name", "photo", "thumbnail", "preview").
+	DB.InsertInto("photo").
+		Columns("notes", "photo", "thumb", "preview").
 		Record(data.Photo).
 		Returning("id").
 		QueryScalar(newID)
 
+	DB.SQL(`update photo set entity='test', entity_id=$1 where id=$1`, newID).Exec()
+
 	logger(start, "Util.AddPhoto",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
-		data.Photo.Name,
-		data.Channel, conn.UserID, "phototest", 0, true)
+		fmt.Sprintf("%d", *newID),
+		data.Channel, conn.UserID, "photo", 0, true)
 
 	return nil
 }
@@ -428,13 +535,13 @@ func (u *UtilRPC) GetPhoto(data shared.PhotoRPCData, photo *shared.Photo) error 
 
 	conn := Connections.Get(data.Channel)
 
-	DB.SQL(`select id,name,preview from phototest where id=$1`, data.ID).QueryStruct(photo)
+	DB.SQL(`select id,notes,preview,entity,entity_id from photo where id=$1`, data.ID).QueryStruct(photo)
 
 	logger(start, "Util.GetPhoto",
 		fmt.Sprintf("Channel %d, ID %d, User %d %s %s",
 			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
-		photo.Name,
-		data.Channel, conn.UserID, "phototest", data.ID, false)
+		photo.Notes,
+		data.Channel, conn.UserID, "photo", data.ID, false)
 
 	return nil
 }
@@ -444,13 +551,37 @@ func (u *UtilRPC) PhotoList(data shared.PhotoRPCData, photos *[]shared.Photo) er
 
 	conn := Connections.Get(data.Channel)
 
-	DB.SQL(`select id,name,thumbnail from phototest order by name`).QueryStructs(photos)
+	DB.SQL(`select id,entity,entity_id,notes,thumb from photo order by notes`).QueryStructs(photos)
 
 	logger(start, "Util.PhotoList",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d Photos", len(*photos)),
 		data.Channel, conn.UserID, "photo", 0, false)
+
+	return nil
+}
+
+func (u *UtilRPC) UpdatePhoto(data shared.PhotoRPCData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	// decodePhoto(data.Photo.Photo, &data.Photo.Preview, &data.Photo.Thumb)
+
+	// Save the data
+	DB.Update("photo").
+		SetWhitelist(data.Photo, "notes", "entity", "entity_id").
+		Where("id = $1", data.ID).
+		Exec()
+
+	logger(start, "Util.UpdatePhoto",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d", data.ID),
+		data.Channel, conn.UserID, "photo", 0, true)
+
+	*done = true
 
 	return nil
 }

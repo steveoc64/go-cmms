@@ -362,40 +362,19 @@ func (t *TaskRPC) Update(data shared.TaskRPCData, updatedTask *shared.Task) erro
 	}
 
 	// If there is a new photo to be added to the task, then add it
-	// TEMP CODE - this needs to be refactored soon to handle proper arrays
-	// or split to another table
 	if data.Task.NewPhoto != "" {
 		// println("Adding new photo", data.Task.NewPhoto)
-		prev := ""
-		thumb := ""
-		decodePhoto(data.Task.NewPhoto, &prev, &thumb)
-		if oldTask.Photo1 == "" {
-			data.Task.Photo1 = data.Task.NewPhoto
-			data.Task.Preview1 = prev
-			data.Task.Thumb1 = thumb
-			DB.Update("task").
-				SetWhitelist(data.Task, "photo1", "preview1", "thumb1").
-				Where("id=$1", data.Task.ID).
-				Exec()
-		} else if oldTask.Photo2 == "" {
-			data.Task.Photo2 = data.Task.NewPhoto
-			data.Task.Preview2 = prev
-			data.Task.Thumb2 = thumb
-			DB.Update("task").
-				SetWhitelist(data.Task, "photo2", "preview2", "thumb2").
-				Where("id=$1", data.Task.ID).
-				Exec()
-
-		} else {
-			// overwrite slot 3 for now
-			data.Task.Photo3 = data.Task.NewPhoto
-			data.Task.Preview3 = prev
-			data.Task.Thumb3 = thumb
-			DB.Update("task").
-				SetWhitelist(data.Task, "photo3", "preview3", "thumb3").
-				Where("id=$1", data.Task.ID).
-				Exec()
+		photo := shared.Photo{
+			Photo:    data.Task.NewPhoto,
+			Entity:   "task",
+			EntityID: data.Task.ID,
 		}
+
+		decodePhoto(photo.Photo, &photo.Preview, &photo.Thumb)
+		DB.InsertInto("photo").
+			Columns("entity", "entity_id", "photo", "thumb", "preview").
+			Record(photo).
+			Exec()
 	}
 
 	// If assigned to, then re-calc the labour cost if the hours have changed
@@ -501,26 +480,23 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 
 	for i, v := range *tasks {
 
-		// clear out the photo and preview, just leave the thumb
-		(*tasks)[i].Photo1 = ""
-		(*tasks)[i].Photo2 = ""
-		(*tasks)[i].Photo3 = ""
-		(*tasks)[i].Preview1 = ""
-		(*tasks)[i].Preview2 = ""
-		(*tasks)[i].Preview3 = ""
-
 		// trim the description
 		if len(v.Descr) > 80 {
 			(*tasks)[i].Descr = fmt.Sprintf("%s ...", v.Descr[:80])
 		}
 
-		// get the parent stoppage thumbnail
-		thumb := ""
-		DB.SQL(`select photo_thumbnail from event where id=$1`, v.EventID).
-			QueryScalar(&thumb)
-		if thumb != "" {
-			(*tasks)[i].StoppageThumbnail = thumb
-		}
+		// Get the latest thumbnail for this task, if present
+		photo := shared.Photo{}
+		DB.SQL(`select thumb from photo where entity='task' and entity_id=$1 order by id desc limit 1`, v.ID).
+			QueryStruct(&photo)
+		(*tasks)[i].Thumb1 = photo.Thumb
+
+		// get the parent stoppage thumbnail, if present
+		photo.Thumb = ""
+		DB.SQL(`select thumb from photo where entity='event' and entity_id=$1 order by id desc limit 1`, v.EventID).
+			QueryStruct(&photo)
+		(*tasks)[i].StoppageThumbnail = photo.Thumb
+
 	}
 	// // Read the sites that this user has access to
 	// err := DB.SQL(`select
@@ -599,6 +575,19 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 		if len(v.Descr) > 80 {
 			(*tasks)[k].Descr = fmt.Sprintf("%s ...", v.Descr[:80])
 		}
+
+		// Get the latest thumbnail for this task, if present
+		photo := shared.Photo{}
+		DB.SQL(`select thumb from photo where entity='task' and entity_id=$1 order by id desc limit 1`, v.ID).
+			QueryStruct(&photo)
+		(*tasks)[k].Thumb1 = photo.Thumb
+
+		// get the parent stoppage thumbnail, if present
+		photo.Thumb = ""
+		DB.SQL(`select thumb from photo where entity='event' and entity_id=$1 order by id desc limit 1`, v.EventID).
+			QueryStruct(&photo)
+		(*tasks)[k].StoppageThumbnail = photo.Thumb
+
 	}
 
 	// // Read the sites that this user has access to
@@ -648,16 +637,27 @@ func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 	// Now get all the checks for this task
 	DB.SQL(`select * from task_check where task_id=$1`, data.ID).QueryStructs(&task.Checks)
 
-	// Get the parent stoppage thumbnail
-	DB.SQL(`select photo_preview from event where id=$1`, task.EventID).QueryScalar(&task.StoppagePreview)
+	// Get the last 3 photo previews for this task
+	photos := []shared.Photo{}
+	DB.SQL(`select preview from photo where entity='task' and entity_id=$1 order by id desc limit 3`, data.ID).
+		QueryStructs(&photos)
 
-	// and only pass our preview images
-	task.Photo1 = ""
-	task.Photo2 = ""
-	task.Photo3 = ""
-	task.Thumb1 = ""
-	task.Thumb2 = ""
-	task.Thumb3 = ""
+	lp := len(photos)
+	if lp > 0 {
+		task.Preview1 = photos[0].Preview
+	}
+	if lp > 1 {
+		task.Preview2 = photos[1].Preview
+	}
+	if lp > 2 {
+		task.Preview3 = photos[2].Preview
+	}
+
+	// Get the parent stoppage thumbnail
+	photo := shared.Photo{}
+	DB.SQL(`select preview from photo where entity='event' and entity_id=$1 order by id desc limit 1`, task.EventID).
+		QueryStruct(&photo)
+	task.StoppagePreview = photo.Preview
 
 	// Now, if the user requesting this read is the person assigned to, then
 	// stamp the task as having been read
@@ -671,6 +671,8 @@ func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 		fmt.Sprintf("ID %d", data.ID),
 		task.Descr,
 		data.Channel, conn.UserID, "task", data.ID, false)
+
+	// log.Printf("task %v\n", *task)
 
 	return nil
 }
@@ -697,6 +699,7 @@ func (t *TaskRPC) Check(data shared.TaskCheckUpdate, done *bool) error {
 	return nil
 }
 
+// Get a list of tasks at a given Site
 func (t *TaskRPC) SiteList(data shared.TaskRPCData, tasks *[]shared.Task) error {
 	start := time.Now()
 
@@ -720,6 +723,25 @@ func (t *TaskRPC) SiteList(data shared.TaskRPCData, tasks *[]shared.Task) error 
 		log.Println(err.Error())
 	}
 
+	// trim the descr fields
+	for k, v := range *tasks {
+		if len(v.Descr) > 80 {
+			(*tasks)[k].Descr = fmt.Sprintf("%s ...", v.Descr[:80])
+		}
+
+		// Get the latest thumbnail for this task, if present
+		photo := shared.Photo{}
+		DB.SQL(`select thumb from photo where entity='task' and entity_id=$1 order by id desc limit 1`, v.ID).
+			QueryStruct(&photo)
+		(*tasks)[k].Thumb1 = photo.Thumb
+
+		// get the parent stoppage thumbnail, if present
+		photo.Thumb = ""
+		DB.SQL(`select thumb from photo where entity='event' and entity_id=$1 order by id desc limit 1`, v.EventID).
+			QueryStruct(&photo)
+		(*tasks)[k].StoppageThumbnail = photo.Thumb
+	}
+
 	// logger(start, "Task.SiteList",
 	// 	fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
 	// 		channel, id, conn.UserID, conn.Username, conn.UserRole),
@@ -731,6 +753,8 @@ func (t *TaskRPC) SiteList(data shared.TaskRPCData, tasks *[]shared.Task) error 
 
 	return nil
 }
+
+// Get a list of tasks for a given stoppage event
 
 func (t *TaskRPC) StoppageList(data shared.TaskRPCData, tasks *[]shared.Task) error {
 	start := time.Now()
@@ -755,30 +779,26 @@ func (t *TaskRPC) StoppageList(data shared.TaskRPCData, tasks *[]shared.Task) er
 		log.Println(err.Error())
 	}
 
-	// clear out the photos and previews, just return the thumbnails
-	// and get the thumbnail for the stoppage
 	for k, v := range *tasks {
-		(*tasks)[k].Photo1 = ""
-		(*tasks)[k].Photo2 = ""
-		(*tasks)[k].Photo3 = ""
-		(*tasks)[k].Preview1 = ""
-		(*tasks)[k].Preview2 = ""
-		(*tasks)[k].Preview3 = ""
-		sthumb := ""
-		DB.SQL("select photo_thumbnail from event where id=$1", v.EventID).
-			QueryScalar(&sthumb)
-		(*tasks)[k].StoppageThumbnail = sthumb
 
 		// trim the descr field
 		if len(v.Descr) > 80 {
 			(*tasks)[k].Descr = v.Descr[:80] + "..."
 		}
+
+		// Get the latest thumbnail for this task, if present
+		photo := shared.Photo{}
+		DB.SQL(`select thumb from photo where entity='task' and entity_id=$1 order by id desc limit 1`, v.ID).
+			QueryStruct(&photo)
+		(*tasks)[k].Thumb1 = photo.Thumb
+
+		// get the parent stoppage thumbnail, if present
+		photo.Thumb = ""
+		DB.SQL(`select thumb from photo where entity='event' and entity_id=$1 order by id desc limit 1`, v.EventID).
+			QueryStruct(&photo)
+		(*tasks)[k].StoppageThumbnail = photo.Thumb
 	}
 
-	// logger(start, "Task.SiteList",
-	// 	fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
-	// 		channel, id, conn.UserID, conn.Username, conn.UserRole),
-	// 	fmt.Sprintf("%d Tasks", len(*tasks)))
 	logger(start, "Task.StoppageList",
 		fmt.Sprintf("Stoppage Event %d", data.ID),
 		fmt.Sprintf("%d Tasks", len(*tasks)),

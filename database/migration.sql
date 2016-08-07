@@ -285,3 +285,50 @@ alter table machine_type_tool add id serial not null;
 alter table component add mtt_id int not null default 0;
 
 insert into migration (name) values ('Machine component tied to MTT ID');
+
+-- 2016 08 07
+-- Reorganise photos, and performance tuning
+
+drop table if exists photo;
+create table photo (
+	id serial not null primary key,
+	type text not null default 'photo',
+	datatype text not null default '',
+	entity text not null default '',
+	entity_id int not null default 0,
+	filename text not null default '',
+	photo text not null default '',
+	preview text not null default '',
+	thumb text not null default '',
+	notes text not null default ''
+);
+create index photo_entity_idx on photo (entity,entity_id);
+
+update part set descr='Die Bush' where descr='Die Brush';
+
+alter table component drop picture;
+alter table machine drop picture;
+
+insert into migration (name) values ('Reorganise Photos and performance tuning');
+
+-- Now cleanup after running the migration into the new table (requires running the util tool first)
+
+alter table event drop photo;
+alter table event drop photo_preview;
+alter table event drop photo_thumbnail;
+
+alter table task drop photo1;
+alter table task drop photo2;
+alter table task drop photo3;
+
+alter table task drop preview1;
+alter table task drop preview2;
+alter table task drop preview3;
+
+alter table task drop thumb1;
+alter table task drop thumb2;
+alter table task drop thumb3;
+
+drop table phototest;
+
+insert into migration (name) values ('Remove Old Photo Fields');

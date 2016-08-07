@@ -39,6 +39,14 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 		Photo:     issue.Photo,
 	}
 
+	// Create the event record and get its ID
+	DB.InsertInto("event").
+		Whitelist("site_id", "type", "machine_id", "tool_id", "tool_type", "created_by",
+			"notes", "priority", "status").
+		Record(evt).
+		Returning("id").
+		QueryScalar(id)
+
 	// Process the photo if present
 	if issue.Photo != "" {
 
@@ -63,15 +71,6 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 		// 	evt.PhotoPreview = "data:image/jpeg;base64," + pb.String()
 		// }
 	}
-
-	DB.InsertInto("event").
-		Whitelist("site_id", "type", "machine_id", "tool_id", "tool_type", "created_by",
-			"notes", "priority", "status",
-			"photo", "photo_preview", "photo_thumbnail").
-		Record(evt).
-		Returning("id").
-		QueryScalar(id)
-
 	conn.Broadcast("event", "insert", *id)
 
 	DB.SQL(`update machine 
@@ -225,10 +224,13 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 		if len(v.Notes) > 80 {
 			(*events)[i].Notes = fmt.Sprintf("%s ...", v.Notes[:80])
 		}
-		// to save transmission bandwidth
-		(*events)[i].Photo = ""
-		(*events)[i].PhotoPreview = ""
-		// fmt.Printf("Evt %d: PhotoThumb %s\n", i, v.PhotoThumbnail)
+
+		// Get any thumbnails if present
+		photo := shared.Photo{}
+		DB.SQL(`select thumb from photo where entity='event' and entity_id=$1`, v.ID).
+			QueryStruct(&photo)
+		(*events)[i].PhotoThumbnail = photo.Thumb
+
 	}
 
 	logger(start, "Event.List",
@@ -300,13 +302,11 @@ func (e *EventRPC) ListCompleted(channel int, events *[]shared.Event) error {
 			(*events)[i].Notes = fmt.Sprintf("%s ...", v.Notes[:80])
 		}
 
-		// while we are here, dont bother with the full rez or preview photos ... blank them out
-
-		// while we are here, dont bother with the full rez or preview photos ... blank them out
-		// to save transmission bandwidth
-		(*events)[i].Photo = ""
-		(*events)[i].PhotoPreview = ""
-		// fmt.Printf("Evt %d: PhotoThumb %s\n", i, v.PhotoThumbnail)
+		// Get any thumbnails if present
+		photo := shared.Photo{}
+		DB.SQL(`select thumb from photo where entity='event' and entity_id=$1`, v.ID).
+			QueryStruct(&photo)
+		(*events)[i].PhotoThumbnail = photo.Thumb
 	}
 
 	logger(start, "Event.ListCompleted",
@@ -333,8 +333,6 @@ func (e *EventRPC) Get(data shared.EventRPCData, event *shared.Event) error {
 			left join users u on u.id=e.created_by
 		where e.id=$1`, id).QueryStruct(event)
 
-	event.Photo = ""
-
 	// fetch all assignments
 	DB.SQL(`select u.username
 			from task t
@@ -345,6 +343,10 @@ func (e *EventRPC) Get(data shared.EventRPCData, event *shared.Event) error {
 	if err != nil {
 		log.Println(err.Error())
 	}
+
+	// Get the photo preview if present
+	DB.SQL(`select preview from photo where entity='event' and entity_id=$1`, id).
+		QueryScalar(&event.PhotoPreview)
 
 	logger(start, "Event.Get",
 		fmt.Sprintf("ID %d", id),
@@ -532,11 +534,15 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 
 	// if there is a new photo attached, then process it
 	if data.NewPhoto != "" {
-		task.Photo1 = data.NewPhoto
-		decodePhoto(task.Photo1, &task.Preview1, &task.Thumb1)
-		DB.Update("task").
-			SetWhitelist(task, "photo1", "preview1", "thumb1").
-			Where("id=$1", task.ID).
+		photo := shared.Photo{
+			Photo:    data.NewPhoto,
+			Entity:   "task",
+			EntityID: task.ID,
+		}
+		decodePhoto(photo.Photo, &photo.Preview, &photo.Thumb)
+		DB.InsertInto("photo").
+			Columns("entity", "entity_id", "photo", "thumb", "preview").
+			Record(photo).
 			Exec()
 	}
 

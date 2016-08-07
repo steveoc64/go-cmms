@@ -28,7 +28,6 @@ type Machine struct {
 	Stopped         *time.Time  `db:"stopped_at"`
 	Started         *time.Time  `db:"started_at"`
 	Alert           *time.Time  `db:"alert_at"`
-	Picture         string      `db:"picture"`
 	SiteName        *string     `db:"site_name"`
 	Span            *string     `db:"span"`
 	Notes           string      `db:"notes"`
@@ -164,20 +163,20 @@ func (m *Machine) NonToolBg(status string) string {
 }
 
 type Component struct {
-	MachineID   int    `db:"machine_id"`
-	MTT         int    `db:"mtt_id"`
-	Position    int    `db:"position"`
-	ZIndex      int    `db:"zindex"`
-	ID          int    `db:"id"`
-	SiteId      int    `db:"site_id"`
-	Name        string `db:"name"`
-	Descr       string `db:"descr"`
-	Make        string `db:"make"`
-	Model       string `db:"model"`
-	Qty         int    `db:"qty"`
-	StockCode   string `db:"stock_code"`
-	Serialnum   string `db:"serialnum"`
-	Picture     string `db:"picture"`
+	MachineID int    `db:"machine_id"`
+	MTT       int    `db:"mtt_id"`
+	Position  int    `db:"position"`
+	ZIndex    int    `db:"zindex"`
+	ID        int    `db:"id"`
+	SiteId    int    `db:"site_id"`
+	Name      string `db:"name"`
+	Descr     string `db:"descr"`
+	Make      string `db:"make"`
+	Model     string `db:"model"`
+	Qty       int    `db:"qty"`
+	StockCode string `db:"stock_code"`
+	Serialnum string `db:"serialnum"`
+	// Picture     string `db:"picture"`
 	Notes       string `db:"notes"`
 	SiteName    string `db:"site_name"`
 	MachineName string `db:"machine_name"`
