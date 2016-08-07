@@ -433,8 +433,9 @@ func stoppageNewTask(context *router.Context) {
 
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			print("send event with photo in background")
+			print("binding")
 			form.Bind(&assign)
+			print("send event with photo in background")
 
 			go func() {
 				newID := 0
