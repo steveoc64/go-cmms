@@ -439,8 +439,8 @@ func stoppageNewTask(context *router.Context) {
 				newID := 0
 				rpcClient.Call("EventRPC.Workorder", assign, &newID)
 				print("new Task raised", newID)
-				Session.Navigate(BackURL)
 			}()
+			Session.Navigate(BackURL)
 		})
 
 		// All done, so render the form
