@@ -376,6 +376,31 @@ func phototestEdit(context *router.Context) {
 		// All done, so render the form
 		form.Render("edit-form", "main", &photo)
 
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		if el := doc.QuerySelector("[name=PreviewPreview]").(*dom.HTMLImageElement); el != nil {
+			el.AddEventListener("click", false, func(evt dom.Event) {
+				print("clicked on the photo")
+				evt.PreventDefault()
+
+				go func() {
+					rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
+						Channel: Session.Channel,
+						ID:      id,
+					}, &photo)
+
+					print("got fullsize image")
+					el.Src = photo.Photo
+					el.Class().Remove("photopreview")
+					el.Class().Add("photofull")
+
+					// restyle the preview to be full size
+				}()
+
+			})
+		}
+
 	}()
 
 }
@@ -447,7 +472,6 @@ func phototestAdd(context *router.Context) {
 			})
 
 		}
-
 	}()
 
 }

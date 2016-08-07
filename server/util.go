@@ -546,6 +546,22 @@ func (u *UtilRPC) GetPhoto(data shared.PhotoRPCData, photo *shared.Photo) error 
 	return nil
 }
 
+func (u *UtilRPC) GetFullPhoto(data shared.PhotoRPCData, photo *shared.Photo) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`select id,notes,photo,preview,entity,entity_id from photo where id=$1`, data.ID).QueryStruct(photo)
+
+	logger(start, "Util.GetFullPhoto",
+		fmt.Sprintf("Channel %d, ID %d, User %d %s %s",
+			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
+		photo.Photo[:22],
+		data.Channel, conn.UserID, "photo", data.ID, false)
+
+	return nil
+}
+
 func (u *UtilRPC) PhotoList(data shared.PhotoRPCData, photos *[]shared.Photo) error {
 	start := time.Now()
 

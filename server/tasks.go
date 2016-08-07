@@ -639,17 +639,20 @@ func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 
 	// Get the last 3 photo previews for this task
 	photos := []shared.Photo{}
-	DB.SQL(`select preview from photo where entity='task' and entity_id=$1 order by id desc limit 3`, data.ID).
+	DB.SQL(`select id,preview from photo where entity='task' and entity_id=$1 order by id desc limit 3`, data.ID).
 		QueryStructs(&photos)
 
 	lp := len(photos)
 	if lp > 0 {
+		task.PhotoID1 = photos[0].ID
 		task.Preview1 = photos[0].Preview
 	}
 	if lp > 1 {
+		task.PhotoID2 = photos[1].ID
 		task.Preview2 = photos[1].Preview
 	}
 	if lp > 2 {
+		task.PhotoID3 = photos[2].ID
 		task.Preview3 = photos[2].Preview
 	}
 

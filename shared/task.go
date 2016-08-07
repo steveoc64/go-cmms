@@ -179,6 +179,9 @@ type Task struct {
 	StoppagePreview   string      `db:"stoppage_preview"`
 	StoppageThumbnail string      `db:"stoppage_thumbnail"`
 	NewPhoto          string      `db:"new_photo"`
+	PhotoID1          int         `db:"photo_id1"`
+	PhotoID2          int         `db:"photo_id2"`
+	PhotoID3          int         `db:"photo_id3"`
 	Photo1            string      `db:"photo1"`
 	Photo2            string      `db:"photo2"`
 	Photo3            string      `db:"photo3"`

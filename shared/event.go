@@ -41,6 +41,7 @@ type Event struct {
 	Notes          string     `db:"notes"`
 	ParentEvent    int        `db:"parent_event"`
 	AssignedTo     []string   `db:"assigned_to"`
+	PhotoID        int        `db:"photo_id"`
 	Photo          string     `db:"photo"`
 	PhotoPreview   string     `db:"photo_preview"`
 	PhotoThumbnail string     `db:"photo_thumbnail"`
