@@ -585,3 +585,22 @@ func (u *UtilRPC) UpdatePhoto(data shared.PhotoRPCData, done *bool) error {
 
 	return nil
 }
+
+func (u *UtilRPC) DeletePhoto(data shared.PhotoRPCData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	// Save the data
+	DB.SQL(`delete from photo where id=$1`, data.ID).Exec()
+
+	logger(start, "Util.DeletePhoto",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d", data.ID),
+		data.Channel, conn.UserID, "photo", 0, true)
+
+	*done = true
+
+	return nil
+}

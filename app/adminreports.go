@@ -354,7 +354,22 @@ func phototestEdit(context *router.Context) {
 					ID:      id,
 					Photo:   &photo,
 				}, &done)
-				// Session.Navigate(BackURL)
+				Session.Navigate(BackURL)
+			}()
+		})
+
+		form.DeleteEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			print("delete photo")
+			form.Bind(&photo)
+			// print("bind the photo gives", photo)
+			go func() {
+				done := false
+				rpcClient.Call("UtilRPC.DeletePhoto", shared.PhotoRPCData{
+					Channel: Session.Channel,
+					ID:      id,
+				}, &done)
+				Session.Navigate(BackURL)
 			}()
 		})
 

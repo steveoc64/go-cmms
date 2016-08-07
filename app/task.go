@@ -832,7 +832,7 @@ func _taskList(action string, id int) {
 	}
 	form.Column("TaskID", "GetID")
 	form.Column("Src", "GetSource")
-	form.ImgColumn("Photo", "StoppageThumbnail")
+	form.ImgColumn("Event", "StoppageThumbnail")
 	form.ImgColumn("Photo", "Thumb1")
 	form.Column("Date", "GetStartDate")
 	// form.Column("Due", "GetDueDate")
@@ -876,6 +876,8 @@ func _taskList(action string, id int) {
 	}
 	cform.Column("TaskID", "GetID")
 	cform.Column("Src", "GetSource")
+	cform.ImgColumn("Event", "StoppageThumbnail")
+	cform.ImgColumn("Photo", "Thumb1")
 	cform.Column("Date", "GetStartDate")
 	// form.Column("Due", "GetDueDate")
 	cform.Column("Site", "SiteName")
