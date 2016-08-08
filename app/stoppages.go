@@ -37,7 +37,7 @@ func _stoppageList(action string, id int) {
 	// 	form.Column("Completed", "GetCompleted")
 	// }
 
-	form.Column("Site", "SiteName")
+	form.ColumnFormat("Site", "SiteName", "GetSiteClass")
 	// form.Column("Machine", "MachineName")
 	// form.Column("Component", "ToolType")
 	form.Column("Component", "GetComponent")

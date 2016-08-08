@@ -180,14 +180,15 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 		DB.SQL(`select site_id from user_site where user_id=$1`, conn.UserID).QuerySlice(&sites)
 
 		err := DB.SQL(`select 
-		e.*,m.name as machine_name,s.name as site_name,u.username as username
+		e.*,m.name as machine_name,s.name as site_name,u.username as username,x.highlight as site_highlight
 		from event e
 			left join machine m on m.id=e.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=e.created_by
+			left join user_site x on x.user_id=$2 and x.site_id=e.site_id
 		where m.site_id in $1
 			and e.completed is null
-		order by e.startdate desc`, sites).
+		order by e.startdate desc`, sites, conn.UserID).
 			QueryStructs(events)
 
 		if err != nil {
@@ -195,13 +196,14 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 		}
 	case "Admin":
 		err := DB.SQL(`select 
-		e.*,m.name as machine_name,s.name as site_name,u.username as username
+		e.*,m.name as machine_name,s.name as site_name,u.username as username,x.highlight as site_highlight
 		from event e
 			left join machine m on m.id=e.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=e.created_by	
+			left join user_site x on x.user_id=$1 and x.site_id=e.site_id
 		where e.completed is null	
-		order by e.completed desc,e.startdate desc`).
+		order by e.completed desc,e.startdate desc`, conn.UserID).
 			QueryStructs(events)
 
 		if err != nil {

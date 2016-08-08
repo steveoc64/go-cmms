@@ -24,6 +24,7 @@ type Event struct {
 	MachineID      int        `db:"machine_id"`
 	MachineName    string     `db:"machine_name"`
 	SiteName       string     `db:"site_name"`
+	SiteHighlight  *bool      `db:"site_highlight"`
 	ToolID         int        `db:"tool_id"`
 	ToolType       string     `db:"tool_type"`
 	Priority       int        `db:"priority"`
@@ -74,6 +75,14 @@ type EventRPCData struct {
 const (
 	datetimeDisplayFormat = "Mon, Jan 2 2006 15:04:05"
 )
+
+func (e *Event) GetSiteClass() string {
+
+	if e.SiteHighlight != nil && *e.SiteHighlight == true {
+		return "highlight"
+	}
+	return ""
+}
 
 func (e *Event) GetStartDate() string {
 	return e.StartDate.Format(datetimeDisplayFormat)
