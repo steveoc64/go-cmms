@@ -17,6 +17,7 @@ type Site struct {
 	AlertsTo       int     `db:"alerts_to"`
 	TasksTo        int     `db:"tasks_to"`
 	Manager        int     `db:"manager"`
+	Highlight      bool    `db:"highlight"`
 }
 
 func (s *Site) GetKey() int {

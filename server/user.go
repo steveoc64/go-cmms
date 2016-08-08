@@ -202,12 +202,12 @@ func (u *UserRPC) GetSites(data shared.UserSiteRequest, userSites *[]shared.User
 	conn := Connections.Get(data.Channel)
 
 	DB.SQL(`select 
-		s.id as site_id,s.name as site_name,count(u.*)
+		s.id as site_id,s.name as site_name,u.highlight,count(u.*)
 		from site s
 		left join user_site u
 			on u.site_id=s.id
 			and u.user_id=$1
-		group by s.id
+		group by s.id,u.highlight
 		order by s.name`, data.User.ID).QueryStructs(userSites)
 
 	logger(start, "User.GetSites",
@@ -270,6 +270,42 @@ func (u *UserRPC) SetSite(data shared.UserSiteSetRequest, done *bool) error {
 	}
 
 	logger(start, "User.SetSite",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("User %d Site %d Role %s %t",
+			data.UserID, data.SiteID, data.Role, data.IsSet),
+		data.Channel, conn.UserID, "user_site", data.UserID, true)
+
+	conn.Broadcast("usersites", "usersite", data.UserID)
+	*done = true
+	return nil
+}
+
+// Set the user site highlight attrib
+func (u *UserRPC) SetHighlight(data shared.UserSiteSetRequest, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	// delete any existing relationship
+	DB.DeleteFrom("user_site").
+		Where("user_id=$1 and site_id=$2", data.UserID, data.SiteID).
+		Exec()
+
+	if data.IsSet {
+		// if the role is undefined, then read it from the user
+		if data.Role == "" {
+			DB.SQL(`select role from users where id=$1`, data.UserID).QueryScalar(&data.Role)
+			log.Println("fetched user role", data.Role)
+		}
+
+		DB.SQL(`insert into 
+			user_site (user_id,site_id,role,highlight)
+			values    ($1, $2, $3, true)`, data.UserID, data.SiteID, data.Role).
+			Exec()
+	}
+
+	logger(start, "User.SetHighlight",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			data.Channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("User %d Site %d Role %s %t",

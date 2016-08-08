@@ -35,9 +35,10 @@ type UserUpdate struct {
 }
 
 type UserSite struct {
-	SiteID   int    `db:"site_id"`
-	SiteName string `db:"site_name"`
-	Count    int    `db:"count"`
+	SiteID    int    `db:"site_id"`
+	SiteName  string `db:"site_name"`
+	Count     int    `db:"count"`
+	Highlight *bool  `db:"highlight"`
 }
 
 type SiteUser struct {

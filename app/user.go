@@ -303,8 +303,12 @@ func userEdit(context *router.Context) {
 			form.Row(3).
 				AddSelect(1, "Role", "Role", roles, "ID", "Name", 1, currentRole)
 		}
+
 		form.Row(1).
 			Add(1, "Sites to Access", "div", "Sites", "")
+
+		form.Row(1).
+			Add(1, "Sites to Highlight", "div", "Highlights", "")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -369,6 +373,7 @@ func userEdit(context *router.Context) {
 		}
 		rpcClient.Call("UserRPC.GetSites", req, &userSites)
 		loadTemplate("user-sites-array", "[name=Sites]", userSites)
+		loadTemplate("user-highlight-array", "[name=Highlights]", userSites)
 
 		// add a click handler for the sites array
 		w := dom.GetWindow()
@@ -393,6 +398,32 @@ func userEdit(context *router.Context) {
 					go func() {
 						done := false
 						rpcClient.Call("UserRPC.SetSite", data, &done)
+					}()
+				}
+
+			})
+
+		}
+
+		if el := doc.QuerySelector("[name=Highlights]"); el != nil {
+
+			el.AddEventListener("click", false, func(evt dom.Event) {
+				clickedOn := evt.Target()
+				switch clickedOn.TagName() {
+				case "INPUT":
+					ie := clickedOn.(*dom.HTMLInputElement)
+					key, _ := strconv.Atoi(ie.GetAttribute("key"))
+					data := shared.UserSiteSetRequest{
+						Channel: Session.Channel,
+						UserID:  user.ID,
+						SiteID:  key,
+						Role:    user.Role,
+						IsSet:   ie.Checked,
+					}
+
+					go func() {
+						done := false
+						rpcClient.Call("UserRPC.SetHighlight", data, &done)
 					}()
 				}
 
