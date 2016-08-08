@@ -176,9 +176,8 @@ type Task struct {
 	AllDone           bool        `db:"all_done"`
 	IsRead            bool        `db:"is_read"`
 	ReadDate          *time.Time  `db:"read_date"`
-	StoppagePreview   string      `db:"stoppage_preview"`
-	StoppageThumbnail string      `db:"stoppage_thumbnail"`
 	NewPhoto          string      `db:"new_photo"`
+	Photos            []Photo     `db:"photos"`
 	PhotoID1          int         `db:"photo_id1"`
 	PhotoID2          int         `db:"photo_id2"`
 	PhotoID3          int         `db:"photo_id3"`
@@ -191,6 +190,8 @@ type Task struct {
 	Thumb1            string      `db:"thumb1"`
 	Thumb2            string      `db:"thumb2"`
 	Thumb3            string      `db:"thumb3"`
+	StoppagePreview   string      `db:"stoppage_preview"`
+	StoppageThumbnail string      `db:"stoppage_thumbnail"`
 }
 
 type TaskRPCData struct {
@@ -211,7 +212,11 @@ const (
 )
 
 func (t *Task) GetID() string {
-	return fmt.Sprintf("%06d", t.ID)
+	s := ""
+	if t.SchedID != 0 {
+		s = "-P"
+	}
+	return fmt.Sprintf("%06d%s", t.ID, s)
 }
 
 func (t *Task) GetSource() string {

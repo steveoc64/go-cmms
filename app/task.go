@@ -102,8 +102,6 @@ func _taskEdit(action string, id int) {
 		ID:      id,
 	}, &task)
 
-	print("task photo id =", task.PhotoID1, task.PhotoID2, task.PhotoID3)
-
 	task.AllDone = calcAllDone(task)
 	// print("task with parts and checks attached =", task)
 
@@ -223,11 +221,12 @@ func _taskEdit(action string, id int) {
 			AddDisplay(1, "Component", "Component")
 
 		form.Row(5).
-			AddPhoto(1, "Photos", "NewPhoto").
-			AddPreview(1, "", "StoppagePreview").
-			AddPreview(1, "", "Preview1").
-			AddPreview(1, "", "Preview2").
-			AddPreview(1, "", "Preview3")
+			AddPhoto(1, "Add Photo", "NewPhoto").
+			AddCustom(4, "Photos", "Photos", "")
+			// AddPreview(1, "", "StoppagePreview").
+			// AddPreview(1, "", "Preview1").
+			// AddPreview(1, "", "Preview2").
+			// AddPreview(1, "", "Preview3")
 
 		form.Row(1).
 			AddTextarea(1, "Notes", "Log")
@@ -267,11 +266,12 @@ func _taskEdit(action string, id int) {
 			AddDisplay(1, "Component", "Component")
 
 		form.Row(5).
-			AddPhoto(1, "Photos", "NewPhoto").
-			AddPreview(1, "", "StoppagePreview").
-			AddPreview(1, "", "Preview1").
-			AddPreview(1, "", "Preview2").
-			AddPreview(1, "", "Preview3")
+			AddPhoto(1, "Add Photo", "NewPhoto").
+			AddCustom(4, "Photos", "Photos", "")
+			// AddPreview(1, "", "StoppagePreview").
+			// AddPreview(1, "", "Preview1").
+			// AddPreview(1, "", "Preview2").
+			// AddPreview(1, "", "Preview3")
 
 		form.Row(1).
 			AddDisplayArea(1, "Notes", "Log")
@@ -314,11 +314,12 @@ func _taskEdit(action string, id int) {
 			AddDisplay(1, "Component", "Component")
 
 		form.Row(5).
-			AddPhoto(1, "Photos", "NewPhoto").
-			AddPreview(1, "", "StoppagePreview").
-			AddPreview(1, "", "Preview1").
-			AddPreview(1, "", "Preview2").
-			AddPreview(1, "", "Preview3")
+			AddPhoto(1, "Add Photo", "NewPhoto").
+			AddCustom(4, "Photos", "Photos", "")
+			// AddPreview(1, "", "StoppagePreview").
+			// AddPreview(1, "", "Preview1").
+			// AddPreview(1, "", "Preview2").
+			// AddPreview(1, "", "Preview3")
 
 		if task.CompletedDate == nil {
 			form.Row(1).
@@ -439,6 +440,7 @@ func _taskEdit(action string, id int) {
 	// All done, so render the form
 	form.Render("edit-form", "main", &task)
 	showPartsButtons(id)
+	showTaskPhotos(task)
 
 	// Add the custom checklist
 	loadTemplate("task-check-list", "[name=CheckList]", task)
@@ -553,67 +555,6 @@ func _taskEdit(action string, id int) {
 			}
 		})
 	}
-
-	// Click on the photo to expand it
-	if el := doc.QuerySelector("[name=Preview1Preview]").(*dom.HTMLImageElement); el != nil {
-		el.AddEventListener("click", false, func(evt dom.Event) {
-			evt.PreventDefault()
-			go func() {
-				myPhoto := shared.Photo{}
-				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
-					Channel: Session.Channel,
-					ID:      task.PhotoID1,
-				}, &myPhoto)
-				if myPhoto.Photo != "" {
-					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
-						doc.QuerySelector("#show-image").Class().Add("md-show")
-						el2.Src = myPhoto.Photo
-					}
-				}
-			}()
-		})
-	}
-
-	// Click on the photo to expand it
-	if el := doc.QuerySelector("[name=Preview2Preview]").(*dom.HTMLImageElement); el != nil {
-		el.AddEventListener("click", false, func(evt dom.Event) {
-			evt.PreventDefault()
-			go func() {
-				myPhoto := shared.Photo{}
-				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
-					Channel: Session.Channel,
-					ID:      task.PhotoID2,
-				}, &myPhoto)
-				if myPhoto.Photo != "" {
-					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
-						doc.QuerySelector("#show-image").Class().Add("md-show")
-						el2.Src = myPhoto.Photo
-					}
-				}
-			}()
-		})
-	}
-
-	// Click on the photo to expand it
-	if el := doc.QuerySelector("[name=Preview3Preview]").(*dom.HTMLImageElement); el != nil {
-		el.AddEventListener("click", false, func(evt dom.Event) {
-			evt.PreventDefault()
-			go func() {
-				myPhoto := shared.Photo{}
-				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
-					Channel: Session.Channel,
-					ID:      task.PhotoID3,
-				}, &myPhoto)
-				if myPhoto.Photo != "" {
-					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
-						doc.QuerySelector("#show-image").Class().Add("md-show")
-						el2.Src = myPhoto.Photo
-					}
-				}
-			}()
-		})
-	}
-
 	// click on the parts button, expand the div to show a tree
 	if el := doc.QuerySelector("[name=parts-button]"); el != nil {
 		el.AddEventListener("click", false, func(evt dom.Event) {
@@ -813,6 +754,44 @@ func _taskEdit(action string, id int) {
 	setActions(1)
 }
 
+func showTaskPhotos(task shared.Task) {
+	// print("populate the photos", task)
+
+	w := dom.GetWindow()
+	doc := w.Document()
+	div := doc.QuerySelector("[name=Photos]")
+	div.SetInnerHTML("")
+
+	for _, v := range task.Photos {
+		// print(k, ":", v)
+		// Create an image widget, and add it to the photos block
+		i := doc.CreateElement("img").(*dom.HTMLImageElement)
+		i.SetAttribute("photo-id", fmt.Sprintf("%d", v.ID))
+		i.Class().SetString("photopreview")
+		i.Src = v.Preview
+		div.AppendChild(i)
+
+		i.AddEventListener("click", false, func(evt dom.Event) {
+			evt.PreventDefault()
+			theID, _ := strconv.Atoi(evt.Target().GetAttribute("photo-id"))
+			print("clicksed on photo ", theID)
+			go func() {
+				myPhoto := shared.Photo{}
+				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
+					Channel: Session.Channel,
+					ID:      theID,
+				}, &myPhoto)
+				if myPhoto.Photo != "" {
+					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
+						doc.QuerySelector("#show-image").Class().Add("md-show")
+						el2.Src = myPhoto.Photo
+					}
+				}
+			}()
+		})
+	}
+}
+
 func showPartsButtons(id int) {
 	print("populate the parts buttons")
 	w := dom.GetWindow()
@@ -893,9 +872,8 @@ func _taskList(action string, id int) {
 		form.BoolColumn("Read", "IsRead")
 	}
 	form.Column("TaskID", "GetID")
-	form.Column("Src", "GetSource")
-	form.ImgColumn("Event", "StoppageThumbnail")
-	form.ImgColumn("Photo", "Thumb1")
+	// form.Column("Src", "GetSource")
+	form.MultiImgColumn("Photos", "Photos", "Thumb")
 	form.Column("Date", "GetStartDate")
 	// form.Column("Due", "GetDueDate")
 	form.Column("Site", "SiteName")
@@ -929,7 +907,7 @@ func _taskList(action string, id int) {
 	rpcClient.Call("TaskRPC.ListCompleted", Session.Channel, &ctasks)
 
 	cform := formulate.ListForm{}
-	cform.New("fa-server", "Completed Tasks")
+	cform.New("fa-server", "Completed Tasks (last 30 days)")
 
 	// Define the layout
 	switch Session.UserRole {
@@ -937,9 +915,8 @@ func _taskList(action string, id int) {
 		cform.Column("User", "Username")
 	}
 	cform.Column("TaskID", "GetID")
-	cform.Column("Src", "GetSource")
-	cform.ImgColumn("Event", "StoppageThumbnail")
-	cform.ImgColumn("Photo", "Thumb1")
+	// cform.Column("Src", "GetSource")
+	cform.MultiImgColumn("Photos", "Photos", "Thumb")
 	cform.Column("Date", "GetStartDate")
 	// form.Column("Due", "GetDueDate")
 	cform.Column("Site", "SiteName")
@@ -1818,10 +1795,7 @@ func stoppageTaskList(context *router.Context) {
 
 		form.Column("User", "Username")
 		form.Column("TaskID", "ID")
-		form.ImgColumn("Event", "StoppageThumbnail")
-		form.ImgColumn("Photo", "Thumb1")
-		// form.ImgColumn("", "Thumb2")
-		// form.ImgColumn("", "Thumb3")
+		form.MultiImgColumn("Photos", "Photos", "Thumb")
 		form.Column("Date", "GetStartDate")
 		// form.Column("Due", "GetDueDate")
 		form.Column("Site", "SiteName")

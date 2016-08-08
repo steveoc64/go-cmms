@@ -304,7 +304,10 @@ func (e *EventRPC) ListCompleted(channel int, events *[]shared.Event) error {
 
 		// Get any thumbnails if present
 		photo := shared.Photo{}
-		DB.SQL(`select thumb from photo where entity='event' and entity_id=$1`, v.ID).
+		DB.SQL(`select id,thumb 
+			from photo 
+			where entity='event' 
+			and entity_id=$1`, v.ID).
 			QueryStruct(&photo)
 		(*events)[i].PhotoThumbnail = photo.Thumb
 	}
@@ -345,8 +348,10 @@ func (e *EventRPC) Get(data shared.EventRPCData, event *shared.Event) error {
 	}
 
 	// Get the photo preview if present
-	DB.SQL(`select preview from photo where entity='event' and entity_id=$1`, id).
-		QueryScalar(&event.PhotoPreview)
+	DB.SQL(`select id,preview 
+		from photo 
+		where entity='event' and entity_id=$1`, id).
+		QueryScalar(&event.PhotoID, &event.PhotoPreview)
 
 	logger(start, "Event.Get",
 		fmt.Sprintf("ID %d", id),

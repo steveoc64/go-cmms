@@ -332,3 +332,10 @@ alter table task drop thumb3;
 drop table phototest;
 
 insert into migration (name) values ('Remove Old Photo Fields');
+
+-- 2016 08 08
+-- Colorize stoppages
+
+alter table user_site add highlight bool not null default false;
+
+insert into migration (name) values ('Add highlight flag to user_site');

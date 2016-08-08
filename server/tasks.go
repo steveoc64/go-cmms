@@ -485,18 +485,15 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			(*tasks)[i].Descr = fmt.Sprintf("%s ...", v.Descr[:80])
 		}
 
-		// Get the latest thumbnail for this task, if present
-		photo := shared.Photo{}
-		DB.SQL(`select thumb from photo where entity='task' and entity_id=$1 order by id desc limit 1`, v.ID).
-			QueryStruct(&photo)
-		(*tasks)[i].Thumb1 = photo.Thumb
-
-		// get the parent stoppage thumbnail, if present
-		photo.Thumb = ""
-		DB.SQL(`select thumb from photo where entity='event' and entity_id=$1 order by id desc limit 1`, v.EventID).
-			QueryStruct(&photo)
-		(*tasks)[i].StoppageThumbnail = photo.Thumb
-
+		// Get the latest thumbnails for this task, if present
+		photos := []shared.Photo{}
+		DB.SQL(`select id,thumb 
+			from photo 
+			where (entity='task' and entity_id=$1) 
+			or (entity='event' and entity_id=$2) 
+			order by id desc limit 8`, v.ID, v.EventID).
+			QueryStructs(&photos)
+		(*tasks)[i].Photos = photos
 	}
 	// // Read the sites that this user has access to
 	// err := DB.SQL(`select
@@ -531,7 +528,9 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 			left join machine m on m.id=t.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
-		where t.assigned_to=$1 and completed_date is not null
+		where t.assigned_to=$1 and t.completed_date is not null
+			and t.completed_date is not null
+			and t.startdate > NOW() - INTERVAL '1 month'
 		order by t.startdate desc`, conn.UserID).
 			QueryStructs(tasks)
 		if err != nil {
@@ -549,7 +548,9 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 			left join machine m on m.id=t.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
-		where m.site_id in $1 and completed_date is not null
+		where m.site_id in $1 and t.completed_date is not null
+			and t.completed_date is not null
+			and t.startdate > NOW() - INTERVAL '1 month'
 		order by t.startdate desc`, sites).
 			QueryStructs(tasks)
 		if err != nil {
@@ -562,7 +563,8 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 			left join machine m on m.id=t.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
-		where completed_date is not null
+		where t.completed_date is not null
+		  and t.startdate > NOW() - INTERVAL '1 month'
 		order by t.startdate desc`).
 			QueryStructs(tasks)
 		if err != nil {
@@ -576,18 +578,15 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 			(*tasks)[k].Descr = fmt.Sprintf("%s ...", v.Descr[:80])
 		}
 
-		// Get the latest thumbnail for this task, if present
-		photo := shared.Photo{}
-		DB.SQL(`select thumb from photo where entity='task' and entity_id=$1 order by id desc limit 1`, v.ID).
-			QueryStruct(&photo)
-		(*tasks)[k].Thumb1 = photo.Thumb
-
-		// get the parent stoppage thumbnail, if present
-		photo.Thumb = ""
-		DB.SQL(`select thumb from photo where entity='event' and entity_id=$1 order by id desc limit 1`, v.EventID).
-			QueryStruct(&photo)
-		(*tasks)[k].StoppageThumbnail = photo.Thumb
-
+		// Get the latest thumbnails for this task, if present
+		photos := []shared.Photo{}
+		DB.SQL(`select id,thumb 
+			from photo 
+			where (entity='task' and entity_id=$1) 
+			or (entity='event' and entity_id=$2) 
+			order by id desc limit 8`, v.ID, v.EventID).
+			QueryStructs(&photos)
+		(*tasks)[k].Photos = photos
 	}
 
 	// // Read the sites that this user has access to
@@ -639,28 +638,14 @@ func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 
 	// Get the last 3 photo previews for this task
 	photos := []shared.Photo{}
-	DB.SQL(`select id,preview from photo where entity='task' and entity_id=$1 order by id desc limit 3`, data.ID).
+	DB.SQL(`select id,preview
+	 from photo
+	 where (entity='task' and entity_id=$1) 
+	 or (entity='event' and entity_id=$2) 
+	 order by id desc limit 8`, data.ID, task.EventID).
 		QueryStructs(&photos)
 
-	lp := len(photos)
-	if lp > 0 {
-		task.PhotoID1 = photos[0].ID
-		task.Preview1 = photos[0].Preview
-	}
-	if lp > 1 {
-		task.PhotoID2 = photos[1].ID
-		task.Preview2 = photos[1].Preview
-	}
-	if lp > 2 {
-		task.PhotoID3 = photos[2].ID
-		task.Preview3 = photos[2].Preview
-	}
-
-	// Get the parent stoppage thumbnail
-	photo := shared.Photo{}
-	DB.SQL(`select preview from photo where entity='event' and entity_id=$1 order by id desc limit 1`, task.EventID).
-		QueryStruct(&photo)
-	task.StoppagePreview = photo.Preview
+	task.Photos = photos
 
 	// Now, if the user requesting this read is the person assigned to, then
 	// stamp the task as having been read
@@ -732,17 +717,15 @@ func (t *TaskRPC) SiteList(data shared.TaskRPCData, tasks *[]shared.Task) error 
 			(*tasks)[k].Descr = fmt.Sprintf("%s ...", v.Descr[:80])
 		}
 
-		// Get the latest thumbnail for this task, if present
-		photo := shared.Photo{}
-		DB.SQL(`select thumb from photo where entity='task' and entity_id=$1 order by id desc limit 1`, v.ID).
-			QueryStruct(&photo)
-		(*tasks)[k].Thumb1 = photo.Thumb
-
-		// get the parent stoppage thumbnail, if present
-		photo.Thumb = ""
-		DB.SQL(`select thumb from photo where entity='event' and entity_id=$1 order by id desc limit 1`, v.EventID).
-			QueryStruct(&photo)
-		(*tasks)[k].StoppageThumbnail = photo.Thumb
+		// Get the latest thumbnails for this task, if present
+		photos := []shared.Photo{}
+		DB.SQL(`select id,thumb 
+			from photo 
+			where (entity='task' and entity_id=$1) 
+			or (entity='event' and entity_id=$2) 
+			order by id desc limit 8`, v.ID, v.EventID).
+			QueryStructs(&photos)
+		(*tasks)[k].Photos = photos
 	}
 
 	// logger(start, "Task.SiteList",
@@ -789,17 +772,15 @@ func (t *TaskRPC) StoppageList(data shared.TaskRPCData, tasks *[]shared.Task) er
 			(*tasks)[k].Descr = v.Descr[:80] + "..."
 		}
 
-		// Get the latest thumbnail for this task, if present
-		photo := shared.Photo{}
-		DB.SQL(`select thumb from photo where entity='task' and entity_id=$1 order by id desc limit 1`, v.ID).
-			QueryStruct(&photo)
-		(*tasks)[k].Thumb1 = photo.Thumb
-
-		// get the parent stoppage thumbnail, if present
-		photo.Thumb = ""
-		DB.SQL(`select thumb from photo where entity='event' and entity_id=$1 order by id desc limit 1`, v.EventID).
-			QueryStruct(&photo)
-		(*tasks)[k].StoppageThumbnail = photo.Thumb
+		// Get the latest thumbnails for this task, if present
+		photos := []shared.Photo{}
+		DB.SQL(`select id,thumb 
+			from photo 
+			where (entity='task' and entity_id=$1) 
+			or (entity='event' and entity_id=$2) 
+			order by id desc limit 8`, v.ID, v.EventID).
+			QueryStructs(&photos)
+		(*tasks)[k].Photos = photos
 	}
 
 	logger(start, "Task.StoppageList",

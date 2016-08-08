@@ -261,12 +261,30 @@ func _stoppageEdit(action string, id int) {
 	// All done, so render the form
 	form.Render("edit-form", "main", &event)
 
+	w := dom.GetWindow()
+	doc := w.Document()
+	photoPreview := doc.QuerySelector("[name=PhotoPreviewPreview]").(*dom.HTMLImageElement)
+
 	// If photo is blank, hide the preview
 	if event.PhotoPreview == "" {
-		w := dom.GetWindow()
-		doc := w.Document()
+		photoPreview.Class().Add("hidden")
+	} else {
+		photoPreview.AddEventListener("click", false, func(evt dom.Event) {
+			evt.PreventDefault()
 
-		doc.QuerySelector("[name=PhotoPreviewPreview]").Class().Add("hidden")
+			go func() {
+				photo := shared.Photo{}
+				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
+					Channel: Session.Channel,
+					ID:      event.PhotoID,
+				}, &photo)
+
+				photoPreview.Src = photo.Photo
+				photoPreview.Class().Remove("photopreview")
+				photoPreview.Class().Add("photofull")
+			}()
+
+		})
 	}
 
 	// and show the assignments
