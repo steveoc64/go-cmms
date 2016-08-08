@@ -33,13 +33,14 @@ func _stoppageList(action string, id int) {
 	form.Column("Raised By", "Username")
 	form.Column("Date", "GetStartDate")
 
-	if Session.UserRole == "Admin" {
-		form.Column("Completed", "GetCompleted")
-	}
+	// if Session.UserRole == "Admin" {
+	// 	form.Column("Completed", "GetCompleted")
+	// }
 
 	form.Column("Site", "SiteName")
-	form.Column("Machine", "MachineName")
-	form.Column("Component", "ToolType")
+	// form.Column("Machine", "MachineName")
+	// form.Column("Component", "ToolType")
+	form.Column("Component", "GetComponent")
 	form.ImgColumn("Photo", "PhotoThumbnail")
 	form.Column("Notes", "Notes")
 
@@ -91,11 +92,12 @@ func _stoppageList(action string, id int) {
 		cform.Column("Date", "GetStartDate")
 		cform.Column("Completed", "GetCompleted")
 		cform.Column("Site", "SiteName")
-		cform.Column("Machine", "MachineName")
-		cform.Column("Component", "ToolType")
+		// cform.Column("Machine", "MachineName")
+		// cform.Column("Component", "ToolType")
+		cform.Column("Component", "GetComponent")
 		cform.ImgColumn("Photo", "PhotoThumbnail")
 		cform.Column("Notes", "Notes")
-		cform.Column("Status", "GetStatus")
+		// cform.Column("Status", "GetStatus")
 
 		cform.RowEvent(func(key string) {
 			Session.Navigate("/stoppage/" + key)

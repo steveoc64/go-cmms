@@ -226,6 +226,10 @@ func (t *Task) GetSource() string {
 	return ""
 }
 
+func (t *Task) GetComponent() string {
+	return t.MachineName + "     :      \n" + t.Component
+}
+
 func (t *Task) GetStartDate() string {
 	if t.StartDate == nil {
 		return ""

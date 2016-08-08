@@ -113,3 +113,7 @@ func (e *Event) GetCompleted() string {
 		return ""
 	}
 }
+
+func (e *Event) GetComponent() string {
+	return e.MachineName + " : " + e.ToolType
+}
