@@ -635,7 +635,7 @@ func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 		where t.task_id=$1`, data.ID).QueryStructs(&task.Parts)
 
 	// Now get all the checks for this task
-	DB.SQL(`select * from task_check where task_id=$1`, data.ID).QueryStructs(&task.Checks)
+	DB.SQL(`select * from task_check where task_id=$1 order by task_id,seq`, data.ID).QueryStructs(&task.Checks)
 
 	// Get the last 3 photo previews for this task
 	photos := []shared.Photo{}

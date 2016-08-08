@@ -705,13 +705,13 @@ func siteSchedList(context *router.Context) {
 			Channel: Session.Channel,
 			ID:      id,
 		}, &site)
-		print("site", site)
+		// print("site", site)
 		tasks := []shared.SchedTask{}
 		rpcClient.Call("TaskRPC.ListSiteSched", shared.TaskRPCData{
 			Channel: Session.Channel,
 			ID:      id,
 		}, &tasks)
-		print("tasks", tasks)
+		// print("tasks", tasks)
 
 		BackURL := fmt.Sprintf("/site/%d", id)
 

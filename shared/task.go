@@ -42,7 +42,7 @@ type SchedTaskRPCData struct {
 // NOTE - the times passed in the Format function are REFERENCE dates for the
 // formatter, these are not dates of your choosing. Please read docs for time.Parse()
 func (t *SchedTask) ShowFrequency() string {
-	print("decoding freq", t.Freq)
+	// print("decoding freq", t.Freq)
 	switch t.Freq {
 	case "Monthly":
 		return fmt.Sprintf("Monthly - Week %d", *t.Week)
