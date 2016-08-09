@@ -306,6 +306,7 @@ create index photo_entity_idx on photo (entity,entity_id);
 
 update part set descr='Die Bush - Description' where descr='Die Brush - Description';
 update part set name='Die Bush' where name='Die Brush';
+update part set name='Die Bush',descr='Die Bush - Description'  where name like '%Die Brush%';
 
 alter table component drop picture;
 alter table machine drop picture;
