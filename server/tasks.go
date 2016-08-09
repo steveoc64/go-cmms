@@ -464,14 +464,16 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			log.Println(err.Error())
 		}
 	case "Admin":
+
 		err := DB.SQL(`select 
-		t.*,m.name as machine_name,s.name as site_name,u.username as username
+		t.*,m.name as machine_name,s.name as site_name,u.username as username,x.highlight as site_highlight
 		from task t 
 			left join machine m on m.id=t.machine_id
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
+			left join user_site x on x.user_id=$1 and x.site_id=m.site_id
 		where completed_date is null
-		order by t.startdate desc`).
+		order by t.startdate desc`, conn.UserID).
 			QueryStructs(tasks)
 		if err != nil {
 			log.Println(err.Error())

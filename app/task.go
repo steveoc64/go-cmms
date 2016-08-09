@@ -876,7 +876,7 @@ func _taskList(action string, id int) {
 	form.MultiImgColumn("Photos", "Photos", "Thumb")
 	form.Column("Date", "GetStartDate")
 	// form.Column("Due", "GetDueDate")
-	form.Column("Site", "SiteName")
+	form.ColumnFormat("Site", "SiteName", "GetSiteClass")
 	// form.Column("Machine", "MachineName")
 	// form.Column("Component", "Component")
 	form.Column("Component", "GetComponent")

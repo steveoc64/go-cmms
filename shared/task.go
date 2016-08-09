@@ -143,6 +143,7 @@ type Task struct {
 	MachineName       string      `db:"machine_name"`
 	SiteID            int         `db:"site_id"`
 	SiteName          string      `db:"site_name"`
+	SiteHighlight     *bool       `db:"site_highlight"`
 	SchedID           int         `db:"sched_id"`
 	EventID           int         `db:"event_id"`
 	CompType          string      `db:"comp_type"`
@@ -222,6 +223,14 @@ func (t *Task) GetID() string {
 func (t *Task) GetSource() string {
 	if t.SchedID != 0 {
 		return "P"
+	}
+	return ""
+}
+
+func (t *Task) GetSiteClass() string {
+
+	if t.SiteHighlight != nil && *t.SiteHighlight == true {
+		return "highlight"
 	}
 	return ""
 }
