@@ -328,7 +328,7 @@ func machineTypes(context *router.Context) {
 		doc := w.Document()
 
 		el := doc.QuerySelector(".grid-form")
-		print("el", el)
+		// print("el", el)
 		if el != nil {
 
 			doc.QuerySelector(".grid-form").AddEventListener("change", false, func(evt dom.Event) {
@@ -532,7 +532,7 @@ func machineTypeTools(context *router.Context) {
 			ID:      id,
 		}, &machineType)
 
-		print("got machine type tools", data)
+		// print("got machine type tools", data)
 		BackURL := fmt.Sprintf("/machinetype/%d", id)
 
 		form := formulate.ListForm{
@@ -585,9 +585,11 @@ func machineTypeToolAdd(context *router.Context) {
 			ID:      id,
 		}, &machineType)
 
+		// print("machine type", machineType)
+
 		machineTypeTool := shared.MachineTypeTool{
 			MachineID: id,
-			ID:        machineType.NumTools + 1,
+			Position:  machineType.NumTools + 1,
 		}
 
 		BackURL := fmt.Sprintf("/machinetype/%d/tools", id)
@@ -599,7 +601,7 @@ func machineTypeToolAdd(context *router.Context) {
 
 		// Layout the fields
 		form.Row(3).
-			AddNumber(1, "Position", "ID", "1").
+			AddNumber(1, "Position", "Position", "1").
 			AddInput(2, "Name", "Name")
 
 		// Add event handlers
@@ -618,13 +620,28 @@ func machineTypeToolAdd(context *router.Context) {
 					Channel:         Session.Channel,
 					MachineTypeTool: &machineTypeTool,
 				}, &newID)
-				print("added tool", machineTypeTool.ID)
-				Session.Navigate(BackURL)
+				// println("added tool", machineTypeTool.ID)
+				url := fmt.Sprintf("/machinetype/%d/tool/add", id)
+				// println("nav to", url)
+				Session.Navigate(url)
 			}()
 		})
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &machineTypeTool)
+
+		// and jump to the name field
+		w := dom.GetWindow()
+		doc := w.Document()
+		nf := doc.QuerySelector("[name=Name]").(*dom.HTMLInputElement)
+		nf.Focus()
+		nf.AddEventListener("keydown", false, func(evt dom.Event) {
+			// print("keydown", evt, evt.(*dom.KeyboardEvent))
+			if evt.(*dom.KeyboardEvent).KeyCode == 27 {
+				// print("pressed esc key")
+				Session.Navigate(BackURL)
+			}
+		})
 
 	}()
 
@@ -671,7 +688,7 @@ func machineTypeToolEdit(context *router.Context) {
 
 		// Layout the fields
 		form.Row(3).
-			AddNumber(1, "Position", "ID", "1").
+			AddNumber(1, "Position", "Position", "1").
 			AddInput(2, "Name", "Name")
 
 		// Add event handlers

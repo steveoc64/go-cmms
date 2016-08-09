@@ -39,11 +39,18 @@ func (m *MachineRPC) Get(data shared.MachineRPCData, machine *shared.Machine) er
 	}
 
 	// fetch all components
-	err = DB.Select("*").
-		From("component").
-		Where("machine_id = $1", data.ID).
-		OrderBy("position,zindex,lower(name)").
+	DB.SQL(`select
+		* from component c
+		left join machine_type_tool x on x.id=c.mtt_id
+		where c.machine_id=$1
+		order by x.position,c.zindex,lower(c.name)`, data.ID).
 		QueryStructs(&machine.Components)
+
+	// err = DB.Select("*").
+	// 	From("component").
+	// 	Where("machine_id = $1", data.ID).
+	// 	OrderBy("position,zindex,lower(name)").
+	// 	QueryStructs(&machine.Components)
 
 	// fetch some basic info, flags and thumbnail from the parent machine type
 	DB.Select(`name,photo_thumbnail,electrical,hydraulic,pnuematic,lube,printer,console,uncoiler,rollbed,conveyor,encoder,strip_guide`).
@@ -74,11 +81,19 @@ func (m *MachineRPC) MachineOfType(data shared.MachineRPCData, machines *[]share
 
 	// For each machine, fetch all components
 	for k, m := range *machines {
-		err = DB.Select("*").
-			From("component").
-			Where("machine_id = $1", m.ID).
-			OrderBy("position,zindex,lower(name)").
+		// fetch all components
+		DB.SQL(`select
+		* from component c
+		left join machine_type_tool x on x.id=c.mtt_id
+		where c.machine_id=$1
+		order by x.position,c.zindex,lower(c.name)`, m.ID).
 			QueryStructs(&(*machines)[k].Components)
+
+		// err = DB.Select("*").
+		// 	From("component").
+		// 	Where("machine_id = $1", m.ID).
+		// 	OrderBy("position,zindex,lower(name)").
+		// 	QueryStructs(&(*machines)[k].Components)
 	}
 
 	logger(start, "Machine.MachinesOfType",
@@ -315,7 +330,7 @@ func (m *MachineRPC) GetMachineTypeTool(data shared.MachineTypeToolRPCData, mach
 	DB.Select(`*`).
 		From(`machine_type_tool`).
 		OrderBy(`position`).
-		Where(`machine_id=$1 and position=$2`, data.MachineID, data.ID).
+		Where(`id=$1`, data.ID).
 		QueryStruct(machineTypeTool)
 
 	logger(start, "Machine.GetMachineTypeTool",
@@ -334,13 +349,15 @@ func (m *MachineRPC) DeleteMachineTypeTool(data shared.MachineTypeToolRPCData, d
 
 	*done = false
 
-	DB.SQL(`delete from machine_type_tool where machine_id=$1 and position=$2`,
-		data.MachineID, data.ID).Exec()
+	oldPos := 0
+	DB.SQL(`select position from machine_type_tool where id=$1`, data.ID).
+		QueryScalar(&oldPos)
 
-	// and now shuffle everything up by one from this point
+	DB.SQL(`delete from machine_type_tool where id=$1`, data.ID).Exec()
+
+	// and now shuffle everything down by one from this point
 	DB.SQL(`update machine_type_tool set position=(position-1) where machine_id=$1 and position > $2`,
-		data.MachineID,
-		data.ID).
+		data.MachineID, oldPos).
 		Exec()
 
 	logger(start, "Machine.DeleteMachineTypeTool",
@@ -351,6 +368,8 @@ func (m *MachineRPC) DeleteMachineTypeTool(data shared.MachineTypeToolRPCData, d
 
 	*done = true
 
+	rehashTools(data.MachineID)
+
 	return nil
 }
 
@@ -360,9 +379,26 @@ func (m *MachineRPC) UpdateMachineTypeTool(data shared.MachineTypeToolRPCData, d
 	// log.Println("here", data.MachineType)
 	conn := Connections.Get(data.Channel)
 
+	// Get the original position
+	oldPos := 0
+	DB.SQL(`select position from machine_type_tool where id=$1`, data.ID).QueryScalar(&oldPos)
+	println("Pos:", oldPos, data.MachineTypeTool.Position)
+
+	if oldPos != data.MachineTypeTool.Position {
+		println("need to reshuffle position from", oldPos, "to", data.MachineTypeTool.Position)
+
+		// shuffle everything down from the OLD position
+		DB.SQL(`update machine_type_tool set position=(position-1) where machine_id=$1 and position > $2 and id != $3`,
+			data.MachineID, oldPos, data.ID).Exec()
+
+		// insert a new space for this NEW position
+		DB.SQL(`update machine_type_tool set position=(position+1) where machine_id=$1 and position >= $2 and id != $3`,
+			data.MachineID, data.MachineTypeTool.Position, data.ID).Exec()
+	}
+
 	DB.Update("machine_type_tool").
-		SetWhitelist(data.MachineTypeTool, "name").
-		Where("machine_id = $1 and position=$2", data.MachineID, data.ID).
+		SetWhitelist(data.MachineTypeTool, "name", "position").
+		Where("id=$1", data.ID).
 		Exec()
 
 	logger(start, "Machine.UpdateMachineTypeTool",
@@ -370,6 +406,8 @@ func (m *MachineRPC) UpdateMachineTypeTool(data shared.MachineTypeToolRPCData, d
 			data.Channel, data.MachineID, data.ID, conn.UserID, conn.Username, conn.UserRole),
 		data.MachineTypeTool.Name,
 		data.Channel, conn.UserID, "machine_type_tool", data.ID, true)
+
+	rehashTools(data.MachineID)
 
 	*done = true
 	return nil
@@ -382,10 +420,10 @@ func (m *MachineRPC) InsertMachineTypeTool(data shared.MachineTypeToolRPCData, i
 	// log.Println("here", data.MachineType)
 	conn := Connections.Get(data.Channel)
 
-	// If there is already a record at this position, then shuffle them all down from here on
+	// If there is already a record at this position, then shuffle them all up from here on
 	DB.SQL(`update machine_type_tool set position=(position+1) where machine_id=$1 and position >= $2`,
 		data.MachineTypeTool.MachineID,
-		data.MachineTypeTool.ID).
+		data.MachineTypeTool.Position).
 		Exec()
 
 	DB.InsertInto("machine_type_tool").
@@ -400,5 +438,39 @@ func (m *MachineRPC) InsertMachineTypeTool(data shared.MachineTypeToolRPCData, i
 		fmt.Sprintf("%d %v", *id, data.MachineTypeTool),
 		data.Channel, conn.UserID, "machine_type_tool", *id, true)
 
+	rehashTools(data.MachineTypeTool.MachineID, *id, "insert", &data)
+
 	return nil
+}
+
+func rehashTools(mt int, mtt int, mode string, data *shared.MachineTypeTool) {
+	println("rehashTools", mt, mtt, mode)
+
+	switch mode {
+	case "insert":
+		// Need to create a whole new component record for each machine instance of the same machinetype
+		comp := shared.Component{
+			MachineID: data.MachineID,
+			SiteID: data.S
+			machine_id | integer | not null
+ id         | integer | not null default nextval('component_id_seq'::regclass)
+ site_id    | integer | not null
+ name       | text    | not null
+ descr      | text    | not null default ''::text
+ make       | text    | not null default ''::text
+ model      | text    | not null default ''::text
+ serialnum  | text    | not null default ''::text
+ notes      | text    | not null default ''::text
+ qty        | integer | not null default 1
+ stock_code | text    | not null default ''::text
+ position   | integer | not null default 1
+ status     | text    | not null default 'Running'::text
+ is_running | boolean | not null default true
+ zindex     | integer | not null default 0
+ mtt_id     | integer | not null default 0
+
+		}
+	case "delete":
+	case "update":
+	}
 }

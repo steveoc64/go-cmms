@@ -331,5 +331,5 @@ type MachineTypeToolRPCData struct {
 }
 
 func (m *MachineTypeTool) GetName() string {
-	return fmt.Sprintf("%d) %s", m.ID, m.Name)
+	return fmt.Sprintf("%d) %s", m.Position, m.Name)
 }
