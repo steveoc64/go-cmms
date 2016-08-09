@@ -1,0 +1,8 @@
+<div class="row row-wrap" style="flex-wrap: wrap">
+{{range .}}
+	<div class="column column-50">
+		<input type="checkbox" id="user-highlight-{{.SiteID}}" key="{{.SiteID}}" {{if .Highlight}}checked{{end}}>
+		<label class="label-inline" for="user-highlight-{{.SiteID}}">{{.SiteName}}</label>
+	</div>
+{{end}}
+</div>
