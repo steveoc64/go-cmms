@@ -287,12 +287,12 @@ func (u *UserRPC) SetHighlight(data shared.UserSiteSetRequest, done *bool) error
 
 	conn := Connections.Get(data.Channel)
 
-	// delete any existing relationship
-	DB.DeleteFrom("user_site").
-		Where("user_id=$1 and site_id=$2", data.UserID, data.SiteID).
-		Exec()
-
 	if data.IsSet {
+		// delete any existing relationship
+		DB.DeleteFrom("user_site").
+			Where("user_id=$1 and site_id=$2", data.UserID, data.SiteID).
+			Exec()
+
 		// if the role is undefined, then read it from the user
 		if data.Role == "" {
 			DB.SQL(`select role from users where id=$1`, data.UserID).QueryScalar(&data.Role)
@@ -303,6 +303,10 @@ func (u *UserRPC) SetHighlight(data shared.UserSiteSetRequest, done *bool) error
 			user_site (user_id,site_id,role,highlight)
 			values    ($1, $2, $3, true)`, data.UserID, data.SiteID, data.Role).
 			Exec()
+	} else {
+		// Just mark any existing records as not being highlighted
+
+		DB.SQL(`update user_site set highlight=false where user_id=$1 and site_id=$2`, data.UserID, data.SiteID).Exec()
 	}
 
 	logger(start, "User.SetHighlight",

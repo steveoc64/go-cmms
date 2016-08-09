@@ -425,6 +425,9 @@ func userEdit(context *router.Context) {
 						done := false
 						rpcClient.Call("UserRPC.SetHighlight", data, &done)
 					}()
+
+					// Set the corresponding site checkbox to checked
+					doc.QuerySelector(fmt.Sprintf("#user-site-%d", key)).(*dom.HTMLInputElement).Checked = true
 				}
 
 			})
