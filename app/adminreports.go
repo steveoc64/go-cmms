@@ -223,15 +223,23 @@ func adminUtils(context *router.Context) {
 			case "logs":
 				rpcClient.Call("UtilRPC.Logs", Session.Channel, &retval)
 			case "machine":
-				rpcClient.Call("UtilRPC.Machine", Session.Channel, &retval)
+				if w.Confirm("Generate Machine Parts ?") {
+					rpcClient.Call("UtilRPC.Machine", Session.Channel, &retval)
+				}
 			case "part":
-				rpcClient.Call("UtilRPC.Parts", Session.Channel, &retval)
+				if w.Confirm("Generate Part Class ?") {
+					rpcClient.Call("UtilRPC.Parts", Session.Channel, &retval)
+				}
 			case "cat":
 				rpcClient.Call("UtilRPC.Cats", Session.Channel, &retval)
 			case "mtt":
-				rpcClient.Call("UtilRPC.MTT", Session.Channel, &retval)
+				if w.Confirm("Generat MTT Links ?") {
+					rpcClient.Call("UtilRPC.MTT", Session.Channel, &retval)
+				}
 			case "photomove":
-				rpcClient.Call("UtilRPC.PhotoMove", Session.Channel, &retval)
+				if w.Confirm("Generate Photos ?") {
+					rpcClient.Call("UtilRPC.PhotoMove", Session.Channel, &retval)
+				}
 			case "sms":
 				Session.Navigate("/sms")
 				return
