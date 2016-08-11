@@ -207,7 +207,7 @@ func (c *Component) SVGFill() string {
 }
 
 func (c *Component) SVGFill2(id int) string {
-	// print("getting fill for status", c.Status)
+	// print("getting fill for status", c.Status, id)
 	if c.ID == id {
 		return "url(#BlueBtn)"
 	}
@@ -256,6 +256,7 @@ type MachineType struct {
 	StripGuide     bool              `db:"strip_guide"`
 	NumTools       int               `db:"num_tools"`
 	Tools          []MachineTypeTool `db:"tools"`
+	SelectedTool   int               `db:"selected_tool"`
 }
 
 func (m *MachineType) SVGWidth1() string {
@@ -297,10 +298,11 @@ type MachineTypeRPCData struct {
 }
 
 type MachineTypeTool struct {
-	MachineID int    `db:"machine_id"`
-	ID        int    `db:"id"`
-	Position  int    `db:"position"`
-	Name      string `db:"name"`
+	MachineID   int          `db:"machine_id"`
+	MachineType *MachineType `db:"machine_type"`
+	ID          int          `db:"id"`
+	Position    int          `db:"position"`
+	Name        string       `db:"name"`
 }
 
 func (c *MachineTypeTool) SVGX(index int) string {
@@ -316,6 +318,11 @@ func (c *MachineTypeTool) SVGFill() string {
 }
 
 func (c *MachineTypeTool) SVGFill2(id int) string {
+	if c.MachineType != nil {
+		if c.ID == c.MachineType.SelectedTool {
+			return "cyan"
+		}
+	}
 	return "white"
 }
 

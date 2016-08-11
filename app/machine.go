@@ -171,7 +171,6 @@ func machineEdit(context *router.Context) {
 		form.Render("edit-form", "main", &machine)
 
 		// render the machine diagram
-
 		loadTemplate("machine-diag", "[name=Diag]", &shared.RaiseIssue{Machine: &machine})
 
 		// on change the machine type, save and refresh
@@ -509,6 +508,67 @@ func machineTypeEdit(context *router.Context) {
 			Session.Navigate(fmt.Sprintf("/machinetype/%d/%s", id, url))
 		})
 
+		// Hook up a click handler on the machine diag - get the tool clicked on
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		doc.QuerySelector("[name=Diag").AddEventListener("click", false, func(evt dom.Event) {
+			print("click on machine diag")
+			t := evt.Target()
+
+			// now we have to walk UP the tree until we find a containing parent
+			// element that has a declared tool type
+			foundOne := false
+			hitEnd := false
+			tooltype := ""
+
+			for !foundOne && !hitEnd {
+				tooltype = t.GetAttribute("tooltype")
+				print("tooltype", tooltype)
+				if tooltype != "" {
+					print("clickd on ", t.TagName(), " with tooltype =", tooltype)
+					foundOne = true
+				} else {
+					t = t.ParentElement()
+					print("stepping up to parent", t.TagName())
+					switch t.TagName() {
+					case "div", "body", "DIV", "BODY", "HTML":
+						hitEnd = true
+					}
+				}
+			}
+
+			toolid := t.GetAttribute("toolid")
+			if toolid == "" {
+				print("not on a tool")
+			} else {
+				print("clicked on a tool", toolid)
+				tid, _ := strconv.Atoi(toolid)
+				if tid != id {
+					Session.Navigate(fmt.Sprintf("/machinetype/%d/tool/%d", id, tid))
+				}
+			}
+		})
+
+		// On change event on the checkbox, autosave and re-draw the machine
+		doc.QuerySelector(".grid-form").AddEventListener("change", false, func(evt dom.Event) {
+			evt.PreventDefault()
+			t := evt.Target()
+			if t.TagName() == "INPUT" {
+				print("here")
+				form.Bind(&machineType)
+				go func() {
+					done := false
+					rpcClient.Call("MachineRPC.UpdateMachineType", shared.MachineTypeRPCData{
+						Channel:     Session.Channel,
+						ID:          id,
+						MachineType: &machineType,
+					}, &done)
+					Session.Reload(context)
+				}()
+			}
+		})
+
 	}()
 
 }
@@ -585,7 +645,7 @@ func machineTypeToolAdd(context *router.Context) {
 			ID:      id,
 		}, &machineType)
 
-		// print("machine type", machineType)
+		print("machine type", machineType)
 
 		machineTypeTool := shared.MachineTypeTool{
 			MachineID: id,
@@ -600,6 +660,9 @@ func machineTypeToolAdd(context *router.Context) {
 		form.New("fa-cubes", title)
 
 		// Layout the fields
+		form.Row(1).
+			AddCustom(1, "Diagram", "Diag", "")
+
 		form.Row(3).
 			AddNumber(1, "Position", "Position", "1").
 			AddInput(2, "Name", "Name")
@@ -629,6 +692,9 @@ func machineTypeToolAdd(context *router.Context) {
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &machineTypeTool)
+
+		// render the machine
+		loadTemplate("machine-type-diag", "[name=Diag]", &machineType)
 
 		// and jump to the name field
 		w := dom.GetWindow()
@@ -687,6 +753,9 @@ func machineTypeToolEdit(context *router.Context) {
 		form.New("fa-cubes", title)
 
 		// Layout the fields
+		form.Row(1).
+			AddCustom(1, "Diagram", "Diag", "")
+
 		form.Row(3).
 			AddNumber(1, "Position", "Position", "1").
 			AddInput(2, "Name", "Name")
@@ -722,7 +791,8 @@ func machineTypeToolEdit(context *router.Context) {
 					ID:              tool,
 					MachineTypeTool: &machineTypeTool,
 				}, &done)
-				Session.Navigate(BackURL)
+				// Session.Navigate(BackURL)
+				Session.Reload(context)
 			}()
 		})
 
@@ -732,6 +802,51 @@ func machineTypeToolEdit(context *router.Context) {
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &machineTypeTool)
+
+		// render the machine
+		loadTemplate("machine-type-diag", "[name=Diag]", &machineType)
+
+		// Hook up a click handler on the machine diag - get the tool clicked on
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		doc.QuerySelector("[name=Diag").AddEventListener("click", false, func(evt dom.Event) {
+			print("click on machine diag")
+			t := evt.Target()
+
+			// now we have to walk UP the tree until we find a containing parent
+			// element that has a declared tool type
+			foundOne := false
+			hitEnd := false
+			tooltype := ""
+
+			for !foundOne && !hitEnd {
+				tooltype = t.GetAttribute("tooltype")
+				print("tooltype", tooltype)
+				if tooltype != "" {
+					print("clickd on ", t.TagName(), " with tooltype =", tooltype)
+					foundOne = true
+				} else {
+					t = t.ParentElement()
+					print("stepping up to parent", t.TagName())
+					switch t.TagName() {
+					case "div", "body", "DIV", "BODY", "HTML":
+						hitEnd = true
+					}
+				}
+			}
+
+			toolid := t.GetAttribute("toolid")
+			if toolid == "" {
+				print("not on a tool")
+			} else {
+				print("clicked on a tool", toolid)
+				tid, _ := strconv.Atoi(toolid)
+				if tid != id {
+					Session.Navigate(fmt.Sprintf("/machinetype/%d/tool/%d", id, tid))
+				}
+			}
+		})
 
 	}()
 

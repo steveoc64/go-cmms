@@ -1,3 +1,4 @@
+{{}}
 <svg class="svg-panel-nohover" xmlns="http://www.w3.org/2000/svg" 
     	 width="95%"
     	 viewBox="0 0 {{.SVGWidth1}} 180">
@@ -183,7 +184,7 @@
   <!-- Now draw all the tools     -->
   {{range $index,$tool := .Tools}}
   <svg x="{{$tool.SVGX $index}}" 
-       class="tooltip tooltip--ne">
+       class="tooltip tooltip--ne" tooltype="tool" toolid="{{$tool.ID}}">
        <title>{{$tool.Name}}</title>
     <a>
     <rect x="16" y="0" width="15" height="20" stroke="black" stroke-width="1" fill="#ddd"/>

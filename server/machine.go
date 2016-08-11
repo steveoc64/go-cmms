@@ -215,7 +215,7 @@ func (m *MachineRPC) GetMachineType(data shared.MachineTypeRPCData, machineType 
 		QueryScalar(&machineType.NumTools)
 
 	// fetch the actual tools
-	DB.Select(`position,name`).
+	DB.Select(`id,position,name`).
 		From(`machine_type_tool`).
 		Where(`machine_id=$1`, data.ID).
 		OrderBy(`position`).
@@ -368,7 +368,7 @@ func (m *MachineRPC) DeleteMachineTypeTool(data shared.MachineTypeToolRPCData, d
 
 	*done = true
 
-	rehashTools(data.MachineID)
+	// rehashTools(data.MachineID)
 
 	return nil
 }
@@ -378,6 +378,18 @@ func (m *MachineRPC) UpdateMachineTypeTool(data shared.MachineTypeToolRPCData, d
 
 	// log.Println("here", data.MachineType)
 	conn := Connections.Get(data.Channel)
+
+	// same basic validation on the position
+	n := 0
+	DB.SQL(`select count(*) from machine_type_tool where machine_id=$1`, data.MachineTypeTool.MachineID).QueryScalar(&n)
+
+	if data.MachineTypeTool.Position < 1 {
+		data.MachineTypeTool.Position = 1
+	}
+	if data.MachineTypeTool.Position > n {
+		print("setting position from ", data.MachineTypeTool.Position, "to", n+1)
+		data.MachineTypeTool.Position = n + 1
+	}
 
 	// Get the original position
 	oldPos := 0
@@ -407,7 +419,7 @@ func (m *MachineRPC) UpdateMachineTypeTool(data shared.MachineTypeToolRPCData, d
 		data.MachineTypeTool.Name,
 		data.Channel, conn.UserID, "machine_type_tool", data.ID, true)
 
-	rehashTools(data.MachineID)
+	// rehashTools(data.MachineID)
 
 	*done = true
 	return nil
@@ -419,6 +431,18 @@ func (m *MachineRPC) InsertMachineTypeTool(data shared.MachineTypeToolRPCData, i
 
 	// log.Println("here", data.MachineType)
 	conn := Connections.Get(data.Channel)
+
+	// same basic validation on the position
+	n := 0
+	DB.SQL(`select count(*) from machine_type_tool where machine_id=$1`, data.MachineTypeTool.MachineID).QueryScalar(&n)
+
+	if data.MachineTypeTool.Position < 1 {
+		data.MachineTypeTool.Position = 1
+	}
+	if data.MachineTypeTool.Position > n {
+		print("setting position from ", data.MachineTypeTool.Position, "to", n+1)
+		data.MachineTypeTool.Position = n + 1
+	}
 
 	// If there is already a record at this position, then shuffle them all up from here on
 	DB.SQL(`update machine_type_tool set position=(position+1) where machine_id=$1 and position >= $2`,
@@ -438,7 +462,7 @@ func (m *MachineRPC) InsertMachineTypeTool(data shared.MachineTypeToolRPCData, i
 		fmt.Sprintf("%d %v", *id, data.MachineTypeTool),
 		data.Channel, conn.UserID, "machine_type_tool", *id, true)
 
-	rehashTools(data.MachineTypeTool.MachineID, *id, "insert", &data)
+	// rehashTools(data.MachineTypeTool.MachineID, *id, "insert", &data)
 
 	return nil
 }
@@ -446,31 +470,31 @@ func (m *MachineRPC) InsertMachineTypeTool(data shared.MachineTypeToolRPCData, i
 func rehashTools(mt int, mtt int, mode string, data *shared.MachineTypeTool) {
 	println("rehashTools", mt, mtt, mode)
 
-	switch mode {
-	case "insert":
-		// Need to create a whole new component record for each machine instance of the same machinetype
-		comp := shared.Component{
-			MachineID: data.MachineID,
-			SiteID: data.S
-			machine_id | integer | not null
- id         | integer | not null default nextval('component_id_seq'::regclass)
- site_id    | integer | not null
- name       | text    | not null
- descr      | text    | not null default ''::text
- make       | text    | not null default ''::text
- model      | text    | not null default ''::text
- serialnum  | text    | not null default ''::text
- notes      | text    | not null default ''::text
- qty        | integer | not null default 1
- stock_code | text    | not null default ''::text
- position   | integer | not null default 1
- status     | text    | not null default 'Running'::text
- is_running | boolean | not null default true
- zindex     | integer | not null default 0
- mtt_id     | integer | not null default 0
+	// switch mode {
+	// case "insert":
+	// 	// Need to create a whole new component record for each machine instance of the same machinetype
+	// 	comp := shared.Component{
+	// 		MachineID: data.MachineID,
+	// 		SiteID: data.S
+	// 		machine_id | integer | not null
+	// id         | integer | not null default nextval('component_id_seq'::regclass)
+	// site_id    | integer | not null
+	// name       | text    | not null
+	// descr      | text    | not null default ''::text
+	// make       | text    | not null default ''::text
+	// model      | text    | not null default ''::text
+	// serialnum  | text    | not null default ''::text
+	// notes      | text    | not null default ''::text
+	// qty        | integer | not null default 1
+	// stock_code | text    | not null default ''::text
+	// position   | integer | not null default 1
+	// status     | text    | not null default 'Running'::text
+	// is_running | boolean | not null default true
+	// zindex     | integer | not null default 0
+	// mtt_id     | integer | not null default 0
 
-		}
-	case "delete":
-	case "update":
-	}
+	// 	}
+	// case "delete":
+	// case "update":
+	// }
 }
