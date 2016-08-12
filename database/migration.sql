@@ -341,3 +341,20 @@ insert into migration (name) values ('Remove Old Photo Fields');
 alter table user_site add highlight bool not null default false;
 
 insert into migration (name) values ('Add highlight flag to user_site');
+
+-- 2016 08 12
+-- Table to store standard images
+
+create table stdimg (
+	id serial not null primary key,
+	code text not null default '',
+	name text not null default '',
+	photo text not null default '',
+	preview text not null default '',
+	thumb text not null default ''
+);
+create index stdimg_code_idx on stdimg (code);
+
+insert into stdimg (code,photo,preview,thumb) select 'PDF',photo,preview,thumb from photo where id=xxxxx;
+
+insert into migration (name) values ('Add standard img table');

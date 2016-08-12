@@ -453,9 +453,9 @@ func phototestAdd(context *router.Context) {
 			w := dom.GetWindow()
 			doc := w.Document()
 
-			ee := doc.QuerySelector("#photoprogress")
-			print("ee", ee)
-			ee.Class().Add("md-show")
+			if ee := doc.QuerySelector("#photoprogress"); ee != nil {
+				ee.Class().Add("md-show")
+			}
 
 			evt.PreventDefault()
 			form.Bind(&photo)
