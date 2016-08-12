@@ -298,11 +298,10 @@ type MachineTypeRPCData struct {
 }
 
 type MachineTypeTool struct {
-	MachineID   int          `db:"machine_id"`
-	MachineType *MachineType `db:"machine_type"`
-	ID          int          `db:"id"`
-	Position    int          `db:"position"`
-	Name        string       `db:"name"`
+	MachineID int    `db:"machine_id"`
+	ID        int    `db:"id"`
+	Position  int    `db:"position"`
+	Name      string `db:"name"`
 }
 
 func (c *MachineTypeTool) SVGX(index int) string {
@@ -317,11 +316,9 @@ func (c *MachineTypeTool) SVGFill() string {
 	return "white"
 }
 
-func (c *MachineTypeTool) SVGFill2(id int) string {
-	if c.MachineType != nil {
-		if c.ID == c.MachineType.SelectedTool {
-			return "cyan"
-		}
+func (c *MachineTypeTool) SVGFill2(selectedID int) string {
+	if c.ID == selectedID {
+		return "cyan"
 	}
 	return "white"
 }

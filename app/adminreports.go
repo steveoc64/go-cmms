@@ -2,6 +2,8 @@ package main
 
 import (
 	"strconv"
+	"strings"
+	"time"
 
 	"itrak-cmms/shared"
 
@@ -248,6 +250,8 @@ func adminUtils(context *router.Context) {
 			case "hashtag":
 				Session.Navigate("/hashtags")
 				return
+			case "editor":
+				Session.Navigate("/testeditor")
 			case "phototest":
 				Session.Navigate("/phototest")
 			default:
@@ -444,6 +448,15 @@ func phototestAdd(context *router.Context) {
 		})
 
 		form.SaveEvent(func(evt dom.Event) {
+
+			// display the photo upload progress widget
+			w := dom.GetWindow()
+			doc := w.Document()
+
+			ee := doc.QuerySelector("#photoprogress")
+			print("ee", ee)
+			ee.Class().Add("md-show")
+
 			evt.PreventDefault()
 			form.Bind(&photo)
 			go func() {
@@ -452,7 +465,10 @@ func phototestAdd(context *router.Context) {
 					Channel: Session.Channel,
 					Photo:   &photo,
 				}, &newID)
+
+				// sleep 1
 				Session.Navigate(BackURL)
+				ee.Class().Remove("md-show")
 			}()
 		})
 
@@ -483,5 +499,119 @@ func phototestAdd(context *router.Context) {
 
 		}
 	}()
+
+}
+
+func testeditor(context *router.Context) {
+	print("markdown editor test")
+
+	go func() {
+		photo := shared.Photo{}
+
+		BackURL := "/util"
+		form := formulate.EditForm{}
+		form.New("fa-edit", "Test Markdown Editor")
+
+		// Layout the fields
+
+		form.Row(1).
+			AddBigTextarea(1, "Notes", "Notes")
+
+		form.Row(1).
+			AddCustom(1, "Expands to :", "Expand", "")
+
+		clock := time.NewTimer(3 * time.Second)
+		defer clock.Stop()
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &photo)
+
+		// Add a change event on the big textarea
+		w := dom.GetWindow()
+		doc := w.Document()
+
+		t := doc.QuerySelector("[name=Notes]").(*dom.HTMLTextAreaElement)
+		et := t.Value
+
+		exp := doc.QuerySelector("[name=Expand]").(*dom.HTMLDivElement)
+		exp.SetInnerHTML("...")
+
+		// set a timer to scan the contents
+		if false {
+			go func() {
+				print("run a timer func to scan the contents of the notes")
+
+				for now := range clock.C {
+					print("got timer", now)
+
+					if t.Value == et {
+						print("no change")
+					} else {
+						print("notes has changed")
+						et = t.Value
+						renderMarkdown(exp, et)
+					}
+				}
+
+			}()
+		}
+
+		t.AddEventListener("change", false, func(evt dom.Event) {
+			notes := evt.Target().(*dom.HTMLTextAreaElement)
+			print("notes has changed to", notes.Value)
+
+			renderMarkdown(exp, notes.Value)
+		})
+
+	}()
+
+}
+
+func renderMarkdown(el *dom.HTMLDivElement, text string) {
+
+	w := dom.GetWindow()
+	doc := w.Document()
+
+	el.SetInnerHTML("")
+
+	// split the input into lines
+
+	lines := strings.Split(text, "\n")
+
+	para := ""
+	for k, v := range lines {
+		l := strings.Trim(v, " ")
+		print("Line", k+1, ":", l)
+
+		// if blank, then complete the paragraph
+		if l == "" && len(para) > 0 {
+			div := doc.CreateElement("div").(*dom.HTMLDivElement)
+			div.SetInnerHTML(para)
+			el.AppendChild(div)
+			para = ""
+		} else {
+			// append this to the existing paragraph.
+			if len(para) > 0 {
+				para += " "
+			}
+			para += l
+		}
+	}
+	if len(para) > 0 {
+		div := doc.CreateElement("div").(*dom.HTMLDivElement)
+		div.SetInnerHTML(para)
+		el.AppendChild(div)
+		para = ""
+	}
 
 }

@@ -567,7 +567,7 @@ func (u *UtilRPC) PhotoList(data shared.PhotoRPCData, photos *[]shared.Photo) er
 
 	conn := Connections.Get(data.Channel)
 
-	DB.SQL(`select id,entity,entity_id,notes,thumb from photo order by notes`).QueryStructs(photos)
+	DB.SQL(`select id,entity,entity_id,notes,thumb from photo order by id desc`).QueryStructs(photos)
 
 	logger(start, "Util.PhotoList",
 		fmt.Sprintf("Channel %d, User %d %s %s",

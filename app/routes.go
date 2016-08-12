@@ -101,6 +101,7 @@ func enableRoutes(Role string) {
 			"phototest":              phototest,
 			"phototest-edit":         phototestEdit,
 			"phototest-add":          phototestAdd,
+			"testeditor":             testeditor,
 		}
 	case "Technician":
 		Session.AppFn = map[string]router.Handler{

@@ -322,28 +322,6 @@ func machineTypes(context *router.Context) {
 		})
 
 		form.Render("machine-type", "main", data)
-
-		w := dom.GetWindow()
-		doc := w.Document()
-
-		el := doc.QuerySelector(".grid-form")
-		// print("el", el)
-		if el != nil {
-
-			doc.QuerySelector(".grid-form").AddEventListener("change", false, func(evt dom.Event) {
-				print("something changed")
-
-			})
-		}
-		// for _, v := range data {
-		// 	if v.PhotoThumbnail != "" {
-		// 		ename := fmt.Sprintf(`[name=PhotoThumbnail-%d]`, v.ID)
-		// 		el := doc.QuerySelector(ename).(*dom.HTMLImageElement)
-		// 		// print("img = ", el.Src)
-		// 		el.Src = v.PhotoThumbnail
-		// 	}
-		// }
-		// // print("fill in the img src inside the listform automatically")
 	}()
 }
 
@@ -513,7 +491,6 @@ func machineTypeEdit(context *router.Context) {
 		doc := w.Document()
 
 		doc.QuerySelector("[name=Diag").AddEventListener("click", false, func(evt dom.Event) {
-			print("click on machine diag")
 			t := evt.Target()
 
 			// now we have to walk UP the tree until we find a containing parent
@@ -524,13 +501,11 @@ func machineTypeEdit(context *router.Context) {
 
 			for !foundOne && !hitEnd {
 				tooltype = t.GetAttribute("tooltype")
-				print("tooltype", tooltype)
 				if tooltype != "" {
-					print("clickd on ", t.TagName(), " with tooltype =", tooltype)
+					// print("clickd on ", t.TagName(), " with tooltype =", tooltype)
 					foundOne = true
 				} else {
 					t = t.ParentElement()
-					print("stepping up to parent", t.TagName())
 					switch t.TagName() {
 					case "div", "body", "DIV", "BODY", "HTML":
 						hitEnd = true
@@ -540,9 +515,9 @@ func machineTypeEdit(context *router.Context) {
 
 			toolid := t.GetAttribute("toolid")
 			if toolid == "" {
-				print("not on a tool")
+				// print("not on a tool")
 			} else {
-				print("clicked on a tool", toolid)
+				// print("clicked on a tool", toolid)
 				tid, _ := strconv.Atoi(toolid)
 				if tid != id {
 					Session.Navigate(fmt.Sprintf("/machinetype/%d/tool/%d", id, tid))
@@ -733,7 +708,7 @@ func machineTypeToolEdit(context *router.Context) {
 			ID:      id,
 		}, &machineType)
 
-		// print("got machine type", machineType)
+		machineType.SelectedTool = tool
 
 		machineTypeTool := shared.MachineTypeTool{}
 
@@ -742,8 +717,6 @@ func machineTypeToolEdit(context *router.Context) {
 			MachineID: id,
 			ID:        tool,
 		}, &machineTypeTool)
-
-		print("got machine type tool", machineTypeTool)
 
 		BackURL := fmt.Sprintf("/machinetype/%d/tools", id)
 
@@ -811,7 +784,6 @@ func machineTypeToolEdit(context *router.Context) {
 		doc := w.Document()
 
 		doc.QuerySelector("[name=Diag").AddEventListener("click", false, func(evt dom.Event) {
-			print("click on machine diag")
 			t := evt.Target()
 
 			// now we have to walk UP the tree until we find a containing parent
@@ -822,13 +794,12 @@ func machineTypeToolEdit(context *router.Context) {
 
 			for !foundOne && !hitEnd {
 				tooltype = t.GetAttribute("tooltype")
-				print("tooltype", tooltype)
 				if tooltype != "" {
-					print("clickd on ", t.TagName(), " with tooltype =", tooltype)
+					// print("clickd on ", t.TagName(), " with tooltype =", tooltype)
 					foundOne = true
 				} else {
 					t = t.ParentElement()
-					print("stepping up to parent", t.TagName())
+					// print("stepping up to parent", t.TagName())
 					switch t.TagName() {
 					case "div", "body", "DIV", "BODY", "HTML":
 						hitEnd = true
@@ -838,9 +809,9 @@ func machineTypeToolEdit(context *router.Context) {
 
 			toolid := t.GetAttribute("toolid")
 			if toolid == "" {
-				print("not on a tool")
+				// print("not on a tool")
 			} else {
-				print("clicked on a tool", toolid)
+				// print("clicked on a tool", toolid)
 				tid, _ := strconv.Atoi(toolid)
 				if tid != id {
 					Session.Navigate(fmt.Sprintf("/machinetype/%d/tool/%d", id, tid))
@@ -850,7 +821,6 @@ func machineTypeToolEdit(context *router.Context) {
 
 	}()
 
-	print("TODO - machineTypeToolEdit", id, tool)
 }
 
 func machineTypeParts(context *router.Context) {
