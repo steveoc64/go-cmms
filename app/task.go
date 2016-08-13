@@ -425,6 +425,7 @@ func _taskEdit(action string, id int) {
 			// 	task.Parts[i].Notes = notes.Value
 			// }
 
+			showProgress("Updating Task ...")
 			go func() {
 				updatedTask := shared.Task{}
 				rpcClient.Call("TaskRPC.Update", shared.TaskRPCData{
@@ -432,6 +433,7 @@ func _taskEdit(action string, id int) {
 					Task:    &task,
 				}, &updatedTask)
 				Session.Navigate(RefreshURL)
+				hideProgress()
 			}()
 		})
 

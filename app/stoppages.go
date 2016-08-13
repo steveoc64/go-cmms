@@ -453,15 +453,15 @@ func stoppageNewTask(context *router.Context) {
 
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			print("binding")
 			form.Bind(&assign)
-			print("send event with photo in background")
 			Session.Navigate(BackURL)
+			showProgress("Creating Task ...")
 
 			go func() {
 				newID := 0
 				rpcClient.Call("EventRPC.Workorder", assign, &newID)
 				print("new Task raised", newID)
+				hideProgress()
 			}()
 		})
 

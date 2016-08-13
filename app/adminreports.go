@@ -398,6 +398,8 @@ func phototestEdit(context *router.Context) {
 				print("clicked on the photo")
 				evt.PreventDefault()
 
+				showProgress("Loading Photo ...")
+
 				go func() {
 					rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
 						Channel: Session.Channel,
@@ -408,6 +410,7 @@ func phototestEdit(context *router.Context) {
 					el.Src = photo.Photo
 					el.Class().Remove("photopreview")
 					el.Class().Add("photofull")
+					hideProgress()
 
 					// restyle the preview to be full size
 				}()
@@ -449,13 +452,7 @@ func phototestAdd(context *router.Context) {
 
 		form.SaveEvent(func(evt dom.Event) {
 
-			// display the photo upload progress widget
-			w := dom.GetWindow()
-			doc := w.Document()
-
-			if ee := doc.QuerySelector("#photoprogress"); ee != nil {
-				ee.Class().Add("md-show")
-			}
+			showProgress("Uploading Photo ...")
 
 			evt.PreventDefault()
 			form.Bind(&photo)
@@ -468,7 +465,7 @@ func phototestAdd(context *router.Context) {
 
 				// sleep 1
 				Session.Navigate(BackURL)
-				ee.Class().Remove("md-show")
+				hideProgress()
 			}()
 		})
 
@@ -614,4 +611,32 @@ func renderMarkdown(el *dom.HTMLDivElement, text string) {
 		para = ""
 	}
 
+}
+
+func showProgress(txt string) {
+
+	// display the photo upload progress widget
+	w := dom.GetWindow()
+	doc := w.Document()
+
+	if ee := doc.QuerySelector("#photoprogress"); ee != nil {
+		ee.Class().Add("md-show")
+		if pt := doc.QuerySelector("#progresstext"); pt != nil {
+			pt.SetInnerHTML(txt)
+		}
+	}
+}
+
+func hideProgress() {
+
+	// display the photo upload progress widget
+	w := dom.GetWindow()
+	doc := w.Document()
+
+	if ee := doc.QuerySelector("#photoprogress"); ee != nil {
+		ee.Class().Remove("md-show")
+		if pt := doc.QuerySelector("#progresstext"); pt != nil {
+			pt.SetInnerHTML("")
+		}
+	}
 }
