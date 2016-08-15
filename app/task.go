@@ -399,6 +399,8 @@ func _taskEdit(action string, id int) {
 					Channel: Session.Channel,
 					Task:    &task,
 				}, &done)
+				w := dom.GetWindow()
+				w.Alert(fmt.Sprintf("Task %06d Deleted", task.ID))
 				Session.Navigate(BackURL)
 			}()
 		})
