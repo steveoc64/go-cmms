@@ -541,48 +541,45 @@ func testeditor(context *router.Context) {
 
 		el := doc.QuerySelector("[name=Markup]").(*dom.HTMLDivElement)
 		el.SetInnerHTML(`
-Use the following markup to format the text :
+<input type=button class=button-primary name=helpbtn value=Help>
+<div name=helptext class=hidden>
+
+<h3>! Small Heading</h3>
+<h2>!! Medium Heading</h2>
+<h1>!!! Large Heading</h1>
+
 <ul>
+<li> <hr> Use 3 or more dashes (---) in a row to create a line break like the one above
 <li> <b>Bold Text</b>  Wrap the ^Bold Text^ using the ^ symbol.
 <li> <u>Underline Text</u>  Wrap the _Underline Text_ using the _ symbol.
 <li> <span class=redtext>Red Text</span>  Wrap the {Red Text} using the {} symbols.
 <li> Start a line with  -  to create a list
-
 </ul>
 
+<input type=checkbox id=testbox>
+<label for=testbox class=label-inline>
+[Enter a paragraph of text inside square brackets to associate a checkbox with the whole paragraph]
+</label>
+</div>
 `)
 
-		t := doc.QuerySelector("[name=Notes]").(*dom.HTMLTextAreaElement)
-		et := t.Value
+		doc.QuerySelector("[name=helpbtn").AddEventListener("click", false, func(evt dom.Event) {
+			evt.Target().Class().Add("hidden")
+			doc.QuerySelector("[name=helptext]").Class().Remove("hidden")
+		})
 
 		exp := doc.QuerySelector("[name=Expand]").(*dom.HTMLDivElement)
-		exp.SetInnerHTML("...")
+		exp.SetInnerHTML(`
+<input type=button class=button-primary name=expandbtn value=Expand>
+<div name=expanded-text>
+</div>
+`)
 
-		// set a timer to scan the contents
-		if false {
-			go func() {
-				print("run a timer func to scan the contents of the notes")
-
-				for now := range clock.C {
-					print("got timer", now)
-
-					if t.Value == et {
-						print("no change")
-					} else {
-						print("notes has changed")
-						et = t.Value
-						renderMarkdown(exp, et)
-					}
-				}
-
-			}()
-		}
-
-		t.AddEventListener("change", false, func(evt dom.Event) {
-			notes := evt.Target().(*dom.HTMLTextAreaElement)
-			print("notes has changed to", notes.Value)
-
-			renderMarkdown(exp, notes.Value)
+		doc.QuerySelector("[name=expandbtn").AddEventListener("click", false, func(evt dom.Event) {
+			el := doc.QuerySelector("[name=expanded-text]").(*dom.HTMLDivElement)
+			el.SetInnerHTML("... expand here")
+			notes := doc.QuerySelector("[name=Notes]").(*dom.HTMLTextAreaElement)
+			renderMarkdown(el, notes.Value)
 		})
 
 	}()
@@ -599,6 +596,8 @@ func renderMarkdown(el *dom.HTMLDivElement, text string) {
 	// split the input into lines
 
 	lines := strings.Split(text, "\n")
+
+	mode := "text"
 
 	para := ""
 	for k, v := range lines {
@@ -625,6 +624,7 @@ func renderMarkdown(el *dom.HTMLDivElement, text string) {
 		el.AppendChild(div)
 		para = ""
 	}
+	print("mode =", mode)
 
 }
 
