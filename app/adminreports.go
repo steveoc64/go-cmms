@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -596,36 +597,111 @@ func renderMarkdown(el *dom.HTMLDivElement, text string) {
 	// split the input into lines
 
 	lines := strings.Split(text, "\n")
-
-	mode := "text"
+	print("lines =", lines)
 
 	para := ""
 	for k, v := range lines {
-		l := strings.Trim(v, " ")
+		l := strings.TrimRight(v, " ")
 		print("Line", k+1, ":", l)
 
 		// if blank, then complete the paragraph
 		if l == "" && len(para) > 0 {
 			div := doc.CreateElement("div").(*dom.HTMLDivElement)
-			div.SetInnerHTML(para)
+			div.SetInnerHTML(parsePara(para))
 			el.AppendChild(div)
 			para = ""
 		} else {
 			// append this to the existing paragraph.
 			if len(para) > 0 {
-				para += " "
+				para += "\n"
 			}
 			para += l
 		}
 	}
 	if len(para) > 0 {
 		div := doc.CreateElement("div").(*dom.HTMLDivElement)
-		div.SetInnerHTML(para)
+		div.SetInnerHTML(parsePara(para))
 		el.AppendChild(div)
 		para = ""
 	}
-	print("mode =", mode)
 
+}
+
+// Parse a paragraph
+func parsePara(para string) string {
+
+	print("parsing", para)
+	retval := ""
+
+	for _, line := range strings.Split(para, "\n") {
+
+		if strings.HasPrefix(line, " ") {
+			println("add space")
+			retval += "&nbsp;"
+			retval += parsePara(line[1:])
+			continue
+		}
+
+		if strings.HasPrefix(line, "---") {
+			retval += "<hr>\n"
+			continue
+		}
+
+		if strings.HasPrefix(line, "!!!") {
+			retval += fmt.Sprintf("<h1>%s</h1>\n", line[3:])
+			continue
+		}
+
+		if strings.HasPrefix(line, "!!") {
+			retval += fmt.Sprintf("<h2>%s</h2>\n", line[2:])
+			continue
+		}
+
+		if strings.HasPrefix(line, "!") {
+			retval += fmt.Sprintf("<h3>%s</h3>\n", line[1:])
+			continue
+		}
+
+		if x := strings.Index(line, "^"); x > -1 {
+			println("x = ", x)
+			if x2 := strings.Index(line[x+1:], "^"); x2 > -1 {
+				x2 += x + 1
+				println("x2 = ", x2)
+				embolden := fmt.Sprintf("%s<b>%s</b>%s", line[:x], line[x+1:x2], line[x2+1:])
+				println("embolden = ", embolden)
+				retval += parsePara(embolden)
+				continue
+			}
+		}
+
+		if x := strings.Index(line, "_"); x > -1 {
+			println("x = ", x)
+			if x2 := strings.Index(line[x+1:], "_"); x2 > -1 {
+				x2 += x + 1
+				println("x2 = ", x2)
+				embolden := fmt.Sprintf("%s<u>%s</u>%s", line[:x], line[x+1:x2], line[x2+1:])
+				println("embolden = ", embolden)
+				retval += parsePara(embolden)
+				continue
+			}
+		}
+
+		if x := strings.Index(line, "{"); x > -1 {
+			println("x = ", x)
+			if x2 := strings.Index(line[x+1:], "}"); x2 > -1 {
+				x2 += x + 1
+				println("x2 = ", x2)
+				embolden := fmt.Sprintf("%s<span class=redtext>%s</span>%s", line[:x], line[x+1:x2], line[x2+1:])
+				println("embolden = ", embolden)
+				retval += parsePara(embolden)
+				continue
+			}
+		}
+
+		retval += fmt.Sprintf("%s<br>", line)
+	}
+
+	return retval
 }
 
 func showProgress(txt string) {
