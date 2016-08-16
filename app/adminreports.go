@@ -501,13 +501,12 @@ func phototestAdd(context *router.Context) {
 }
 
 func testeditor(context *router.Context) {
-	print("markdown editor test")
 
 	go func() {
 
 		BackURL := "/util"
 		form := formulate.EditForm{}
-		form.New("fa-edit", "Test Markdown Editor")
+		form.New("fa-edit", "Test Markup Rules")
 
 		// Layout the fields
 
