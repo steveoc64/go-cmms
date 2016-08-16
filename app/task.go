@@ -427,7 +427,9 @@ func _taskEdit(action string, id int) {
 			// 	task.Parts[i].Notes = notes.Value
 			// }
 
-			showProgress("Updating Task ...")
+			if task.NewPhoto != "" {
+				showProgress("Updating Task ...")
+			}
 			go func() {
 				updatedTask := shared.Task{}
 				rpcClient.Call("TaskRPC.Update", shared.TaskRPCData{
