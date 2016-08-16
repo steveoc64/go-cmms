@@ -271,7 +271,7 @@ func (u *UtilRPC) PhotoMove(channel int, result *string) error {
 
 		println("events")
 		events := []shared.Event{}
-		DB.SQL(`select id,photo,photo_preview,photo_thumbnail from event where length(photo)>0`).QueryStructs(&events)
+		err := DB.SQL(`select id,photo,photo_preview,photo_thumbnail from event where length(photo)>0`).QueryStructs(&events)
 
 		// patched := 0
 		for k, v := range events {
@@ -283,10 +283,13 @@ func (u *UtilRPC) PhotoMove(channel int, result *string) error {
 			phototype := pf[0]
 
 			if v.Photo != "" {
-				DB.SQL(`insert into photo (datatype,entity,entity_id,data,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+				err = DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
 					phototype, `event`, v.ID, v.Photo, v.PhotoPreview, v.PhotoThumbnail).
 					QueryScalar(&id)
-				r += fmt.Sprintf("Event Photo1 %d\n", v.ID)
+				if err != nil {
+					r += err.Error()
+				}
+				r += fmt.Sprintf("Event Photo1 %d = %d\n", v.ID, id)
 			}
 		}
 
@@ -309,25 +312,28 @@ func (u *UtilRPC) PhotoMove(channel int, result *string) error {
 			phototype := pf[0]
 
 			if v.Photo1 != "" {
-				DB.SQL(`insert into photo (datatype,entity,entity_id,data,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+				err = DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
 					phototype, `task`, v.ID, v.Photo1, v.Preview1, v.Thumb1).
 					QueryScalar(&id)
 				println("Added photo", id)
-				r += fmt.Sprintf("Task Photo1 %d\n", v.ID)
+				r += fmt.Sprintf("Task Photo1 %d = %d\n", v.ID, id)
 			}
 
 			if v.Photo2 != "" {
-				DB.SQL(`insert into photo (datatype,entity,entity_id,data,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+				err = DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
 					phototype, `task`, v.ID, v.Photo2, v.Preview2, v.Thumb2).
 					QueryScalar(&id)
-				r += fmt.Sprintf("Task Photo2 %d\n", v.ID)
+				r += fmt.Sprintf("Task Photo2 %d = %d\n", v.ID, id)
 			}
 
 			if v.Photo3 != "" {
-				DB.SQL(`insert into photo (datatype,entity,entity_id,data,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+				err = DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
 					phototype, `task`, v.ID, v.Photo3, v.Preview3, v.Thumb3).
 					QueryScalar(&id)
-				r += fmt.Sprintf("Task Photo3 %d\n", v.ID)
+				r += fmt.Sprintf("Task Photo3 %d = %d\n", v.ID, id)
+			}
+			if err != nil {
+				r += err.Error()
 			}
 		}
 
@@ -343,11 +349,11 @@ func (u *UtilRPC) PhotoMove(channel int, result *string) error {
 			phototype := pf[0]
 
 			if v.Photo != "" {
-				DB.SQL(`insert into photo (datatype,entity,entity_id,data,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+				DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
 					phototype, `test`, v.ID, v.Photo, v.Preview, v.Thumbnail).
 					QueryScalar(&id)
 				println("Added photo", id)
-				r += fmt.Sprintf("Test Photo %d\n", v.ID)
+				r += fmt.Sprintf("Test Photo %d = %d\n", v.ID, id)
 			}
 		}
 

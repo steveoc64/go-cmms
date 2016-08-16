@@ -281,6 +281,8 @@ insert into migration (name) values ('Supplier info on part');
 -- 2016 08 02
 -- Tightly couple machine type tool and machine (instance) component
 
+-- run util "Machine Types" after this
+
 alter table machine_type_tool add id serial not null;
 alter table component add mtt_id int not null default 0;
 
@@ -354,6 +356,8 @@ create table stdimg (
 	thumb text not null default ''
 );
 create index stdimg_code_idx on stdimg (code);
+
+-- create an image first with a PDF thumb, and use the id of that image below
 
 insert into stdimg (code,photo,preview,thumb) select 'PDF',photo,preview,thumb from photo where id=xxxxx;
 
