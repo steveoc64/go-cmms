@@ -553,8 +553,10 @@ func testeditor(context *router.Context) {
 <li> <hr> Use 3 or more dashes (---) in a row to create a line break like the one above
 <li> <b>Bold Text</b>  Wrap the ^Bold Text^ using the ^ symbol.
 <li> <u>Underline Text</u>  Wrap the _Underline Text_ using the _ symbol.
+<li> <i>Italic Text</i>  Wrap the ~Italic Text~ using the ~ symbol.
 <li> <span class=redtext>Red Text</span>  Wrap the {Red Text} using the {} symbols.
-<li> Start a line with  -  to create a list
+<li> <span class=greentext>Red Text</span>  Wrap the @Green Text@ using the @ symbol.
+<li> Start a line with  -  to add to an auto-numbered list
 </ul>
 
 <input type=checkbox id=testbox>
@@ -563,6 +565,10 @@ func testeditor(context *router.Context) {
 </label>
 </div>
 `)
+		doc.QuerySelector("[name=helptext]").AddEventListener("click", false, func(evt dom.Event) {
+			doc.QuerySelector("[name=helptext]").Class().Add("hidden")
+			doc.QuerySelector("[name=helpbtn]").Class().Remove("hidden")
+		})
 
 		doc.QuerySelector("[name=helpbtn").AddEventListener("click", false, func(evt dom.Event) {
 			evt.Target().Class().Add("hidden")
@@ -602,12 +608,14 @@ func renderMarkdown(el *dom.HTMLDivElement, text string) {
 	para := ""
 	for k, v := range lines {
 		l := strings.TrimRight(v, " ")
+		l = strings.Replace(l, "<", "&lt;", -1)
+		l = strings.Replace(l, ">", "&gt;", -1)
 		print("Line", k+1, ":", l)
 
 		// if blank, then complete the paragraph
 		if l == "" && len(para) > 0 {
 			div := doc.CreateElement("div").(*dom.HTMLDivElement)
-			div.SetInnerHTML(parsePara(para))
+			div.SetInnerHTML(parsePara(para, true))
 			el.AppendChild(div)
 			para = ""
 		} else {
@@ -620,85 +628,150 @@ func renderMarkdown(el *dom.HTMLDivElement, text string) {
 	}
 	if len(para) > 0 {
 		div := doc.CreateElement("div").(*dom.HTMLDivElement)
-		div.SetInnerHTML(parsePara(para))
+		div.SetInnerHTML(parsePara(para, true))
 		el.AppendChild(div)
-		para = ""
 	}
 
 }
 
 // Parse a paragraph
-func parsePara(para string) string {
+func parsePara(para string, addbr bool) string {
 
 	print("parsing", para)
 	retval := ""
+	listmode := false
 
 	for _, line := range strings.Split(para, "\n") {
 
+		// Indentation
 		if strings.HasPrefix(line, " ") {
 			println("add space")
 			retval += "&nbsp;"
-			retval += parsePara(line[1:])
+			retval += parsePara(line[1:], false)
 			continue
 		}
 
+		// Add horizontal line
 		if strings.HasPrefix(line, "---") {
 			retval += "<hr>\n"
 			continue
 		}
 
+		// Generate ordered list
+		if strings.HasPrefix(line, "-") {
+			if !listmode {
+				listmode = true
+				retval += "<ol>\n"
+			}
+			retval += fmt.Sprintf("<li>%s\n", parsePara(line[1:], false))
+			continue
+		}
+
+		// Big Header
 		if strings.HasPrefix(line, "!!!") {
 			retval += fmt.Sprintf("<h1>%s</h1>\n", line[3:])
 			continue
 		}
 
+		// Medium Header
 		if strings.HasPrefix(line, "!!") {
 			retval += fmt.Sprintf("<h2>%s</h2>\n", line[2:])
 			continue
 		}
 
+		// Small Header
 		if strings.HasPrefix(line, "!") {
 			retval += fmt.Sprintf("<h3>%s</h3>\n", line[1:])
 			continue
 		}
 
+		// Bold Text
 		if x := strings.Index(line, "^"); x > -1 {
 			println("x = ", x)
 			if x2 := strings.Index(line[x+1:], "^"); x2 > -1 {
 				x2 += x + 1
 				println("x2 = ", x2)
 				embolden := fmt.Sprintf("%s<b>%s</b>%s", line[:x], line[x+1:x2], line[x2+1:])
-				println("embolden = ", embolden)
-				retval += parsePara(embolden)
+				retval += parsePara(embolden, addbr)
 				continue
 			}
 		}
 
+		// Underscore Text
 		if x := strings.Index(line, "_"); x > -1 {
 			println("x = ", x)
 			if x2 := strings.Index(line[x+1:], "_"); x2 > -1 {
 				x2 += x + 1
 				println("x2 = ", x2)
 				embolden := fmt.Sprintf("%s<u>%s</u>%s", line[:x], line[x+1:x2], line[x2+1:])
-				println("embolden = ", embolden)
-				retval += parsePara(embolden)
+				retval += parsePara(embolden, addbr)
 				continue
 			}
 		}
 
+		// Italic Text
+		if x := strings.Index(line, "~"); x > -1 {
+			println("x = ", x)
+			if x2 := strings.Index(line[x+1:], "~"); x2 > -1 {
+				x2 += x + 1
+				println("x2 = ", x2)
+				embolden := fmt.Sprintf("%s<i>%s</i>%s", line[:x], line[x+1:x2], line[x2+1:])
+				retval += parsePara(embolden, addbr)
+				continue
+			}
+		}
+
+		// RED Text
 		if x := strings.Index(line, "{"); x > -1 {
 			println("x = ", x)
 			if x2 := strings.Index(line[x+1:], "}"); x2 > -1 {
 				x2 += x + 1
 				println("x2 = ", x2)
 				embolden := fmt.Sprintf("%s<span class=redtext>%s</span>%s", line[:x], line[x+1:x2], line[x2+1:])
-				println("embolden = ", embolden)
-				retval += parsePara(embolden)
+				retval += parsePara(embolden, addbr)
 				continue
 			}
 		}
 
-		retval += fmt.Sprintf("%s<br>", line)
+		// Green Text
+		if x := strings.Index(line, "@"); x > -1 {
+			println("x = ", x)
+			if x2 := strings.Index(line[x+1:], "@"); x2 > -1 {
+				x2 += x + 1
+				println("x2 = ", x2)
+				embolden := fmt.Sprintf("%s<span class=greentext>%s</span>%s", line[:x], line[x+1:x2], line[x2+1:])
+				retval += parsePara(embolden, addbr)
+				continue
+			}
+		}
+
+		// Checkbox
+		if x := strings.Index(line, "["); x > -1 {
+			println("x = ", x)
+			if x2 := strings.Index(line[x+1:], "]"); x2 > -1 {
+				x2 += x + 1
+				println("x2 = ", x2)
+				embolden := ""
+				if addbr {
+					embolden = fmt.Sprintf("%s\n<br><input type=checkbox><label class=label-inline>%s</label>\n<br>%s\n",
+						line[:x], line[x+1:x2], line[x2+1:])
+				} else {
+					embolden = fmt.Sprintf("%s <input type=checkbox><label class=label-inline>%s</label> %s\n",
+						line[:x], line[x+1:x2], line[x2+1:])
+				}
+				retval += parsePara(embolden, addbr)
+				continue
+			}
+		}
+
+		// Cleanup and exit
+		if listmode {
+			retval += "</ol>\n"
+		}
+		retval += line
+		if addbr {
+			retval += "<br>"
+		}
 	}
 
 	return retval
