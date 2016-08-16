@@ -315,6 +315,7 @@ alter table machine drop picture;
 
 insert into migration (name) values ('Reorganise Photos and performance tuning');
 
+
 -- Now cleanup after running the migration into the new table (requires running the util tool first)
 
 alter table event drop photo;
@@ -362,3 +363,10 @@ create index stdimg_code_idx on stdimg (code);
 insert into stdimg (code,photo,preview,thumb) select 'PDF',photo,preview,thumb from photo where id=xxxxx;
 
 insert into migration (name) values ('Add standard img table');
+
+-- 2016 08 16
+-- Schedules with a freq of every N months
+
+alter table sched_task add months int;
+
+insert into migration (name) values ('Schedules with a freq of every N months');

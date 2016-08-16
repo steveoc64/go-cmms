@@ -33,7 +33,6 @@ func (m *MachineRPC) Get(data shared.MachineRPCData, machine *shared.Machine) er
 
 	// Read the sites that this user has access to
 	err := DB.SQL(MachineQuery, data.ID).QueryStruct(machine)
-	fmt.Printf("Got machine %v\n", *machine)
 
 	if err != nil {
 		log.Println(err.Error())

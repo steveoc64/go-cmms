@@ -162,6 +162,18 @@ func (t *TaskRPC) UpdateSched(data shared.SchedTaskRPCData, ok *bool) error {
 			}
 		}
 	}
+
+	if data.SchedTask.Freq == "Every N Months" {
+		if data.SchedTask.Months == nil {
+			i := 1
+			data.SchedTask.Months = &i
+		} else {
+			if *data.SchedTask.Months < 1 {
+				*data.SchedTask.Months = 1
+			}
+		}
+	}
+
 	if data.SchedTask.DurationDays < 1 {
 		data.SchedTask.DurationDays = 1
 	}
@@ -172,7 +184,7 @@ func (t *TaskRPC) UpdateSched(data shared.SchedTaskRPCData, ok *bool) error {
 		SetWhitelist(data.SchedTask,
 			"comp_type", "tool_id",
 			"component", "descr", "startdate", "oneoffdate",
-			"freq", "days", "week", "weekday", "count", "user_id",
+			"freq", "days", "months", "week", "weekday", "count", "user_id",
 			"labour_cost", "material_cost", "duration_days").
 		Where("id = $1", data.SchedTask.ID).
 		Exec()
@@ -297,6 +309,27 @@ func (t *TaskRPC) InsertSched(data shared.SchedTaskRPCData, id *int) error {
 			}
 		}
 	}
+
+	if data.SchedTask.Months == nil {
+		println("months is nil")
+	} else {
+		println("before", *data.SchedTask.Months)
+
+	}
+	if data.SchedTask.Freq == "Every N Months" {
+		if data.SchedTask.Months == nil {
+			i := 1
+			data.SchedTask.Months = &i
+		} else {
+			if *data.SchedTask.Months < 1 {
+				*data.SchedTask.Months = 1
+			}
+		}
+	}
+	if data.SchedTask.Months != nil {
+		println("after", *data.SchedTask.Months)
+	}
+
 	if data.SchedTask.DurationDays < 1 {
 		data.SchedTask.DurationDays = 1
 	}
@@ -308,7 +341,7 @@ func (t *TaskRPC) InsertSched(data shared.SchedTaskRPCData, id *int) error {
 	DB.InsertInto("sched_task").
 		Whitelist("machine_id", "comp_type", "tool_id",
 			"component", "descr", "startdate", "oneoffdate",
-			"freq", "days", "week", "weekday", "count", "user_id",
+			"freq", "days", "months", "week", "weekday", "count", "user_id",
 			"labour_cost", "material_cost", "duration_days", "paused").
 		Record(data.SchedTask).
 		Returning("id").
@@ -928,15 +961,15 @@ func schedTaskScan(channel int, user_id int, runDate time.Time, count *int) erro
 					}
 				}
 			}
-		case "Every N Days":
-			if st.Days == nil {
-				log.Printf("Error - Task %d on every N days has no days specified", st.ID)
+		case "Every N Months":
+			if st.Months == nil {
+				log.Printf("Error - Task %d on every N months has no month specified", st.ID)
 			} else {
 
 				// Get the last one generated
 				// If there is none, then create the first one
 				if st.LastGenerated == nil {
-					log.Printf("»»» Task %d Every %d days, first entry - start now",
+					log.Printf("»»» Task %d Every %d months, first entry - start now",
 						st.ID,
 						*st.Days)
 
@@ -948,13 +981,13 @@ func schedTaskScan(channel int, user_id int, runDate time.Time, count *int) erro
 				}
 				// Else, calculate the next date, and check if its in the window
 				allDone := false
-				nextDate := st.LastGenerated.AddDate(0, 0, *st.Days)
+				nextDate := st.LastGenerated.AddDate(0, *st.Months, 0)
 
 				for !allDone {
 					if nextDate.After(priorWeek) && nextDate.Before(nextWeek) {
-						log.Printf("»»» Task %d Every %d days, next due at %s is within %s - %s",
+						log.Printf("»»» Task %d Every %d months, next due at %s is within %s - %s",
 							st.ID,
-							*st.Days,
+							*st.Months,
 							nextDate.Format(rfc3339DateLayout),
 							priorWeek.Format(rfc3339DateLayout),
 							nextWeek.Format(rfc3339DateLayout))
@@ -964,7 +997,7 @@ func schedTaskScan(channel int, user_id int, runDate time.Time, count *int) erro
 						numTasks++
 
 						// keep looping, looking at the next date
-						nextDate = nextDate.AddDate(0, 0, *st.Days)
+						nextDate = nextDate.AddDate(0, *st.Months, 0)
 					} else {
 						allDone = true
 					}

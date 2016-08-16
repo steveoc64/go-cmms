@@ -1078,8 +1078,9 @@ func schedEdit(context *router.Context) {
 		{1, "Monthly"},
 		{2, "Yearly"},
 		{3, "Every N Days"},
-		{4, "One Off"},
-		{5, "Job Count"},
+		{4, "Every N Months"},
+		{5, "One Off"},
+		{6, "Job Count"},
 	}
 
 	weeks := []formulate.SelectOption{
@@ -1151,6 +1152,7 @@ func schedEdit(context *router.Context) {
 
 		swapper.AddPanel("year").AddRow(1).AddDate(1, "Day of the Year", "StartDate")
 		swapper.AddPanel("days").AddRow(1).AddNumber(1, "Number of Days", "Days", "1")
+		swapper.AddPanel("months").AddRow(1).AddNumber(1, "Every N Months", "Months", "1")
 		swapper.AddPanel("oneoff").AddRow(1).AddDate(1, "One Off Date", "OneOffDate")
 		swapper.AddPanel("job").AddRow(1).AddNumber(1, "Job Count", "Count", "1")
 
@@ -1285,26 +1287,37 @@ func schedEdit(context *router.Context) {
 			switch targetFreq {
 			case 1:
 				task.Days = nil
+				task.Months = nil
 				task.Count = nil
 				task.StartDate = nil
 				task.OneOffDate = nil
 			case 2:
 				task.Days = nil
+				task.Months = nil
 				task.Count = nil
 				task.Week = nil
 				task.OneOffDate = nil
 			case 3:
 				task.Week = nil
 				task.Count = nil
+				task.Months = nil
 				task.StartDate = nil
 				task.OneOffDate = nil
 			case 4:
 				task.Days = nil
+				task.Week = nil
+				task.Count = nil
+				task.StartDate = nil
+				task.OneOffDate = nil
+			case 5:
+				task.Days = nil
+				task.Months = nil
 				task.Count = nil
 				task.StartDate = nil
 				task.Week = nil
-			case 5:
+			case 6:
 				task.Days = nil
+				task.Months = nil
 				task.Week = nil
 				task.StartDate = nil
 				task.OneOffDate = nil
@@ -1349,8 +1362,10 @@ func schedEdit(context *router.Context) {
 				case 3:
 					swapper.SelectByName("days")
 				case 4:
-					swapper.SelectByName("oneoff")
+					swapper.SelectByName("months")
 				case 5:
+					swapper.SelectByName("oneoff")
+				case 6:
 					swapper.SelectByName("job")
 				}
 			}
@@ -1499,8 +1514,9 @@ func machineSchedAdd(context *router.Context) {
 		{1, "Monthly"},
 		{2, "Yearly"},
 		{3, "Every N Days"},
-		{4, "One Off"},
-		{5, "Job Count"},
+		{4, "Every N Months"},
+		{5, "One Off"},
+		{6, "Job Count"},
 	}
 
 	weeks := []formulate.SelectOption{
@@ -1549,6 +1565,7 @@ func machineSchedAdd(context *router.Context) {
 			AddRadio(1, "Weekday", "WeekDay", weekdays, "ID", "Name", 1)
 		swapper.AddPanel("year").AddRow(1).AddDate(1, "Day of the Year", "StartDate")
 		swapper.AddPanel("days").AddRow(1).AddNumber(1, "Number of Days", "Days", "1")
+		swapper.AddPanel("months").AddRow(1).AddNumber(1, "Every N Months", "Months", "1")
 		swapper.AddPanel("oneoff").AddRow(1).AddDate(1, "One Off Date", "OneOffDate")
 		swapper.AddPanel("job").AddRow(1).AddNumber(1, "Job Count", "Count", "1")
 
@@ -1640,26 +1657,37 @@ func machineSchedAdd(context *router.Context) {
 			switch targetFreq {
 			case 1:
 				task.Days = nil
+				task.Months = nil
 				task.Count = nil
 				task.StartDate = nil
 				task.OneOffDate = nil
 			case 2:
 				task.Days = nil
+				task.Months = nil
 				task.Count = nil
 				task.Week = nil
 				task.OneOffDate = nil
 			case 3:
 				task.Week = nil
+				task.Months = nil
 				task.Count = nil
 				task.StartDate = nil
 				task.OneOffDate = nil
 			case 4:
+				task.Week = nil
 				task.Days = nil
 				task.Count = nil
 				task.StartDate = nil
-				task.Week = nil
+				task.OneOffDate = nil
 			case 5:
 				task.Days = nil
+				task.Months = nil
+				task.Count = nil
+				task.StartDate = nil
+				task.Week = nil
+			case 6:
+				task.Days = nil
+				task.Months = nil
 				task.Week = nil
 				task.StartDate = nil
 				task.OneOffDate = nil
@@ -1698,8 +1726,10 @@ func machineSchedAdd(context *router.Context) {
 				case 3:
 					swapper.SelectByName("days")
 				case 4:
-					swapper.SelectByName("oneoff")
+					swapper.SelectByName("months")
 				case 5:
+					swapper.SelectByName("oneoff")
+				case 6:
 					swapper.SelectByName("job")
 				}
 			}

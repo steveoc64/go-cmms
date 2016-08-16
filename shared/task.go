@@ -19,6 +19,7 @@ type SchedTask struct {
 	Freq          string     `db:"freq"`
 	ParentTask    *int       `db:"parent_task"`
 	Days          *int       `db:"days"`
+	Months        *int       `db:"months"`
 	Count         *int       `db:"count"`
 	Week          *int       `db:"week"`
 	WeekDay       *int       `db:"weekday"`
@@ -50,6 +51,11 @@ func (t *SchedTask) ShowFrequency() string {
 		return fmt.Sprintf("Yearly - %s", t.StartDate.Format("Mon, Jan 2 2006"))
 	case "Every N Days":
 		return fmt.Sprintf("Every %d Days", *t.Days)
+	case "Every N Months":
+		if t.Months == nil {
+			return "Every few Months"
+		}
+		return fmt.Sprintf("Every %d Months", *t.Months)
 	case "One Off":
 		return fmt.Sprintf("Once at - %s", t.OneOffDate.Format("Mon, Jan 2 2006"))
 	case "Job Count":
