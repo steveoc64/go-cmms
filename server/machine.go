@@ -33,6 +33,7 @@ func (m *MachineRPC) Get(data shared.MachineRPCData, machine *shared.Machine) er
 
 	// Read the sites that this user has access to
 	err := DB.SQL(MachineQuery, data.ID).QueryStruct(machine)
+	fmt.Printf("Got machine %v\n", *machine)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -40,7 +41,7 @@ func (m *MachineRPC) Get(data shared.MachineRPCData, machine *shared.Machine) er
 
 	// fetch all components
 	DB.SQL(`select
-		* from component c
+		c.* from component c
 		left join machine_type_tool x on x.id=c.mtt_id
 		where c.machine_id=$1
 		order by x.position,c.zindex,lower(c.name)`, data.ID).
