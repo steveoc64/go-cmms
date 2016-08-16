@@ -362,6 +362,94 @@ func (t *TaskRPC) InsertSched(data shared.SchedTaskRPCData, id *int) error {
 }
 
 func (t *TaskRPC) Update(data shared.TaskRPCData, updatedTask *shared.Task) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+	canAllocate := false
+	DB.SQL(`select can_allocate from users where id=$1`, conn.UserID).QueryScalar(&canAllocate)
+	useRole := conn.UserRole
+	if canAllocate {
+		useRole = "Admin"
+	}
+
+	oldTask := shared.Task{}
+	DB.SQL(`select * from task where id=$1`, data.Task.ID).QueryStruct(&oldTask)
+
+	if useRole == "Admin" {
+
+		// Admin can re-assign the task to another user
+		DB.Update("task").
+			SetWhitelist(data.Task,
+				"log", "assigned_to",
+				"labour_cost", "material_cost", "labour_hrs").
+			Where("id = $1", data.Task.ID).
+			Exec()
+
+	} else {
+		DB.Update("task").
+			SetWhitelist(data.Task,
+				"log",
+				"labour_hrs").
+			Where("id = $1", data.Task.ID).
+			Exec()
+	}
+
+	// If there is a new photo to be added to the task, then add it
+	if data.Task.NewPhoto != "" {
+		// println("Adding new photo", data.Task.NewPhoto)
+		photo := shared.Photo{
+			Photo:    data.Task.NewPhoto,
+			Entity:   "task",
+			EntityID: data.Task.ID,
+		}
+
+		decodePhoto(photo.Photo, &photo.Preview, &photo.Thumb)
+		DB.InsertInto("photo").
+			Columns("entity", "entity_id", "photo", "thumb", "preview").
+			Record(photo).
+			Exec()
+	}
+
+	// If assigned to, then re-calc the labour cost if the hours have changed
+	if oldTask.LabourHrs != data.Task.LabourHrs {
+		if data.Task.AssignedTo != nil {
+			user := shared.User{}
+			DB.SQL(`select hourly_rate
+				from users
+				where id=$1`, *data.Task.AssignedTo).
+				QueryStruct(&user)
+
+			data.Task.LabourCost = user.HourlyRate * data.Task.LabourHrs
+			DB.SQL(`update task 
+				set labour_cost=$2 
+				where id=$1`, data.Task.ID, data.Task.LabourCost).
+				Exec()
+		}
+	}
+
+	if false {
+		// dont want to do this anymore, and the parts are not so tightly coupled to the task now
+
+		for _, v := range data.Task.Parts {
+			// log.Println("part = ", v)
+
+			DB.Update("task_part").
+				SetWhitelist(v, "notes", "qty_used").
+				Where("task_id=$1 and part_id=$2", data.Task.ID, v.PartID).
+				Exec()
+		}
+	}
+
+	logger(start, "Task.Update",
+		fmt.Sprintf("Channel %d, Task %d, User %d %s %s",
+			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%f %f %f %s",
+			data.Task.LabourCost, data.Task.MaterialCost, data.Task.LabourHrs, data.Task.Log),
+		data.Channel, conn.UserID, "task", data.Task.ID, true)
+
+	DB.SQL(`select * from task where id=$1`, data.Task.ID).QueryStruct(updatedTask)
+
+	conn.Broadcast("task", "update", data.Task.ID)
 	return nil
 }
 
