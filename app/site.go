@@ -530,17 +530,20 @@ func _siteMachines(action string, id int) {
 							el.AddEventListener("change", false, func(evt dom.Event) {
 								print("photo has changed")
 								files := el.Files()
-								fileReader := js.Global.Get("FileReader").New()
-								fileReader.Set("onload", func(e *js.Object) {
-									target := e.Get("target")
-									imgData := target.Get("result").String()
-									//print("imgdata =", imgData)
-									imgEl := doc.QuerySelector("[name=PhotoPreview]").(*dom.HTMLImageElement)
-									imgEl.Src = imgData
-									d.Photo = imgData
-									imgEl.Class().Remove("hidden")
-								})
-								fileReader.Call("readAsDataURL", files[0])
+								if len(files) > 0 {
+
+									fileReader := js.Global.Get("FileReader").New()
+									fileReader.Set("onload", func(e *js.Object) {
+										target := e.Get("target")
+										imgData := target.Get("result").String()
+										//print("imgdata =", imgData)
+										imgEl := doc.QuerySelector("[name=PhotoPreview]").(*dom.HTMLImageElement)
+										imgEl.Src = imgData
+										d.Photo = imgData
+										imgEl.Class().Remove("hidden")
+									})
+									fileReader.Call("readAsDataURL", files[0])
+								}
 							})
 						}
 
