@@ -22,8 +22,20 @@
 			</div>
 	    <label for="photo">Upload Photo</label>
 	    <!-- <input id="photo" name="photo" type="file"> -->
-	    <input type="file" name="Photo" multiple="multiple"><p>
-      <img class="photouppreview hidden" name="Photo-Preview">
+            <div class="image-upload">
+              <span>
+              <label for="file-input">
+                <img src="/img/addPhotoIPAD.png">
+              </label>
+              <input id="file-input" type="file" name="Photo" accept="image/*" capture="camera" name="Photo" class="no-print"/><p>
+              </span>
+              <span>
+                <img class="photouppreview hidden no-print" name="Photo-Preview">
+              </span>
+            </div>
+
+	    <!-- <input type="file" name="Photo" multiple="multiple"><p> -->
+      <!-- <img class="photouppreview hidden" name="Photo-Preview"> -->
 		</fieldset>
 	</form>
 	</div>

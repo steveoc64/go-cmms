@@ -503,13 +503,15 @@ func testeditor(context *router.Context) {
 	print("markdown editor test")
 
 	go func() {
-		photo := shared.Photo{}
 
 		BackURL := "/util"
 		form := formulate.EditForm{}
 		form.New("fa-edit", "Test Markdown Editor")
 
 		// Layout the fields
+
+		form.Row(1).
+			AddCustom(1, "Markup Rules", "Markup", "")
 
 		form.Row(1).
 			AddBigTextarea(1, "Notes", "Notes")
@@ -531,11 +533,24 @@ func testeditor(context *router.Context) {
 		})
 
 		// All done, so render the form
-		form.Render("edit-form", "main", &photo)
+		form.Render("edit-form", "main", nil)
 
 		// Add a change event on the big textarea
 		w := dom.GetWindow()
 		doc := w.Document()
+
+		el := doc.QuerySelector("[name=Markup]").(*dom.HTMLDivElement)
+		el.SetInnerHTML(`
+Use the following markup to format the text :
+<ul>
+<li> <b>Bold Text</b>  Wrap the ^Bold Text^ using the ^ symbol.
+<li> <u>Underline Text</u>  Wrap the _Underline Text_ using the _ symbol.
+<li> <span class=redtext>Red Text</span>  Wrap the {Red Text} using the {} symbols.
+<li> Start a line with  -  to create a list
+
+</ul>
+
+`)
 
 		t := doc.QuerySelector("[name=Notes]").(*dom.HTMLTextAreaElement)
 		et := t.Value
