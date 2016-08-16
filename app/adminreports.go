@@ -555,7 +555,7 @@ func testeditor(context *router.Context) {
 <li> <u>Underline Text</u>  Wrap the _Underline Text_ using the _ symbol.
 <li> <i>Italic Text</i>  Wrap the ~Italic Text~ using the ~ symbol.
 <li> <span class=redtext>Red Text</span>  Wrap the {Red Text} using the {} symbols.
-<li> <span class=greentext>Red Text</span>  Wrap the @Green Text@ using the @ symbol.
+<li> <span class=greentext>Green Text</span>  Wrap the @Green Text@ using the @ symbol.
 <li> Start a line with  -  to add to an auto-numbered list
 </ul>
 
