@@ -781,7 +781,7 @@ func showTaskPhotos(task shared.Task) {
 	}
 }
 
-func showSchedPhotos(task shared.Task) {
+func showSchedPhotos(task shared.SchedTask) {
 	// print("populate the photos", task)
 
 	w := dom.GetWindow()
@@ -1242,10 +1242,6 @@ func schedEdit(context *router.Context) {
 				currentComp).
 			AddSelect(1, "Assign To Technician", "UserID", technicians, "ID", "Username", 0, task.UserID)
 
-		form.Row(5).
-			AddPhoto(1, "Add Photo", "NewPhoto").
-			AddCustom(4, "Photos", "Photos", "")
-
 		form.Row(1).
 			AddCustom(1, "Markup Rules", "Markup", "")
 		form.Row(1).
@@ -1258,9 +1254,9 @@ func schedEdit(context *router.Context) {
 			AddDecimal(1, "Material Cost", "MaterialCost", 2, "1").
 			AddNumber(1, "Duration (days)", "DurationDays", "1")
 
-		// Add a DIV that we can attach panels to
-		// form.Row(1).
-		// AddCustom(1, "Parts Required", "PartsPicker", "")
+		form.Row(5).
+			AddPhoto(1, "Add Photo", "NewPhoto").
+			AddCustom(4, "Photos", "Photos", "")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -1644,12 +1640,20 @@ func machineSchedAdd(context *router.Context) {
 			AddSelect(1, "Assign To Technician", "UserID", technicians, "ID", "Username", 0, 0)
 
 		form.Row(1).
-			AddTextarea(1, "Task Description", "Descr")
+			AddCustom(1, "Markup Rules", "Markup", "")
+		form.Row(1).
+			AddBigTextarea(1, "Task Description", "Descr")
+		form.Row(1).
+			AddCustom(1, "Expands to :", "Expand", "")
 
 		form.Row(3).
 			AddDecimal(1, "Labour Cost", "LabourCost", 2, "1").
 			AddDecimal(1, "Material Cost", "MaterialCost", 2, "1").
 			AddNumber(1, "Duration (days)", "DurationDays", "1")
+
+		form.Row(5).
+			AddPhoto(1, "Add Photo", "NewPhoto").
+			AddCustom(4, "Photos", "Photos", "")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -1740,6 +1744,9 @@ func machineSchedAdd(context *router.Context) {
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &task)
+		setMarkupButtons("Descr")
+		setPhotoField("NewPhoto")
+
 		swapper.SelectByName("week")
 
 		// Setup a callback on the freq selector
