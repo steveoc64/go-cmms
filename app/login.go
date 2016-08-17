@@ -94,7 +94,7 @@ func showLoginForm() {
 	ldiv := doc.GetElementByID("loginform").(*dom.HTMLDivElement)
 	ldiv.Style().Set("display", "block")
 	uname := doc.GetElementByID("l-username").(*dom.HTMLInputElement)
-	print("uname value =", uname.Value)
+	// print("uname value =", uname.Value)
 	if uname.Value == "" {
 		uname.Focus()
 	}

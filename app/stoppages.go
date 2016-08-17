@@ -7,8 +7,6 @@ import (
 
 	"itrak-cmms/shared"
 
-	"github.com/gopherjs/gopherjs/js"
-
 	"github.com/go-humble/router"
 	"github.com/steveoc64/formulate"
 	"honnef.co/go/js/dom"
@@ -467,29 +465,7 @@ func stoppageNewTask(context *router.Context) {
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &assign)
-
-		// on load new photo
-		w := dom.GetWindow()
-		doc := w.Document()
-
-		// add a handler on the photo field
-		if el := doc.QuerySelector("[name=NewPhoto]").(*dom.HTMLInputElement); el != nil {
-			el.AddEventListener("change", false, func(evt dom.Event) {
-				files := el.Files()
-				fileReader := js.Global.Get("FileReader").New()
-				fileReader.Set("onload", func(e *js.Object) {
-					target := e.Get("target")
-					imgData := target.Get("result").String()
-					//print("imgdata =", imgData)
-					imgEl := doc.QuerySelector("[name=NewPhotoPreview]").(*dom.HTMLImageElement)
-					imgEl.Src = imgData
-					imgEl.Class().Remove("hidden")
-				})
-				fileReader.Call("readAsDataURL", files[0])
-			})
-
-		}
-
+		setPhotoField("NewPhoto")
 	}()
 
 }

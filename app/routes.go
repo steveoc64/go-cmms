@@ -126,7 +126,7 @@ func enableRoutes(Role string) {
 	doc := w.Document()
 
 	if el := doc.QuerySelector("#show-image"); el != nil {
-		print("Adding click event for photo view")
+		// print("Adding click event for photo view")
 		el.AddEventListener("click", false, func(evt dom.Event) {
 			el.Class().Remove("md-show")
 			// doc.QuerySelector("#show-image").Class().Remove("md-show")
@@ -136,7 +136,7 @@ func enableRoutes(Role string) {
 }
 
 func initRouter() {
-	print("initRouter")
+	// print("initRouter")
 	Session.Subscriptions = make(map[string]MessageFunction)
 	Session.ID = make(map[string]int)
 
@@ -148,7 +148,7 @@ func initRouter() {
 }
 
 func defaultRoute(context *router.Context) {
-	print("default route")
+	print("Nav to Default Route")
 }
 
 func loadRoutes(Role string, Routes []shared.UserRoute) {

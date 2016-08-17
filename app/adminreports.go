@@ -6,7 +6,6 @@ import (
 	"itrak-cmms/shared"
 
 	"github.com/go-humble/router"
-	"github.com/gopherjs/gopherjs/js"
 	"github.com/steveoc64/formulate"
 	"honnef.co/go/js/dom"
 )
@@ -322,7 +321,7 @@ func phototestEdit(context *router.Context) {
 		print(err.Error())
 		return
 	}
-	print("phototest edit", id)
+	// print("phototest edit", id)
 
 	go func() {
 		photo := shared.Photo{}
@@ -377,7 +376,7 @@ func phototestEdit(context *router.Context) {
 
 		form.DeleteEvent(func(evt dom.Event) {
 			evt.PreventDefault()
-			print("delete photo")
+			// print("delete photo")
 			form.Bind(&photo)
 			// print("bind the photo gives", photo)
 			go func() {
@@ -398,7 +397,7 @@ func phototestEdit(context *router.Context) {
 
 		if el := doc.QuerySelector("[name=PreviewPreview]").(*dom.HTMLImageElement); el != nil {
 			el.AddEventListener("click", false, func(evt dom.Event) {
-				print("clicked on the photo")
+				// print("clicked on the photo")
 				evt.PreventDefault()
 
 				showProgress("Loading Photo ...")
@@ -409,7 +408,7 @@ func phototestEdit(context *router.Context) {
 						ID:      id,
 					}, &photo)
 
-					print("got fullsize image")
+					// print("got fullsize image")
 					el.Src = photo.Photo
 					el.Class().Remove("photopreview")
 					el.Class().Add("photofull")
@@ -426,7 +425,7 @@ func phototestEdit(context *router.Context) {
 }
 
 func phototestAdd(context *router.Context) {
-	print("phototest add")
+	// print("phototest add")
 
 	go func() {
 		photo := shared.Photo{}
@@ -474,30 +473,8 @@ func phototestAdd(context *router.Context) {
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &photo)
+		setPhotoField("Photo")
 
-		// add a handler on the photo field
-		w := dom.GetWindow()
-		doc := w.Document()
-		if el := doc.QuerySelector("[name=Photo]").(*dom.HTMLInputElement); el != nil {
-			el.AddEventListener("change", false, func(evt dom.Event) {
-				files := el.Files()
-				fileReader := js.Global.Get("FileReader").New()
-				fileReader.Set("onload", func(e *js.Object) {
-					target := e.Get("target")
-					imgData := target.Get("result").String()
-					imgEl := doc.QuerySelector(`.photouppreview`).(*dom.HTMLImageElement)
-					imgEl.Src = imgData
-					imgEl.SetAttribute("src", imgData)
-					imgEl.Class().Remove("hidden")
-				})
-				fileReader.Set("onerror", func(e *js.Object) {
-					err := e.Get("target").Get("error")
-					print("Error reading file", err)
-				})
-				fileReader.Call("readAsDataURL", files[0])
-			})
-
-		}
 	}()
 
 }

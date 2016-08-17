@@ -445,6 +445,7 @@ func _taskEdit(action string, id int) {
 
 	// All done, so render the form
 	form.Render("edit-form", "main", &task)
+	setPhotoField("NewPhoto")
 	showPartsButtons(id)
 	showTaskPhotos(task)
 
@@ -454,24 +455,6 @@ func _taskEdit(action string, id int) {
 
 	w := dom.GetWindow()
 	doc := w.Document()
-
-	// add a handler on the photo field
-	if el := doc.QuerySelector("[name=NewPhoto]").(*dom.HTMLInputElement); el != nil {
-		el.AddEventListener("change", false, func(evt dom.Event) {
-			files := el.Files()
-			fileReader := js.Global.Get("FileReader").New()
-			fileReader.Set("onload", func(e *js.Object) {
-				target := e.Get("target")
-				imgData := target.Get("result").String()
-				//print("imgdata =", imgData)
-				imgEl := doc.QuerySelector("[name=NewPhotoPreview]").(*dom.HTMLImageElement)
-				imgEl.Src = imgData
-				imgEl.Class().Remove("hidden")
-			})
-			fileReader.Call("readAsDataURL", files[0])
-		})
-
-	}
 
 	// on change of the labour hrs, update the all done flag
 	if useRole == "Admin" || task.CompletedDate == nil {
@@ -780,7 +763,7 @@ func showTaskPhotos(task shared.Task) {
 		i.AddEventListener("click", false, func(evt dom.Event) {
 			evt.PreventDefault()
 			theID, _ := strconv.Atoi(evt.Target().GetAttribute("photo-id"))
-			print("clicksed on photo ", theID)
+			// print("clicksed on photo ", theID)
 			go func() {
 				myPhoto := shared.Photo{}
 				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
