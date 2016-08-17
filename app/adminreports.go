@@ -1,10 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
-	"strings"
-	"time"
 
 	"itrak-cmms/shared"
 
@@ -144,7 +141,11 @@ func _hashtagEdit(action string, id int) {
 		AddInput(1, "Hashtag Name (without the # symbol)", "Name")
 
 	form.Row(1).
-		AddTextarea(1, "Expand to", "Descr")
+		AddCustom(1, "Markup Rules", "Markup", "")
+	form.Row(1).
+		AddBigTextarea(1, "Expand to", "Descr")
+	form.Row(1).
+		AddCustom(1, "Expands to :", "Expand", "")
 
 	// Add event handlers
 	form.CancelEvent(func(evt dom.Event) {
@@ -180,6 +181,7 @@ func _hashtagEdit(action string, id int) {
 
 	// All done, so render the form
 	form.Render("edit-form", "main", &hashtag)
+	setMarkupButtons("Descr")
 
 	// Add an action grid
 	form.ActionGrid("hash-action", "#action-grid", hashtag.ID, func(url string) {
@@ -519,9 +521,6 @@ func testeditor(context *router.Context) {
 		form.Row(1).
 			AddCustom(1, "Expands to :", "Expand", "")
 
-		clock := time.NewTimer(3 * time.Second)
-		defer clock.Stop()
-
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()
@@ -535,245 +534,9 @@ func testeditor(context *router.Context) {
 		// All done, so render the form
 		form.Render("edit-form", "main", nil)
 
-		// Add a change event on the big textarea
-		w := dom.GetWindow()
-		doc := w.Document()
-
-		el := doc.QuerySelector("[name=Markup]").(*dom.HTMLDivElement)
-		el.SetInnerHTML(`
-<input type=button class=button-primary name=helpbtn value=Help>
-<div name=helptext class=hidden>
-
-<h3>! Small Heading</h3>
-<h2>!! Medium Heading</h2>
-<h1>!!! Large Heading</h1>
-
-<ul>
-<li> <hr> Use 3 or more dashes (---) in a row to create a line break like the one above
-<li> <b>Bold Text</b>  Wrap the ^Bold Text^ using the ^ symbol.
-<li> <u>Underline Text</u>  Wrap the _Underline Text_ using the _ symbol.
-<li> <i>Italic Text</i>  Wrap the ~Italic Text~ using the ~ symbol.
-<li> <span class=redtext>Red Text</span>  Wrap the {Red Text} using the {} symbols.
-<li> <span class=greentext>Green Text</span>  Wrap the @Green Text@ using the @ symbol.
-<li> Start a line with  -  to add to an auto-numbered list
-</ul>
-
-<input type=checkbox id=testbox>
-<label for=testbox class=label-inline>
-[Enter a paragraph of text inside square brackets to associate a checkbox with the whole paragraph]
-</label>
-</div>
-`)
-		doc.QuerySelector("[name=helptext]").AddEventListener("click", false, func(evt dom.Event) {
-			doc.QuerySelector("[name=helptext]").Class().Add("hidden")
-			doc.QuerySelector("[name=helpbtn]").Class().Remove("hidden")
-		})
-
-		doc.QuerySelector("[name=helpbtn").AddEventListener("click", false, func(evt dom.Event) {
-			evt.Target().Class().Add("hidden")
-			doc.QuerySelector("[name=helptext]").Class().Remove("hidden")
-		})
-
-		exp := doc.QuerySelector("[name=Expand]").(*dom.HTMLDivElement)
-		exp.SetInnerHTML(`
-<input type=button class=button-primary name=expandbtn value=Expand>
-<div name=expanded-text>
-</div>
-`)
-
-		doc.QuerySelector("[name=expandbtn").AddEventListener("click", false, func(evt dom.Event) {
-			el := doc.QuerySelector("[name=expanded-text]").(*dom.HTMLDivElement)
-			el.SetInnerHTML("... expand here")
-			notes := doc.QuerySelector("[name=Notes]").(*dom.HTMLTextAreaElement)
-			renderMarkdown(el, notes.Value)
-		})
-
+		setMarkupButtons("Notes")
 	}()
 
-}
-
-func renderMarkdown(el *dom.HTMLDivElement, text string) {
-
-	w := dom.GetWindow()
-	doc := w.Document()
-
-	el.SetInnerHTML("")
-
-	// split the input into lines
-
-	lines := strings.Split(text, "\n")
-	print("lines =", lines)
-
-	para := ""
-	for k, v := range lines {
-		l := strings.TrimRight(v, " ")
-		l = strings.Replace(l, "<", "&lt;", -1)
-		l = strings.Replace(l, ">", "&gt;", -1)
-		print("Line", k+1, ":", l)
-
-		// if blank, then complete the paragraph
-		if l == "" && len(para) > 0 {
-			div := doc.CreateElement("div").(*dom.HTMLDivElement)
-			div.SetInnerHTML(parsePara(para, true))
-			el.AppendChild(div)
-			para = ""
-		} else {
-			// append this to the existing paragraph.
-			if len(para) > 0 {
-				para += "\n"
-			}
-			para += l
-		}
-	}
-	if len(para) > 0 {
-		div := doc.CreateElement("div").(*dom.HTMLDivElement)
-		div.SetInnerHTML(parsePara(para, true))
-		el.AppendChild(div)
-	}
-
-}
-
-// Parse a paragraph
-func parsePara(para string, addbr bool) string {
-
-	print("parsing", para)
-	retval := ""
-	listmode := false
-
-	for _, line := range strings.Split(para, "\n") {
-
-		// Indentation
-		if strings.HasPrefix(line, " ") {
-			println("add space")
-			retval += "&nbsp;"
-			retval += parsePara(line[1:], false)
-			continue
-		}
-
-		// Add horizontal line
-		if strings.HasPrefix(line, "---") {
-			retval += "<hr>\n"
-			continue
-		}
-
-		// Generate ordered list
-		if strings.HasPrefix(line, "-") {
-			if !listmode {
-				listmode = true
-				retval += "<ol>\n"
-			}
-			retval += fmt.Sprintf("<li>%s\n", parsePara(line[1:], false))
-			continue
-		}
-
-		// Big Header
-		if strings.HasPrefix(line, "!!!") {
-			retval += fmt.Sprintf("<h1>%s</h1>\n", line[3:])
-			continue
-		}
-
-		// Medium Header
-		if strings.HasPrefix(line, "!!") {
-			retval += fmt.Sprintf("<h2>%s</h2>\n", line[2:])
-			continue
-		}
-
-		// Small Header
-		if strings.HasPrefix(line, "!") {
-			retval += fmt.Sprintf("<h3>%s</h3>\n", line[1:])
-			continue
-		}
-
-		// Bold Text
-		if x := strings.Index(line, "^"); x > -1 {
-			println("x = ", x)
-			if x2 := strings.Index(line[x+1:], "^"); x2 > -1 {
-				x2 += x + 1
-				println("x2 = ", x2)
-				embolden := fmt.Sprintf("%s<b>%s</b>%s", line[:x], line[x+1:x2], line[x2+1:])
-				retval += parsePara(embolden, addbr)
-				continue
-			}
-		}
-
-		// Underscore Text
-		if x := strings.Index(line, "_"); x > -1 {
-			println("x = ", x)
-			if x2 := strings.Index(line[x+1:], "_"); x2 > -1 {
-				x2 += x + 1
-				println("x2 = ", x2)
-				embolden := fmt.Sprintf("%s<u>%s</u>%s", line[:x], line[x+1:x2], line[x2+1:])
-				retval += parsePara(embolden, addbr)
-				continue
-			}
-		}
-
-		// Italic Text
-		if x := strings.Index(line, "~"); x > -1 {
-			println("x = ", x)
-			if x2 := strings.Index(line[x+1:], "~"); x2 > -1 {
-				x2 += x + 1
-				println("x2 = ", x2)
-				embolden := fmt.Sprintf("%s<i>%s</i>%s", line[:x], line[x+1:x2], line[x2+1:])
-				retval += parsePara(embolden, addbr)
-				continue
-			}
-		}
-
-		// RED Text
-		if x := strings.Index(line, "{"); x > -1 {
-			println("x = ", x)
-			if x2 := strings.Index(line[x+1:], "}"); x2 > -1 {
-				x2 += x + 1
-				println("x2 = ", x2)
-				embolden := fmt.Sprintf("%s<span class=redtext>%s</span>%s", line[:x], line[x+1:x2], line[x2+1:])
-				retval += parsePara(embolden, addbr)
-				continue
-			}
-		}
-
-		// Green Text
-		if x := strings.Index(line, "@"); x > -1 {
-			println("x = ", x)
-			if x2 := strings.Index(line[x+1:], "@"); x2 > -1 {
-				x2 += x + 1
-				println("x2 = ", x2)
-				embolden := fmt.Sprintf("%s<span class=greentext>%s</span>%s", line[:x], line[x+1:x2], line[x2+1:])
-				retval += parsePara(embolden, addbr)
-				continue
-			}
-		}
-
-		// Checkbox
-		if x := strings.Index(line, "["); x > -1 {
-			println("x = ", x)
-			if x2 := strings.Index(line[x+1:], "]"); x2 > -1 {
-				x2 += x + 1
-				println("x2 = ", x2)
-				embolden := ""
-				if addbr {
-					embolden = fmt.Sprintf("%s\n<br><input type=checkbox><label class=label-inline>%s</label>\n<br>%s\n",
-						line[:x], line[x+1:x2], line[x2+1:])
-				} else {
-					embolden = fmt.Sprintf("%s <input type=checkbox><label class=label-inline>%s</label> %s\n",
-						line[:x], line[x+1:x2], line[x2+1:])
-				}
-				retval += parsePara(embolden, addbr)
-				continue
-			}
-		}
-
-		// Cleanup and exit
-		if listmode {
-			retval += "</ol>\n"
-		}
-		retval += line
-		if addbr {
-			retval += "<br>"
-		}
-	}
-
-	return retval
 }
 
 func showProgress(txt string) {

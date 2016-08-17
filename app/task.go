@@ -1222,7 +1222,11 @@ func schedEdit(context *router.Context) {
 			AddSelect(1, "Assign To Technician", "UserID", technicians, "ID", "Username", 0, task.UserID)
 
 		form.Row(1).
-			AddTextarea(1, "Task Description", "Descr")
+			AddCustom(1, "Markup Rules", "Markup", "")
+		form.Row(1).
+			AddBigTextarea(1, "Task Description", "Descr")
+		form.Row(1).
+			AddCustom(1, "Expands to :", "Expand", "")
 
 		form.Row(3).
 			AddDecimal(1, "Labour Cost", "LabourCost", 2, "1").
@@ -1337,6 +1341,11 @@ func schedEdit(context *router.Context) {
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &task)
+		setMarkupButtons("Descr")
+
+		// Setup a callback on the freq selector
+		w := dom.GetWindow()
+		doc := w.Document()
 
 		// and set the swap panel to match the data
 		for i, f := range freqs {
@@ -1345,10 +1354,6 @@ func schedEdit(context *router.Context) {
 				break
 			}
 		}
-
-		// Setup a callback on the freq selector
-		w := dom.GetWindow()
-		doc := w.Document()
 
 		doc.QuerySelector("[name=radio-Freq]").AddEventListener("click", false, func(evt dom.Event) {
 			clickedOn := evt.Target()
