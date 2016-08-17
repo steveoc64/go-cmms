@@ -137,9 +137,9 @@ func parsePara(para string, addbr bool) string {
 		}
 
 		// RED Text
-		if x := strings.Index(line, "{"); x > -1 {
+		if x := strings.Index(line, "@"); x > -1 {
 			// println("x = ", x)
-			if x2 := strings.Index(line[x+1:], "}"); x2 > -1 {
+			if x2 := strings.Index(line[x+1:], "@"); x2 > -1 {
 				x2 += x + 1
 				// println("x2 = ", x2)
 				embolden := fmt.Sprintf("%s<span class=redtext>%s</span>%s", line[:x], line[x+1:x2], line[x2+1:])
@@ -149,9 +149,9 @@ func parsePara(para string, addbr bool) string {
 		}
 
 		// Green Text
-		if x := strings.Index(line, "@"); x > -1 {
+		if x := strings.Index(line, "{"); x > -1 {
 			// println("x = ", x)
-			if x2 := strings.Index(line[x+1:], "@"); x2 > -1 {
+			if x2 := strings.Index(line[x+1:], "}"); x2 > -1 {
 				x2 += x + 1
 				// println("x2 = ", x2)
 				embolden := fmt.Sprintf("%s<span class=greentext>%s</span>%s", line[:x], line[x+1:x2], line[x2+1:])
@@ -259,8 +259,8 @@ const MarkupHelp string = `
 <li> <b>Bold Text</b>  Wrap the ^Bold Text^ using the ^ symbol.
 <li> <u>Underline Text</u>  Wrap the _Underline Text_ using the _ symbol.
 <li> <i>Italic Text</i>  Wrap the ~Italic Text~ using the ~ symbol.
-<li> <span class=redtext>Red Text</span>  Wrap the {Red Text} using the {} symbols.
-<li> <span class=greentext>Green Text</span>  Wrap the @Green Text@ using the @ symbol.
+<li> <span class=redtext>Red Text</span>  Wrap the @Red Text@ using the @ symbol.
+<li> <span class=greentext>Green Text</span>  Wrap the {Green Text} using the {} symbols.
 <li> Start a line with  -  to add to an auto-numbered list
 </ul>
 
