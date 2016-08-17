@@ -32,6 +32,8 @@ type SchedTask struct {
 	LastGenerated *time.Time `db:"last_generated"`
 	Paused        bool       `db:"paused"`
 	PartsRequired []PartReq  `db:"parts_required"`
+	Photos        []Photo    `db:"photos"`
+	NewPhoto      string     `db:"new_photo"`
 }
 
 type SchedTaskRPCData struct {

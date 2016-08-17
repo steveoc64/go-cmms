@@ -781,6 +781,44 @@ func showTaskPhotos(task shared.Task) {
 	}
 }
 
+func showSchedPhotos(task shared.Task) {
+	// print("populate the photos", task)
+
+	w := dom.GetWindow()
+	doc := w.Document()
+	div := doc.QuerySelector("[name=Photos]")
+	div.SetInnerHTML("")
+
+	for _, v := range task.Photos {
+		// print(k, ":", v)
+		// Create an image widget, and add it to the photos block
+		i := doc.CreateElement("img").(*dom.HTMLImageElement)
+		i.SetAttribute("photo-id", fmt.Sprintf("%d", v.ID))
+		i.Class().SetString("photopreview")
+		i.Src = v.Preview
+		div.AppendChild(i)
+
+		i.AddEventListener("click", false, func(evt dom.Event) {
+			evt.PreventDefault()
+			theID, _ := strconv.Atoi(evt.Target().GetAttribute("photo-id"))
+			// print("clicksed on photo ", theID)
+			go func() {
+				myPhoto := shared.Photo{}
+				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
+					Channel: Session.Channel,
+					ID:      theID,
+				}, &myPhoto)
+				if myPhoto.Photo != "" {
+					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
+						doc.QuerySelector("#show-image").Class().Add("md-show")
+						el2.Src = myPhoto.Photo
+					}
+				}
+			}()
+		})
+	}
+}
+
 func showPartsButtons(id int) {
 	print("populate the parts buttons")
 	w := dom.GetWindow()
@@ -1204,6 +1242,10 @@ func schedEdit(context *router.Context) {
 				currentComp).
 			AddSelect(1, "Assign To Technician", "UserID", technicians, "ID", "Username", 0, task.UserID)
 
+		form.Row(5).
+			AddPhoto(1, "Add Photo", "NewPhoto").
+			AddCustom(4, "Photos", "Photos", "")
+
 		form.Row(1).
 			AddCustom(1, "Markup Rules", "Markup", "")
 		form.Row(1).
@@ -1325,6 +1367,8 @@ func schedEdit(context *router.Context) {
 		// All done, so render the form
 		form.Render("edit-form", "main", &task)
 		setMarkupButtons("Descr")
+		setPhotoField("NewPhoto")
+		showSchedPhotos(task)
 
 		// Setup a callback on the freq selector
 		w := dom.GetWindow()
