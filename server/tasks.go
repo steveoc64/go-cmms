@@ -1254,6 +1254,23 @@ func (t *TaskRPC) HashtagList(channel int, hashtags *[]shared.Hashtag) error {
 	return nil
 }
 
+// Get a list of hashtags - longest first, to enable recursive processing of expansions
+func (t *TaskRPC) HashtagListByLen(channel int, hashtags *[]shared.Hashtag) error {
+	start := time.Now()
+
+	conn := Connections.Get(channel)
+
+	DB.SQL(`select * from hashtag order by length(name) desc`).QueryStructs(hashtags)
+
+	logger(start, "Task.HashtagListByLen",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d Hashtags", len(*hashtags)),
+		channel, conn.UserID, "hashtag", 0, false)
+
+	return nil
+}
+
 func (t *TaskRPC) HashtagGet(data shared.HashtagRPCData, hashtag *shared.Hashtag) error {
 	start := time.Now()
 

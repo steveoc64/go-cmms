@@ -195,7 +195,7 @@ func parsePara(para string, addbr bool) string {
 func expandHashtags(s string) string {
 
 	hashes := []shared.Hashtag{}
-	rpcClient.Call("TaskRPC.HashtagList", Session.Channel, &hashes)
+	rpcClient.Call("TaskRPC.HashtagListByLen", Session.Channel, &hashes)
 	// print("hashes", hashes)
 	if strings.Contains(s, "#") {
 		// Keep looping through doing text conversions until there is
