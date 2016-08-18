@@ -99,6 +99,8 @@ func main() {
 	if Config.Debug {
 		log.Printf("... Starting Web Server on port %d", Config.WebPort)
 	}
+
+	cachePDFImage()
 	std := standard.New(fmt.Sprintf(":%d", Config.WebPort))
 	e.Run(std)
 

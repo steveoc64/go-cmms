@@ -8,6 +8,8 @@ import (
 	"honnef.co/go/js/dom"
 )
 
+var currentChekbox int
+
 func renderMarkup(el *dom.HTMLDivElement, text string) {
 
 	w := dom.GetWindow()
@@ -20,6 +22,7 @@ func renderMarkup(el *dom.HTMLDivElement, text string) {
 	lines := strings.Split(text, "\n")
 	// print("lines =", lines)
 
+	currentChekbox = 1
 	para := ""
 	for _, v := range lines {
 		l := strings.TrimRight(v, " ")
@@ -168,11 +171,11 @@ func parsePara(para string, addbr bool) string {
 				// println("x2 = ", x2)
 				embolden := ""
 				if addbr {
-					embolden = fmt.Sprintf("%s\n<br><input type=checkbox><label class=label-inline>%s</label>\n<br>%s\n",
-						line[:x], line[x+1:x2], line[x2+1:])
+					embolden = fmt.Sprintf("%s\n<br><input type=checkbox id=taskchek-%d key=%d><label class=label-inline>%s</label>\n<br>%s\n",
+						line[:x], currentChekbox, currentChekbox, line[x+1:x2], line[x2+1:])
 				} else {
-					embolden = fmt.Sprintf("%s <input type=checkbox><label class=label-inline>%s</label> %s\n",
-						line[:x], line[x+1:x2], line[x2+1:])
+					embolden = fmt.Sprintf("%s <input type=checkbox id=taskchek-%d key=%d><label class=label-inline>%s</label> %s\n",
+						line[:x], currentChekbox, currentChekbox, line[x+1:x2], line[x2+1:])
 				}
 				retval += parsePara(embolden, addbr)
 				continue

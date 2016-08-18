@@ -528,11 +528,33 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 		}
 	}
 
+	// get a set of hashtags for easy processing
+	hashes := []shared.Hashtag{}
+	DB.SQL(`select * from hashtag order by length(name) desc`).QueryStructs(&hashes)
+
 	for i, v := range *tasks {
 
+		// convert the description into a listable description
+
+		// First, expand out the hashtags
+		l := v.Descr
+		if false && strings.Contains(l, "#") {
+			stillLooking := true
+			for stillLooking {
+				stillLooking = false
+				for _, h := range hashes {
+					theHash := "#" + h.Name
+					if strings.Contains(l, theHash) {
+						l = strings.Replace(l, theHash, h.Descr, -1)
+						stillLooking = true
+					}
+				}
+			}
+		}
+
 		// trim the description
-		if len(v.Descr) > 80 {
-			(*tasks)[i].Descr = fmt.Sprintf("%s ...", v.Descr[:80])
+		if len(l) > 80 {
+			(*tasks)[i].Descr = fmt.Sprintf("%s ...", l[:80])
 		}
 
 		// Get the latest thumbnails for this task, if present
@@ -545,6 +567,7 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			QueryStructs(&photos)
 		(*tasks)[i].Photos = photos
 	}
+
 	// // Read the sites that this user has access to
 	// err := DB.SQL(`select
 	// 	t.*,m.name as machine_name,s.name as site_name,u.username as username
@@ -1113,6 +1136,112 @@ type machineLookup struct {
 }
 
 func genTask(st shared.SchedTask, task *shared.Task, startDate time.Time, dueDate time.Time) error {
+
+	userIDs := machineLookup{}
+	DB.SQL(`select 
+		m.tasks_to as machine_user,s.tasks_to as site_user
+		from machine m 
+		left join site s on s.id=m.site_id
+		where m.id=$1`, st.MachineID).
+		QueryStruct(&userIDs)
+
+	userID := userIDs.SiteUser
+	if userIDs.MachineUser != 0 {
+		userID = userIDs.MachineUser
+	}
+
+	if st.UserID != 0 {
+		userID = st.UserID
+	}
+
+	escDate := startDate.AddDate(0, 1, 0)
+
+	task.MachineID = st.MachineID
+	task.SchedID = st.ID
+	task.CompType = st.CompType
+	task.ToolID = st.ToolID
+	task.Component = st.Component
+	task.Descr = st.Descr
+	task.StartDate = &startDate
+	task.DueDate = &dueDate
+	task.EscalateDate = &escDate
+	task.AssignedTo = &userID
+	task.AssignedDate = &startDate
+	task.LabourEst = st.LabourCost
+	task.MaterialEst = st.MaterialCost
+
+	// expand out the hashtags of the SM before we do anything else
+
+	hashes := []shared.Hashtag{}
+	DB.SQL(`select * from hashtag order by length(name) desc`).QueryStructs(&hashes)
+
+	// print("hashes", hashes)
+	desc := task.Descr
+	if strings.Contains(desc, "#") {
+		// Keep looping through doing text conversions until there is
+		// nothing left to expand
+		stillLooking := true
+		for stillLooking {
+			stillLooking = false
+			for _, v := range hashes {
+				theHash := "#" + v.Name
+				if strings.Contains(desc, theHash) {
+					desc = strings.Replace(desc, theHash, v.Descr, -1)
+					stillLooking = true
+				}
+			}
+		}
+	} // contains hashes
+
+	println("HashExpand", task.Descr, "to", desc)
+	task.Descr = desc
+
+	DB.InsertInto("task").
+		Whitelist("machine_id", "sched_id", "comp_type", "tool_id", "component",
+			"descr", "startdate", "due_date", "escalate_date",
+			"assigned_to", "assigned_date", "labour_est", "material_est").
+		Record(task).
+		Returning("id").
+		QueryScalar(&task.ID)
+
+	DB.SQL(`update sched_task set last_generated=$2 where id=$1`, st.ID, startDate).Exec()
+	lines := strings.Split(desc, "\n")
+	println("lines =", lines)
+
+	chekbox := 1
+	for _, line := range lines {
+
+		// Does this line have a checkbox ?
+		if x := strings.Index(line, "["); x > -1 {
+			// println("x = ", x)
+			if x2 := strings.Index(line[x+1:], "]"); x2 > -1 {
+				x2 += x + 1
+				println("We have a chekbox number", chekbox, "defined between ", x, "to", x2)
+
+				check := shared.TaskCheck{
+					TaskID: task.ID,
+					Seq:    chekbox,
+					Descr:  line[x+1 : x2],
+					Done:   false,
+				}
+
+				DB.InsertInto("task_check").
+					Whitelist("task_id", "seq", "descr", "done").
+					Record(check).
+					Exec()
+
+				fmt.Printf("Added task %v\n", check)
+
+				chekbox++
+				continue
+			}
+		}
+	}
+
+	return nil
+}
+
+func genTaskOld(st shared.SchedTask, task *shared.Task, startDate time.Time, dueDate time.Time) error {
 
 	// log.Printf("»»» Generating Task from Sched %d Freq %s for date %s", st.ID, st.Freq, startDate.Format(rfc3339DateLayout))
 

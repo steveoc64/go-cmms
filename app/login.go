@@ -36,6 +36,7 @@ func Login(username string, passwd string, rem bool) {
 		Session.CanAllocate = lr.CanAllocate
 		// print("login =", Session)
 		hideLoginForm()
+		GetPDFImage() // cache the PDF thumbnail
 	} else {
 		print("login failed")
 		dom.GetWindow().Alert("Login Failed")
