@@ -514,6 +514,7 @@ func _siteMachines(action string, id int) {
 							evt.PreventDefault()
 							d.Channel = Session.Channel
 							d.Descr = doc.QuerySelector("#evtdesc").(*dom.HTMLTextAreaElement).Value
+							d.Photo = doc.QuerySelector("[name=PhotoPreview]").(*dom.HTMLImageElement).GetAttribute("src")
 							go func() {
 								newID := 0
 								rpcClient.Call("EventRPC.Raise", d, &newID)
@@ -524,7 +525,7 @@ func _siteMachines(action string, id int) {
 						})
 
 						// add a handler on the photo field
-						setPhotoField("Photo")
+						setPhotoOnlyField("Photo")
 
 					} else {
 

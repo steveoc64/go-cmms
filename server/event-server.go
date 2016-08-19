@@ -49,27 +49,16 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 
 	// Process the photo if present
 	if issue.Photo != "" {
-
-		decodePhoto(issue.Photo, &evt.PhotoPreview, &evt.PhotoThumbnail)
-		// theImage := issue.Photo[23:]
-		// reader := base64.NewDecoder(base64.StdEncoding, strings.NewReader(theImage))
-		// m, _, err := image.Decode(reader)
-		// if err != nil {
-		// 	println("Decode Error", err.Error())
-		// } else {
-		// 	// create the thumbnail and a preview
-		// 	var tb bytes.Buffer
-		// 	thumb := resize.Resize(64, 0, m, resize.Lanczos3)
-		// 	encoder := base64.NewEncoder(base64.StdEncoding, &tb)
-		// 	jpeg.Encode(encoder, thumb, &jpeg.Options{Quality: 95})
-		// 	evt.PhotoThumbnail = "data:image/jpeg;base64," + tb.String()
-
-		// 	var pb bytes.Buffer
-		// 	preview := resize.Resize(240, 0, m, resize.Lanczos3)
-		// 	encoder = base64.NewEncoder(base64.StdEncoding, &pb)
-		// 	jpeg.Encode(encoder, preview, &jpeg.Options{Quality: 95})
-		// 	evt.PhotoPreview = "data:image/jpeg;base64," + pb.String()
-		// }
+		photo := shared.Photo{
+			Photo:    issue.Photo,
+			Entity:   "event",
+			EntityID: *id,
+		}
+		decodePhoto(issue.Photo, &photo.Preview, &photo.Thumb)
+		DB.InsertInto("photo").
+			Columns("entity", "entity_id", "photo", "thumb", "preview").
+			Record(photo).
+			Exec()
 	}
 	conn.Broadcast("event", "insert", *id)
 

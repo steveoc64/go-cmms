@@ -273,6 +273,7 @@ func _stoppageEdit(action string, id int) {
 			evt.PreventDefault()
 
 			go func() {
+				showProgress("Loading Photo ...")
 				photo := shared.Photo{}
 				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
 					Channel: Session.Channel,
@@ -282,6 +283,7 @@ func _stoppageEdit(action string, id int) {
 				photoPreview.Src = photo.Photo
 				photoPreview.Class().Remove("photopreview")
 				photoPreview.Class().Add("photofull")
+				hideProgress()
 			}()
 
 		})

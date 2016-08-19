@@ -25,15 +25,25 @@ func GetPDFImage() {
 	}()
 }
 
+func setPhotoOnlyField(f string) {
+	setPhotoUploadField(f, false)
+}
+
 func setPhotoField(f string) {
+	setPhotoUploadField(f, true)
+}
+
+func setPhotoUploadField(f string, allowPDF bool) {
 
 	w := dom.GetWindow()
 	doc := w.Document()
 
 	// add a handler on the photo field
 	if el := doc.QuerySelector(fmt.Sprintf("[name=%s", f)).(*dom.HTMLInputElement); el != nil {
+
+		// Set the attribute to say what types of data the field can accept
 		el.AddEventListener("change", false, func(evt dom.Event) {
-			print("change")
+			print("in the change event and allowPDF = ", allowPDF)
 			files := el.Files()
 			fileReader := js.Global.Get("FileReader").New()
 			fileReader.Set("onload", func(e *js.Object) {
@@ -46,10 +56,15 @@ func setPhotoField(f string) {
 				switch flds[0] {
 				case "data:application/pdf":
 					// if is pdf, then load the standard preview into the field
-					imgEl.Src = PDFImage
-					imgEl.Class().Remove("hidden")
-					PDFData = imgData
-					isPDF = true
+					if allowPDF {
+
+						imgEl.Src = PDFImage
+						imgEl.Class().Remove("hidden")
+						PDFData = imgData
+						isPDF = true
+					} else {
+						w.Alert("ERROR: This screen only allows photos, not PDF files.")
+					}
 				case "data:image/jpeg", "data:image/png":
 					// if is image, then load the image into the preview
 					imgEl.Src = imgData
@@ -202,7 +217,7 @@ func phototestEdit(context *router.Context) {
 				// print("clicked on the photo")
 				evt.PreventDefault()
 
-				showProgress("Loading Photo ...")
+				showProgress("Loading File ...")
 
 				go func() {
 					rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
@@ -264,7 +279,7 @@ func phototestAdd(context *router.Context) {
 
 		form.SaveEvent(func(evt dom.Event) {
 
-			showProgress("Uploading Photo ...")
+			showProgress("Uploading File ...")
 
 			evt.PreventDefault()
 			form.Bind(&photo)
