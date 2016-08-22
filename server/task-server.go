@@ -59,6 +59,18 @@ func (t *TaskRPC) ListSiteSched(data shared.TaskRPCData, tasks *[]shared.SchedTa
 		log.Println(err.Error())
 	}
 
+	// Get the latest thumbnails for this task, if present
+	for i, v := range *tasks {
+
+		photos := []shared.Photo{}
+		DB.SQL(`select id,thumb 
+			from photo 
+			where (entity='sched' and entity_id=$1) 
+			order by id desc limit 8`, v.ID).
+			QueryStructs(&photos)
+		(*tasks)[i].Photos = photos
+	}
+
 	logger(start, "Task.ListSiteSched",
 		fmt.Sprintf("Data %d", data.ID),
 		fmt.Sprintf("%d tasks", len(*tasks)),
@@ -141,6 +153,16 @@ func (t *TaskRPC) GetSched(data shared.TaskRPCData, task *shared.SchedTask) erro
 		}
 	}
 
+	// Get the last 8 photo previews for this task
+	photos := []shared.Photo{}
+	DB.SQL(`select id,preview
+	 from photo
+	 where (entity='sched' and entity_id=$1) 
+	 order by id desc limit 8`, data.ID).
+		QueryStructs(&photos)
+
+	task.Photos = photos
+
 	logger(start, "Task.GetSched",
 		fmt.Sprintf("Sched %d", data.ID),
 		fmt.Sprintf("%s %s", task.Freq, task.Descr),
@@ -188,6 +210,22 @@ func (t *TaskRPC) UpdateSched(data shared.SchedTaskRPCData, ok *bool) error {
 			"labour_cost", "material_cost", "duration_days").
 		Where("id = $1", data.SchedTask.ID).
 		Exec()
+
+	// If there is a new photo to be added to the task, then add it
+	if data.SchedTask.NewPhoto != "" {
+		// println("Adding new photo", data.Task.NewPhoto)
+		photo := shared.Photo{
+			Photo:    data.SchedTask.NewPhoto,
+			Entity:   "sched",
+			EntityID: data.SchedTask.ID,
+		}
+
+		decodePhoto(photo.Photo, &photo.Preview, &photo.Thumb)
+		DB.InsertInto("photo").
+			Columns("entity", "entity_id", "photo", "thumb", "preview").
+			Record(photo).
+			Exec()
+	}
 
 	logger(start, "Task.UpdateSched",
 		fmt.Sprintf("Channel %d, Sched %d, User %d %s %s",
