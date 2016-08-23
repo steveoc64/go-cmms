@@ -54,7 +54,8 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 			Entity:   "event",
 			EntityID: *id,
 		}
-		decodePhoto(issue.Photo, &photo.Preview, &photo.Thumb)
+		// decodePhoto(issue.Photo, &photo.Preview, &photo.Thumb, &photo.Type, &photo.Datatype)
+		decodePhoto(&photo)
 		DB.InsertInto("photo").
 			Columns("entity", "entity_id", "photo", "thumb", "preview").
 			Record(photo).
@@ -532,10 +533,12 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 	if data.NewPhoto.Data != "" {
 		photo := shared.Photo{
 			Data:     data.NewPhoto.Data,
+			Filename: data.NewPhoto.Filename,
 			Entity:   "task",
 			EntityID: task.ID,
 		}
-		decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
+		// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb, &photo.Type, &photo.Datatype)
+		decodePhoto(&photo)
 		DB.InsertInto("photo").
 			Columns("entity", "entity_id", "photo", "thumb", "preview").
 			Record(photo).

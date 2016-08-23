@@ -5,8 +5,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"image"
-	_ "image/gif"
-	"image/jpeg"
+	"image/gif"
+	_ "image/jpeg"
 	_ "image/png"
 	"strings"
 	"time"
@@ -16,25 +16,29 @@ import (
 	"github.com/nfnt/resize"
 )
 
-func decodePhoto(photo string, preview *string, thumbnail *string) error {
+//func decodePhoto(photo string, preview *string, thumbnail *string, thetype *string, datatype *string) error {
+func decodePhoto(photo *shared.Photo) error {
 
-	if photo == "" || len(photo) < 22 {
+	if photo.Data == "" || len(photo.Data) < 22 {
 		print("photo is empty")
-		*preview = ""
-		*thumbnail = ""
+		photo.Preview = ""
+		photo.Thumb = ""
 		return nil
 	}
 	theImage := ""
 
 	// println("passed in", photo)
 	// println("Decode Photo Data =", photo[:80], "...")
-	f := strings.SplitN(photo, ",", 2)
+	f := strings.SplitN(photo.Data, ",", 2)
+	photo.Datatype = f[0]
 	switch f[0] {
 	case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
 		theImage = f[1]
+		photo.Type = "Image"
 	case "data:application/pdf;base64":
-		*preview = PDFPreview
-		*thumbnail = PDFThumb
+		photo.Preview = PDFPreview
+		photo.Thumb = PDFThumb
+		photo.Type = "PDF"
 		return nil
 	default:
 		println("unknown file format", f[0])
@@ -51,14 +55,14 @@ func decodePhoto(photo string, preview *string, thumbnail *string) error {
 		var tb bytes.Buffer
 		thumbVar := resize.Resize(64, 0, m, resize.Lanczos3)
 		encoder := base64.NewEncoder(base64.StdEncoding, &tb)
-		jpeg.Encode(encoder, thumbVar, &jpeg.Options{Quality: 95})
-		*thumbnail = "data:image/jpeg;base64," + tb.String()
+		gif.Encode(encoder, thumbVar, &gif.Options{NumColors: 256})
+		photo.Thumb = "data:image/gif;base64," + tb.String()
 
 		var pb bytes.Buffer
 		previewVar := resize.Resize(240, 0, m, resize.Lanczos3)
 		encoder = base64.NewEncoder(base64.StdEncoding, &pb)
-		jpeg.Encode(encoder, previewVar, &jpeg.Options{Quality: 95})
-		*preview = "data:image/jpeg;base64," + pb.String()
+		gif.Encode(encoder, previewVar, &gif.Options{NumColors: 256})
+		photo.Preview = "data:image/gif;base64," + pb.String()
 	}
 
 	return nil
@@ -72,11 +76,12 @@ func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
 	// print("addphoto", data.Photo)
 	// print("addphoto", data.Photo.Photo)
 
-	decodePhoto(data.Photo.Data, &data.Photo.Preview, &data.Photo.Thumb)
+	//decodePhoto(data.Photo.Data, &data.Photo.Preview, &data.Photo.Thumb, &data.Photo.Type, &data.Photo.Datatype)
+	decodePhoto(data.Photo)
 
 	// Save the data, and get a new ID
 	DB.InsertInto("photo").
-		Columns("notes", "photo", "thumb", "preview", "filename").
+		Columns("notes", "photo", "thumb", "preview", "filename", "type", "datatype").
 		Record(data.Photo).
 		Returning("id").
 		QueryScalar(newID)
@@ -144,8 +149,6 @@ func (u *UtilRPC) UpdatePhoto(data shared.PhotoRPCData, done *bool) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
-
-	// decodePhoto(data.Photo.Photo, &data.Photo.Preview, &data.Photo.Thumb)
 
 	// Save the data
 	DB.Update("photo").

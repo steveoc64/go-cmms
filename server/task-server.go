@@ -221,7 +221,8 @@ func (t *TaskRPC) UpdateSched(data shared.SchedTaskRPCData, ok *bool) error {
 			EntityID: data.SchedTask.ID,
 		}
 
-		decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
+		// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
+		decodePhoto(&photo)
 		DB.InsertInto("photo").
 			Columns("entity", "entity_id", "photo", "thumb", "preview").
 			Record(photo).
@@ -443,7 +444,8 @@ func (t *TaskRPC) Update(data shared.TaskRPCData, updatedTask *shared.Task) erro
 			EntityID: data.Task.ID,
 		}
 
-		decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
+		// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
+		decodePhoto(&photo)
 		DB.InsertInto("photo").
 			Columns("entity", "entity_id", "photo", "thumb", "preview", "filename").
 			Record(photo).
