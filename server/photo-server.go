@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"image/gif"
+	_ "image/jpeg"
 	_ "image/png"
 	"strings"
 	"time"
