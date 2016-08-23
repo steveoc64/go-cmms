@@ -706,8 +706,9 @@ func siteSchedList(context *router.Context) {
 		form.Column("Tool / Component", "Component")
 		form.Column("Frequency", "ShowFrequency")
 		form.Column("Description", "Descr")
-		form.Column("$ Labour", "LabourCost")
-		form.Column("$ Materials", "MaterialCost")
+		form.MultiImgColumn("Documents", "Photos", "Thumb")
+		// form.Column("$ Labour", "LabourCost")
+		// form.Column("$ Materials", "MaterialCost")
 		form.Column("Duration", "DurationDays")
 		form.Column("Job Status", "ShowPaused")
 

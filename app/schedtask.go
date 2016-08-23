@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"itrak-cmms/shared"
 
@@ -31,19 +32,25 @@ func showSchedPhotos(task shared.SchedTask) {
 		i.AddEventListener("click", false, func(evt dom.Event) {
 			evt.PreventDefault()
 			theID, _ := strconv.Atoi(evt.Target().GetAttribute("photo-id"))
-			// print("clicksed on photo ", theID)
+
 			go func() {
-				myPhoto := shared.Photo{}
+				photo := shared.Photo{}
 				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
 					Channel: Session.Channel,
 					ID:      theID,
-				}, &myPhoto)
-				if myPhoto.Photo != "" {
+				}, &photo)
+				flds := strings.SplitN(photo.Photo, ",", 2)
+				print("got full photo", flds[0])
+				switch flds[0] {
+				case "data:application/pdf;base64":
+					w.Open(photo.Photo, "", "")
+				case "data:image/jpeg;base64", "data:image/png;base64":
 					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
 						doc.QuerySelector("#show-image").Class().Add("md-show")
-						el2.Src = myPhoto.Photo
+						el2.Src = photo.Photo
 					}
 				}
+
 			}()
 		})
 	}
