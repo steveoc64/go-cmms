@@ -443,7 +443,11 @@ func stoppageNewTask(context *router.Context) {
 			AddPreview(1, "", "Preview")
 
 		form.Row(1).
+			AddCustom(1, "Markup Rules", "Markup", "")
+		form.Row(1).
 			AddBigTextarea(1, "Notes", "Notes")
+		form.Row(1).
+			AddCustom(1, "Expands to :", "Expand", "")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -467,6 +471,7 @@ func stoppageNewTask(context *router.Context) {
 
 		// All done, so render the form
 		form.Render("edit-form", "main", &assign)
+		setMarkupButtons("Notes")
 		setPhotoField("NewPhoto")
 	}()
 
