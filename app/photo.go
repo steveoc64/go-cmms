@@ -45,7 +45,6 @@ func setPhotoUploadField(f string, allowPDF bool) {
 		el.AddEventListener("change", false, func(evt dom.Event) {
 			print("filename may =", el.Value)
 			lastSlash := strings.LastIndex(el.Value, `\`)
-			print("last slash", lastSlash)
 			fileName := el.Value
 			if lastSlash > -1 {
 				fileName = fileName[lastSlash+1:]
@@ -53,7 +52,6 @@ func setPhotoUploadField(f string, allowPDF bool) {
 			print("filename computed to", fileName)
 			print("in the change event and allowPDF = ", allowPDF)
 			files := el.Files()
-			print("files array", files)
 			fileReader := js.Global.Get("FileReader").New()
 			fileReader.Set("onload", func(e *js.Object) {
 				target := e.Get("target")
@@ -71,6 +69,7 @@ func setPhotoUploadField(f string, allowPDF bool) {
 						imgEl.Class().Remove("hidden")
 						PDFData = imgData
 						isPDF = true
+						print("photo changed and looks like a PDF")
 					} else {
 						w.Alert("ERROR: This screen only allows photos, not PDF files.")
 					}

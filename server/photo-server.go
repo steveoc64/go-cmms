@@ -31,6 +31,7 @@ func decodePhoto(photo *shared.Photo) error {
 	// println("Decode Photo Data =", photo[:80], "...")
 	f := strings.SplitN(photo.Data, ",", 2)
 	photo.Datatype = f[0]
+	fmt.Printf("decoding photo with header %s\n", photo.Datatype)
 	switch f[0] {
 	case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
 		theImage = f[1]

@@ -155,7 +155,7 @@ func (t *TaskRPC) GetSched(data shared.TaskRPCData, task *shared.SchedTask) erro
 
 	// Get the last 8 photo previews for this task
 	photos := []shared.Photo{}
-	DB.SQL(`select id,preview
+	DB.SQL(`select id,preview,type,datatype,filename,entity,entity_id,notes
 	 from photo
 	 where (entity='sched' and entity_id=$1) 
 	 order by id desc limit 8`, data.ID).
@@ -211,9 +211,9 @@ func (t *TaskRPC) UpdateSched(data shared.SchedTaskRPCData, ok *bool) error {
 		Where("id = $1", data.SchedTask.ID).
 		Exec()
 
+	// fmt.Printf("passed in newphoto %v\n", data.SchedTask.NewPhoto)
 	// If there is a new photo to be added to the task, then add it
 	if data.SchedTask.NewPhoto.Data != "" {
-		// println("Adding new photo", data.Task.NewPhoto)
 		photo := shared.Photo{
 			Data:     data.SchedTask.NewPhoto.Data,
 			Filename: data.SchedTask.NewPhoto.Filename,
@@ -224,7 +224,7 @@ func (t *TaskRPC) UpdateSched(data shared.SchedTaskRPCData, ok *bool) error {
 		// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
 		decodePhoto(&photo)
 		DB.InsertInto("photo").
-			Columns("entity", "entity_id", "photo", "thumb", "preview").
+			Columns("entity", "entity_id", "photo", "thumb", "preview", "type", "datatype", "filename").
 			Record(photo).
 			Exec()
 	}
@@ -756,7 +756,7 @@ func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 
 	// Get the last 3 photo previews for this task
 	photos := []shared.Photo{}
-	DB.SQL(`select id,preview
+	DB.SQL(`select id,preview,type,datatype,filename,entity,entity_id,notes
 	 from photo
 	 where (entity='task' and entity_id=$1) 
 	 or (entity='event' and entity_id=$2) 
