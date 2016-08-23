@@ -24,59 +24,52 @@ func showSchedPhotos(task shared.SchedTask) {
 		// print(k, ":", v)
 		// Create an image widget, and add it to the photos block
 		i := doc.CreateElement("img").(*dom.HTMLImageElement)
+		i.SetAttribute("photo-id", fmt.Sprintf("%d", v.ID))
+		i.Class().SetString("photopreview")
+		i.Src = v.Preview
 		switch v.Type {
 		case "PDF":
 			// Is a PDF, so wrap the image with a box that includes the filename
+			// and auto-break on each doc
+
 			wspan := doc.CreateElement("div")
-			wspan.Class().Add("imagebox")
-
-			i.SetAttribute("photo-id", fmt.Sprintf("%d", v.ID))
-			i.Class().SetString("photopreview")
-			theID := fmt.Sprintf("photopreview-%d", v.ID)
-			i.SetID(theID)
-			i.Src = v.Preview
 			wspan.AppendChild(i)
-
-			// get the HTML back and then add the filename
-			wspan.SetInnerHTML(wspan.InnerHTML() + "<p>" + v.Filename)
-
+			p := doc.CreateElement("p")
+			p.SetInnerHTML(v.Filename)
+			wspan.AppendChild(p)
 			div.AppendChild(wspan)
 		case "Image":
-			i.SetAttribute("photo-id", fmt.Sprintf("%d", v.ID))
-			i.Class().SetString("photopreview")
-			i.Src = v.Preview
 			div.AppendChild(i)
 		default:
 			print("adding attachment of unknown type", v.Type, "dt", v.Datatype, "fn", v.Filename)
 			print("v", v)
 		}
+		print("attaching click event to i", i)
+		i.AddEventListener("click", false, func(evt dom.Event) {
+			print("click on attachment preview image")
+			evt.PreventDefault()
+			theID, _ := strconv.Atoi(evt.Target().GetAttribute("photo-id"))
 
-		if i != nil {
-			i.AddEventListener("click", false, func(evt dom.Event) {
-				evt.PreventDefault()
-				theID, _ := strconv.Atoi(evt.Target().GetAttribute("photo-id"))
-
-				go func() {
-					photo := shared.Photo{}
-					rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
-						Channel: Session.Channel,
-						ID:      theID,
-					}, &photo)
-					flds := strings.SplitN(photo.Data, ",", 2)
-					print("got full photo", flds[0])
-					switch flds[0] {
-					case "data:application/pdf;base64":
-						w.Open(photo.Data, "", "")
-					case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
-						if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
-							doc.QuerySelector("#show-image").Class().Add("md-show")
-							el2.Src = photo.Data
-						}
+			go func() {
+				photo := shared.Photo{}
+				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
+					Channel: Session.Channel,
+					ID:      theID,
+				}, &photo)
+				flds := strings.SplitN(photo.Data, ",", 2)
+				print("got full photo", flds[0])
+				switch flds[0] {
+				case "data:application/pdf;base64":
+					w.Open(photo.Data, "", "")
+				case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
+					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
+						doc.QuerySelector("#show-image").Class().Add("md-show")
+						el2.Src = photo.Data
 					}
+				}
 
-				}()
-			})
-		}
+			}()
+		})
 	}
 }
 

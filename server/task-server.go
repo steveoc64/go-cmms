@@ -66,7 +66,7 @@ func (t *TaskRPC) ListSiteSched(data shared.TaskRPCData, tasks *[]shared.SchedTa
 		DB.SQL(`select id,thumb 
 			from photo 
 			where (entity='sched' and entity_id=$1) 
-			order by id desc limit 8`, v.ID).
+			order by type, id desc`, v.ID).
 			QueryStructs(&photos)
 		(*tasks)[i].Photos = photos
 	}
@@ -158,7 +158,7 @@ func (t *TaskRPC) GetSched(data shared.TaskRPCData, task *shared.SchedTask) erro
 	DB.SQL(`select id,preview,type,datatype,filename,entity,entity_id,notes
 	 from photo
 	 where (entity='sched' and entity_id=$1) 
-	 order by id desc limit 8`, data.ID).
+	 order by type, id desc`, data.ID).
 		QueryStructs(&photos)
 
 	task.Photos = photos
