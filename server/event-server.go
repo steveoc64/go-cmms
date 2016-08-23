@@ -545,60 +545,63 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 	// Stamp the event as assigned
 	DB.SQL(`update event set status='Assigned' where id=$1`, data.Event.ID).Exec()
 
-	// Expand out using the hashtags
-	hasHashtag := false
-	oldDescr := data.Notes
+	if false {
+		print("TODO - all this code here is redundant - apply bits that are needed, and kill the rest")
+		// Expand out using the hashtags
+		hasHashtag := false
+		oldDescr := data.Notes
 
-	if strings.Contains(oldDescr, "#") {
-		hashes := []shared.Hashtag{}
-		// Apply the longest hashtag first
+		if strings.Contains(oldDescr, "#") {
+			hashes := []shared.Hashtag{}
+			// Apply the longest hashtag first
 
-		DB.SQL(`select * from hashtag order by length(name) desc`).QueryStructs(&hashes)
+			DB.SQL(`select * from hashtag order by length(name) desc`).QueryStructs(&hashes)
 
-		// Keep looping through doing text conversions until there is
-		// nothing left to expand
-		stillLooking := true
-		for stillLooking {
-			stillLooking = false
-			for _, v := range hashes {
-				theHash := "#" + v.Name
-				if strings.Contains(oldDescr, theHash) {
-					oldDescr = strings.Replace(oldDescr, theHash, v.Descr, -1)
-					hasHashtag = true
-					stillLooking = true
+			// Keep looping through doing text conversions until there is
+			// nothing left to expand
+			stillLooking := true
+			for stillLooking {
+				stillLooking = false
+				for _, v := range hashes {
+					theHash := "#" + v.Name
+					if strings.Contains(oldDescr, theHash) {
+						oldDescr = strings.Replace(oldDescr, theHash, v.Descr, -1)
+						hasHashtag = true
+						stillLooking = true
+					}
 				}
 			}
 		}
-	}
 
-	// Now generate the task check items based on the description field of the schedtask
-	lines := strings.Split(oldDescr, "\n")
-	seq := 1
-	descr := ""
+		// Now generate the task check items based on the description field of the schedtask
+		lines := strings.Split(oldDescr, "\n")
+		seq := 1
+		descr := ""
 
-	for _, l := range lines {
-		theLine := strings.TrimSpace(l)
-		if strings.HasPrefix(theLine, "- ") {
-			check := shared.TaskCheck{
-				TaskID: task.ID,
-				Seq:    seq,
-				Descr:  theLine[2:],
-				Done:   false,
+		for _, l := range lines {
+			theLine := strings.TrimSpace(l)
+			if strings.HasPrefix(theLine, "- ") {
+				check := shared.TaskCheck{
+					TaskID: task.ID,
+					Seq:    seq,
+					Descr:  theLine[2:],
+					Done:   false,
+				}
+
+				DB.InsertInto("task_check").
+					Whitelist("task_id", "seq", "descr", "done").
+					Record(check).
+					Exec()
+				seq++
+			} else {
+				descr += l
+				descr += "\n"
 			}
-
-			DB.InsertInto("task_check").
-				Whitelist("task_id", "seq", "descr", "done").
-				Record(check).
-				Exec()
-			seq++
-		} else {
-			descr += l
-			descr += "\n"
 		}
-	}
-	// log.Println("Modded desc from", task.Descr, "to", descr)
-	if hasHashtag || seq > 1 {
-		DB.SQL(`update task set descr=$1 where id=$2`, descr, task.ID).Exec()
+		// log.Println("Modded desc from", task.Descr, "to", descr)
+		if hasHashtag || seq > 1 {
+			DB.SQL(`update task set descr=$1 where id=$2`, descr, task.ID).Exec()
+		}
 	}
 
 	// Now generate an SMS to the technician
