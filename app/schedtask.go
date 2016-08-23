@@ -44,7 +44,7 @@ func showSchedPhotos(task shared.SchedTask) {
 			print("adding attachment of unknown type", v.Type, "dt", v.Datatype, "fn", v.Filename)
 			print("v", v)
 		}
-		print("attaching click event to i", i)
+		// print("attaching click event to i", i)
 		i.AddEventListener("click", false, func(evt dom.Event) {
 			print("click on attachment preview image")
 			evt.PreventDefault()
@@ -105,6 +105,7 @@ func hashtagUsed(context *router.Context) {
 		form.Column("Tool / Component", "Component")
 		form.Column("Frequency", "ShowFrequency")
 		form.Column("Description", "Descr")
+		form.MultiImgColumn("Documents", "Photos", "Thumb")
 		form.Column("$ Labour", "LabourCost")
 		form.Column("$ Materials", "MaterialCost")
 		form.Column("Duration", "DurationDays")
@@ -152,8 +153,9 @@ func machineSchedList(context *router.Context) {
 		form.Column("Tool / Component", "Component")
 		form.Column("Frequency", "ShowFrequency")
 		form.Column("Description", "Descr")
-		form.Column("$ Labour", "LabourCost")
-		form.Column("$ Materials", "MaterialCost")
+		form.MultiImgColumn("Documents", "Photos", "Thumb")
+		// form.Column("$ Labour", "LabourCost")
+		// form.Column("$ Materials", "MaterialCost")
 		form.Column("Duration", "DurationDays")
 		form.Column("Job Status", "ShowPaused")
 
@@ -452,7 +454,8 @@ func schedEdit(context *router.Context) {
 					Channel:   Session.Channel,
 					SchedTask: &task,
 				}, &done)
-				Session.Navigate(BackURL)
+				// Session.Navigate(BackURL)
+				Session.Reload(context)
 			}()
 		})
 
@@ -853,5 +856,69 @@ func siteTaskList(context *router.Context) {
 }
 
 func schedTaskList(context *router.Context) {
-	print("TODO - schedTaskList")
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		sched := shared.SchedTask{}
+		tasks := []shared.Task{}
+		machine := shared.Machine{}
+
+		rpcClient.Call("TaskRPC.GetSched", shared.TaskRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &sched)
+
+		rpcClient.Call("TaskRPC.SchedList", shared.TaskRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &tasks)
+
+		rpcClient.Call("MachineRPC.Get", shared.MachineRPCData{
+			Channel: Session.Channel,
+			ID:      sched.MachineID,
+		}, &machine)
+
+		BackURL := fmt.Sprintf("/sched/task/%d", id)
+		form := formulate.ListForm{}
+
+		Title := fmt.Sprintf("Generated Tasks for - %s - %s", machine.Name, *machine.SiteName)
+		form.New("fa-server", Title)
+		// Define the layout
+
+		switch Session.UserRole {
+		case "Admin", "Site Manager":
+			form.Column("User", "Username")
+		}
+
+		form.Column("Date", "GetStartDate")
+		// form.Column("Due", "GetDueDate")
+		// form.Column("Site", "SiteName")
+		// form.Column("Machine", "MachineName")
+		// form.Column("Component", "Component")
+		form.Column("Component", "GetComponent")
+		form.Column("Description", "Descr")
+		form.Column("Duration", "DurationDays")
+		form.Column("Completed", "CompletedDate")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		form.RowEvent(func(key string) {
+			Session.Navigate("/task/" + key)
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
+		form.Render("site-task-list", "main", tasks)
+	}()
+
 }

@@ -34,6 +34,18 @@ func (t *TaskRPC) ListMachineSched(data shared.MachineRPCData, tasks *[]shared.S
 		log.Println(err.Error())
 	}
 
+	// Get the latest thumbnails for this task, if present
+	for i, v := range *tasks {
+
+		photos := []shared.Photo{}
+		DB.SQL(`select id,thumb 
+			from photo 
+			where (entity='sched' and entity_id=$1) 
+			order by type, id desc`, v.ID).
+			QueryStructs(&photos)
+		(*tasks)[i].Photos = photos
+	}
+
 	logger(start, "Task.ListMachineSched",
 		fmt.Sprintf("Machine %d", data.ID),
 		fmt.Sprintf("%d tasks", len(*tasks)),
@@ -101,6 +113,19 @@ func (t *TaskRPC) ListHashSched(data shared.HashtagRPCData, tasks *[]shared.Sche
 		if err != nil {
 			log.Println(err.Error())
 		}
+
+		// Get the latest thumbnails for this task, if present
+		for i, v := range *tasks {
+
+			photos := []shared.Photo{}
+			DB.SQL(`select id,thumb 
+			from photo 
+			where (entity='sched' and entity_id=$1) 
+			order by type, id desc`, v.ID).
+				QueryStructs(&photos)
+			(*tasks)[i].Photos = photos
+		}
+
 	}
 
 	logger(start, "Task.ListHashSched",
@@ -115,7 +140,6 @@ func (t *TaskRPC) GetSched(data shared.TaskRPCData, task *shared.SchedTask) erro
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
-
 	err := DB.SQL(`select * from sched_task where id=$1`, data.ID).QueryStruct(task)
 
 	if err != nil {
@@ -131,7 +155,7 @@ func (t *TaskRPC) GetSched(data shared.TaskRPCData, task *shared.SchedTask) erro
 		// 		QueryStructs(&task.PartsAllowed)
 		// }
 
-		log.Println("key task", task.ID, "class", partClass)
+		// log.Println("key task", task.ID, "class", partClass)
 		// Get the parts used in this sched
 		DB.SQL(`select 
 			p.id as part_id,p.stock_code as stock_code,p.name as name,p.qty_type as qty_type,
@@ -754,15 +778,26 @@ func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 	// Now get all the checks for this task
 	DB.SQL(`select * from task_check where task_id=$1 order by task_id,seq`, data.ID).QueryStructs(&task.Checks)
 
-	// Get the last 3 photo previews for this task
+	// Get the photo previews for this task
 	photos := []shared.Photo{}
-	DB.SQL(`select id,preview,type,datatype,filename,entity,entity_id,notes
+	if task.SchedID == 0 {
+		DB.SQL(`select id,preview,type,datatype,filename,entity,entity_id,notes
 	 from photo
 	 where (entity='task' and entity_id=$1) 
 	 or (entity='event' and entity_id=$2) 
-	 order by id desc limit 8`, data.ID, task.EventID).
-		QueryStructs(&photos)
+	 order by type, id desc`, data.ID, task.EventID).
+			QueryStructs(&photos)
 
+	} else { // This task came from a schedule, so include all the sched attachments as well
+
+		DB.SQL(`select id,preview,type,datatype,filename,entity,entity_id,notes
+	 from photo
+	 where (entity='task' and entity_id=$1) 
+	 or (entity='event' and entity_id=$2) 
+	 or (entity='sched' and entity_id=$3) 
+	 order by type, id desc`, data.ID, task.EventID, task.SchedID).
+			QueryStructs(&photos)
+	}
 	task.Photos = photos
 
 	// Now, if the user requesting this read is the person assigned to, then
@@ -903,6 +938,57 @@ func (t *TaskRPC) StoppageList(data shared.TaskRPCData, tasks *[]shared.Task) er
 
 	logger(start, "Task.StoppageList",
 		fmt.Sprintf("Stoppage Event %d", data.ID),
+		fmt.Sprintf("%d Tasks", len(*tasks)),
+		data.Channel, conn.UserID, "task", 0, false)
+
+	return nil
+}
+
+// Get a list of tasks for a given stoppage event
+
+func (t *TaskRPC) SchedList(data shared.TaskRPCData, tasks *[]shared.Task) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	// Read the sites that this user has access to
+	err := DB.SQL(`select 
+		t.*,
+		m.name as machine_name,
+		s.name as site_name,s.id as site_id,
+		u.username as username
+		from task t 
+			left join machine m on m.id=t.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=t.assigned_to
+		where t.sched_id=$1
+		order by t.startdate`, data.ID).
+		QueryStructs(tasks)
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	for k, v := range *tasks {
+
+		// trim the descr field
+		if len(v.Descr) > 80 {
+			(*tasks)[k].Descr = v.Descr[:80] + "..."
+		}
+
+		// Get the latest thumbnails for this task, if present
+		photos := []shared.Photo{}
+		DB.SQL(`select id,thumb 
+			from photo 
+			where (entity='task' and entity_id=$1) 
+			or (entity='event' and entity_id=$2) 
+			order by id desc limit 8`, v.ID, v.EventID).
+			QueryStructs(&photos)
+		(*tasks)[k].Photos = photos
+	}
+
+	logger(start, "Task.SchedList",
+		fmt.Sprintf("Sched %d", data.ID),
 		fmt.Sprintf("%d Tasks", len(*tasks)),
 		data.Channel, conn.UserID, "task", 0, false)
 

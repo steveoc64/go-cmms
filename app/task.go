@@ -128,15 +128,16 @@ func _taskEdit(action string, id int) {
 			form.ActionGrid("task-admin-actions", "#action-grid", task, func(url string) {
 				if strings.HasPrefix(url, "/sched") {
 					if task.SchedID != 0 {
-						c := &router.Context{
-							Path:        url,
-							InitialLoad: false,
-							Params: map[string]string{
-								"id":   fmt.Sprintf("%d", task.SchedID),
-								"back": fmt.Sprintf("/task/%d", task.ID),
-							},
-						}
-						schedEdit(c)
+						Session.Navigate(fmt.Sprintf("/sched/%d", task.SchedID))
+						// 	c := &router.Context{
+						// 		Path:        url,
+						// 		InitialLoad: false,
+						// 		Params: map[string]string{
+						// 			"id":   fmt.Sprintf("%d", task.SchedID),
+						// 			"back": fmt.Sprintf("/task/%d", task.ID),
+						// 		},
+						// 	}
+						// 	schedEdit(c)
 					}
 				} else if strings.HasPrefix(url, "/stoppage") {
 					if task.EventID != 0 {
@@ -414,6 +415,12 @@ func _taskEdit(action string, id int) {
 
 			if task.NewPhoto.Data != "" {
 				showProgress("Updating Task ...")
+
+				// If the uploaded data is a PDF, then use that data instead of the preview
+				if isPDF {
+					task.NewPhoto.Data = PDFData
+				}
+
 			}
 			go func() {
 				updatedTask := shared.Task{}
@@ -741,6 +748,67 @@ func _taskEdit(action string, id int) {
 }
 
 func showTaskPhotos(task shared.Task) {
+	// print("populate the photos", task)
+
+	w := dom.GetWindow()
+	doc := w.Document()
+	div := doc.QuerySelector("[name=Photos]")
+	div.SetInnerHTML("")
+
+	for _, v := range task.Photos {
+		// print(k, ":", v)
+		// Create an image widget, and add it to the photos block
+		i := doc.CreateElement("img").(*dom.HTMLImageElement)
+		i.SetAttribute("photo-id", fmt.Sprintf("%d", v.ID))
+		i.Class().SetString("photopreview")
+		i.Src = v.Preview
+		switch v.Type {
+		case "PDF":
+			// Is a PDF, so wrap the image with a box that includes the filename
+			// and auto-break on each doc
+
+			wspan := doc.CreateElement("div")
+			wspan.AppendChild(i)
+			p := doc.CreateElement("p")
+			p.SetInnerHTML(v.Filename)
+			wspan.AppendChild(p)
+			div.AppendChild(wspan)
+		case "Image":
+			div.AppendChild(i)
+		default:
+			print("adding attachment of unknown type", v.Type, "dt", v.Datatype, "fn", v.Filename)
+			print("v", v)
+		}
+		// print("attaching click event to i", i)
+		i.AddEventListener("click", false, func(evt dom.Event) {
+			print("click on attachment preview image")
+			evt.PreventDefault()
+			theID, _ := strconv.Atoi(evt.Target().GetAttribute("photo-id"))
+
+			go func() {
+				photo := shared.Photo{}
+				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
+					Channel: Session.Channel,
+					ID:      theID,
+				}, &photo)
+				flds := strings.SplitN(photo.Data, ",", 2)
+				print("got full photo", flds[0])
+				switch flds[0] {
+				case "data:application/pdf;base64":
+					w.Open(photo.Data, "", "")
+				case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
+					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
+						doc.QuerySelector("#show-image").Class().Add("md-show")
+						el2.Src = photo.Data
+					}
+				}
+
+			}()
+		})
+	}
+}
+
+func showTaskPhotosOld(task shared.Task) {
 	// print("populate the photos", task)
 
 	w := dom.GetWindow()
