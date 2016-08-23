@@ -419,6 +419,7 @@ func _taskEdit(action string, id int) {
 				// If the uploaded data is a PDF, then use that data instead of the preview
 				if isPDF {
 					task.NewPhoto.Data = PDFData
+					isPDF = false
 				}
 
 			}

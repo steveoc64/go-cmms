@@ -360,6 +360,7 @@ create index stdimg_code_idx on stdimg (code);
 
 -- create an image first with a PDF thumb, and use the id of that image below
 
+truncate stdimg restart IDENTITY;
 insert into stdimg (code,photo,preview,thumb) select 'PDF',photo,preview,thumb from photo where id=xxxxx;
 
 insert into migration (name) values ('Add standard img table');
