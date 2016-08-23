@@ -3,6 +3,8 @@ package shared
 import (
 	"fmt"
 	"time"
+
+	"github.com/steveoc64/formulate"
 )
 
 type RaiseIssue struct {
@@ -62,7 +64,7 @@ type AssignEvent struct {
 	DisplayDate string
 	Username    string
 	Notes       string
-	NewPhoto    string
+	NewPhoto    formulate.FileField
 	Preview     string
 }
 

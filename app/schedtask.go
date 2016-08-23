@@ -39,15 +39,15 @@ func showSchedPhotos(task shared.SchedTask) {
 					Channel: Session.Channel,
 					ID:      theID,
 				}, &photo)
-				flds := strings.SplitN(photo.Photo, ",", 2)
+				flds := strings.SplitN(photo.Data, ",", 2)
 				print("got full photo", flds[0])
 				switch flds[0] {
 				case "data:application/pdf;base64":
-					w.Open(photo.Photo, "", "")
-				case "data:image/jpeg;base64", "data:image/png;base64":
+					w.Open(photo.Data, "", "")
+				case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
 					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
 						doc.QuerySelector("#show-image").Class().Add("md-show")
-						el2.Src = photo.Photo
+						el2.Src = photo.Data
 					}
 				}
 

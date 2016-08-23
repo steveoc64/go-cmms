@@ -98,12 +98,15 @@
               <span>
                 <img class="photouppreview hidden no-print" name="{{.Model}}Preview">
               </span>
+              <input name="{{.Model}}Filename" class="hidden" readonly>
             </div>
               <!-- <input type="file" name="{{.Model}}" multiple="multiple" class="no-print"><p> -->
               <!-- <img class="photouppreview hidden no-print" name="{{.Model}}-Preview"> -->
             {{end}}
             {{if .Preview}}
-              <img class="photopreview hidden" name="{{.Model}}Preview">
+              <img class="photopreview hidden" name="{{.Model}}Preview"><br>
+              <!-- <input name="{{.Model}}Filename" class="hidden" readonly><br> -->
+              <span class="hidden" name="{{.Model}}Filename"></span>
             {{end}}
             {{if .Thumbnail}}
               <img class="photothumbnail hidden" name="{{.Model}}Preview">

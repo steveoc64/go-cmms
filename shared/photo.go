@@ -1,5 +1,7 @@
 package shared
 
+import "github.com/steveoc64/formulate"
+
 type Photo struct {
 	ID       int    `db:"id"`
 	Type     string `db:"type"`
@@ -7,18 +9,24 @@ type Photo struct {
 	Filename string `db:"filename"`
 	Entity   string `db:"entity"`
 	EntityID int    `db:"entity_id"`
-	Photo    string `db:"photo"`
+	Data     string `db:"photo"`
 	Preview  string `db:"preview"`
 	Thumb    string `db:"thumb"`
 	Notes    string `db:"notes"`
 }
 
 type Phototest struct {
-	ID        int    `db:"id"`
-	Name      string `db:"name"`
-	Photo     string `db:"photo"`
-	Preview   string `db:"preview"`
-	Thumbnail string `db:"thumbnail"`
+	ID        int                 `db:"id"`
+	Notes     string              `db:"name"`
+	Photo     formulate.FileField `db:"photo"`
+	Preview   string              `db:"preview"`
+	Thumbnail string              `db:"thumbnail"`
+}
+
+type PhotoTestRPCData struct {
+	Channel int
+	ID      int
+	Photo   *Phototest
 }
 
 type PhotoRPCData struct {

@@ -43,8 +43,17 @@ func setPhotoUploadField(f string, allowPDF bool) {
 
 		// Set the attribute to say what types of data the field can accept
 		el.AddEventListener("change", false, func(evt dom.Event) {
+			print("filename may =", el.Value)
+			lastSlash := strings.LastIndex(el.Value, `\`)
+			print("last slash", lastSlash)
+			fileName := el.Value
+			if lastSlash > -1 {
+				fileName = fileName[lastSlash+1:]
+			}
+			print("filename computed to", fileName)
 			print("in the change event and allowPDF = ", allowPDF)
 			files := el.Files()
+			print("files array", files)
 			fileReader := js.Global.Get("FileReader").New()
 			fileReader.Set("onload", func(e *js.Object) {
 				target := e.Get("target")
@@ -65,7 +74,7 @@ func setPhotoUploadField(f string, allowPDF bool) {
 					} else {
 						w.Alert("ERROR: This screen only allows photos, not PDF files.")
 					}
-				case "data:image/jpeg", "data:image/png":
+				case "data:image/jpeg", "data:image/png", "data:image/gif":
 					// if is image, then load the image into the preview
 					imgEl.Src = imgData
 					imgEl.Class().Remove("hidden")
@@ -101,6 +110,7 @@ func phototest(context *router.Context) {
 		form.Column("Table", "Entity")
 		form.Column("ID", "EntityID")
 		form.ImgColumn("Thumbnail", "Thumb")
+		form.Column("Filename", "Filename")
 
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
@@ -147,7 +157,7 @@ func phototestEdit(context *router.Context) {
 			Channel: Session.Channel,
 			ID:      id,
 		}, &photo)
-		// print("got photo", photo)
+		print("got photo", photo)
 
 		BackURL := "/phototest"
 		form := formulate.EditForm{}
@@ -212,6 +222,13 @@ func phototestEdit(context *router.Context) {
 		w := dom.GetWindow()
 		doc := w.Document()
 
+		// manually fill in the filename field
+		if el := doc.QuerySelector("[name=PreviewFilename]").(*dom.HTMLSpanElement); el != nil {
+			if photo.Filename != "" {
+				el.SetInnerHTML(photo.Filename)
+				el.Class().Remove("hidden")
+			}
+		}
 		if el := doc.QuerySelector("[name=PreviewPreview]").(*dom.HTMLImageElement); el != nil {
 			el.AddEventListener("click", false, func(evt dom.Event) {
 				// print("clicked on the photo")
@@ -225,14 +242,14 @@ func phototestEdit(context *router.Context) {
 						ID:      id,
 					}, &photo)
 
-					flds := strings.SplitN(photo.Photo, ",", 2)
+					flds := strings.SplitN(photo.Data, ",", 2)
 					print("got full photo", flds[0])
 					switch flds[0] {
 					case "data:application/pdf;base64":
-						w.Open(photo.Photo, "", "")
-					case "data:image/jpeg;base64", "data:image/png;base64":
+						w.Open(photo.Data, "", "")
+					case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
 						// print("got fullsize image")
-						el.Src = photo.Photo
+						el.Src = photo.Data
 						el.Class().Remove("photopreview")
 						el.Class().Add("photofull")
 					}
@@ -253,7 +270,7 @@ func phototestAdd(context *router.Context) {
 	// print("phototest add")
 
 	go func() {
-		photo := shared.Photo{}
+		photo := shared.Phototest{}
 
 		BackURL := "/phototest"
 		form := formulate.EditForm{}
@@ -282,18 +299,24 @@ func phototestAdd(context *router.Context) {
 			showProgress("Uploading File ...")
 
 			evt.PreventDefault()
+			print("binding into", photo)
 			form.Bind(&photo)
+			print("post bind into", photo)
 
 			// If the uploaded data is a PDF, then use that data instead of the preview
 			if isPDF {
-				photo.Photo = PDFData
+				photo.Photo.Data = PDFData
 			}
 
 			go func() {
 				newID := 0
 				rpcClient.Call("UtilRPC.AddPhoto", shared.PhotoRPCData{
 					Channel: Session.Channel,
-					Photo:   &photo,
+					Photo: &shared.Photo{
+						Data:     photo.Photo.Data,
+						Filename: photo.Photo.Filename,
+						Notes:    photo.Notes,
+					},
 				}, &newID)
 
 				// sleep 1

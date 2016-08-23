@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"image"
+	_ "image/gif"
 	"image/jpeg"
 	_ "image/png"
 	"strings"
@@ -29,16 +30,14 @@ func decodePhoto(photo string, preview *string, thumbnail *string) error {
 	// println("Decode Photo Data =", photo[:80], "...")
 	f := strings.SplitN(photo, ",", 2)
 	switch f[0] {
-	case "data:image/jpeg;base64":
-		theImage = f[1]
-	case "data:image/png;base64":
+	case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
 		theImage = f[1]
 	case "data:application/pdf;base64":
 		*preview = PDFPreview
 		*thumbnail = PDFThumb
 		return nil
 	default:
-		println("unknown file format")
+		println("unknown file format", f[0])
 		return nil
 	}
 
@@ -73,11 +72,11 @@ func (u *UtilRPC) AddPhoto(data shared.PhotoRPCData, newID *int) error {
 	// print("addphoto", data.Photo)
 	// print("addphoto", data.Photo.Photo)
 
-	decodePhoto(data.Photo.Photo, &data.Photo.Preview, &data.Photo.Thumb)
+	decodePhoto(data.Photo.Data, &data.Photo.Preview, &data.Photo.Thumb)
 
 	// Save the data, and get a new ID
 	DB.InsertInto("photo").
-		Columns("notes", "photo", "thumb", "preview").
+		Columns("notes", "photo", "thumb", "preview", "filename").
 		Record(data.Photo).
 		Returning("id").
 		QueryScalar(newID)
@@ -98,7 +97,7 @@ func (u *UtilRPC) GetPhoto(data shared.PhotoRPCData, photo *shared.Photo) error 
 
 	conn := Connections.Get(data.Channel)
 
-	DB.SQL(`select id,notes,preview,entity,entity_id from photo where id=$1`, data.ID).QueryStruct(photo)
+	DB.SQL(`select id,notes,preview,entity,entity_id,filename from photo where id=$1`, data.ID).QueryStruct(photo)
 
 	logger(start, "Util.GetPhoto",
 		fmt.Sprintf("Channel %d, ID %d, User %d %s %s",
@@ -114,23 +113,23 @@ func (u *UtilRPC) GetFullPhoto(data shared.PhotoRPCData, photo *shared.Photo) er
 
 	conn := Connections.Get(data.Channel)
 
-	DB.SQL(`select id,notes,photo,preview,entity,entity_id from photo where id=$1`, data.ID).QueryStruct(photo)
+	DB.SQL(`select id,notes,photo,preview,entity,entity_id,filename from photo where id=$1`, data.ID).QueryStruct(photo)
 
 	logger(start, "Util.GetFullPhoto",
 		fmt.Sprintf("Channel %d, ID %d, User %d %s %s",
 			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
-		photo.Photo[:22],
+		photo.Data[:22],
 		data.Channel, conn.UserID, "photo", data.ID, false)
 
 	return nil
 }
 
-func (u *UtilRPC) PhotoList(data shared.PhotoRPCData, photos *[]shared.Photo) error {
+func (u *UtilRPC) PhotoList(data shared.PhotoTestRPCData, photos *[]shared.Photo) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
 
-	DB.SQL(`select id,entity,entity_id,notes,thumb from photo order by id desc`).QueryStructs(photos)
+	DB.SQL(`select id,entity,entity_id,notes,thumb,filename from photo order by id desc`).QueryStructs(photos)
 
 	logger(start, "Util.PhotoList",
 		fmt.Sprintf("Channel %d, User %d %s %s",

@@ -339,11 +339,11 @@ func (u *UtilRPC) PhotoMove(channel int, result *string) error {
 			println(k, ":", v.ID)
 
 			id := 0
-			pf := strings.Split(v.Photo, `,`)
+			pf := strings.Split(v.Photo.Data, `,`)
 			phototype := pf[0]
 
-			if v.Photo != "" {
-				DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+			if v.Photo.Data != "" {
+				DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb,filename) values($1,$2,$3,$4,$5,$6) returning id`,
 					phototype, `test`, v.ID, v.Photo, v.Preview, v.Thumbnail).
 					QueryScalar(&id)
 				println("Added photo", id)

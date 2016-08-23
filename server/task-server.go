@@ -212,15 +212,16 @@ func (t *TaskRPC) UpdateSched(data shared.SchedTaskRPCData, ok *bool) error {
 		Exec()
 
 	// If there is a new photo to be added to the task, then add it
-	if data.SchedTask.NewPhoto != "" {
+	if data.SchedTask.NewPhoto.Data != "" {
 		// println("Adding new photo", data.Task.NewPhoto)
 		photo := shared.Photo{
-			Photo:    data.SchedTask.NewPhoto,
+			Data:     data.SchedTask.NewPhoto.Data,
+			Filename: data.SchedTask.NewPhoto.Filename,
 			Entity:   "sched",
 			EntityID: data.SchedTask.ID,
 		}
 
-		decodePhoto(photo.Photo, &photo.Preview, &photo.Thumb)
+		decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
 		DB.InsertInto("photo").
 			Columns("entity", "entity_id", "photo", "thumb", "preview").
 			Record(photo).
@@ -433,17 +434,18 @@ func (t *TaskRPC) Update(data shared.TaskRPCData, updatedTask *shared.Task) erro
 	}
 
 	// If there is a new photo to be added to the task, then add it
-	if data.Task.NewPhoto != "" {
+	if data.Task.NewPhoto.Data != "" {
 		// println("Adding new photo", data.Task.NewPhoto)
 		photo := shared.Photo{
-			Photo:    data.Task.NewPhoto,
+			Data:     data.Task.NewPhoto.Data,
+			Filename: data.Task.NewPhoto.Filename,
 			Entity:   "task",
 			EntityID: data.Task.ID,
 		}
 
-		decodePhoto(photo.Photo, &photo.Preview, &photo.Thumb)
+		decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
 		DB.InsertInto("photo").
-			Columns("entity", "entity_id", "photo", "thumb", "preview").
+			Columns("entity", "entity_id", "photo", "thumb", "preview", "filename").
 			Record(photo).
 			Exec()
 	}

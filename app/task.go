@@ -412,7 +412,7 @@ func _taskEdit(action string, id int) {
 			evt.PreventDefault()
 			form.Bind(&task)
 
-			if task.NewPhoto != "" {
+			if task.NewPhoto.Data != "" {
 				showProgress("Updating Task ...")
 			}
 			go func() {
@@ -767,10 +767,10 @@ func showTaskPhotos(task shared.Task) {
 					Channel: Session.Channel,
 					ID:      theID,
 				}, &myPhoto)
-				if myPhoto.Photo != "" {
+				if myPhoto.Data != "" {
 					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
 						doc.QuerySelector("#show-image").Class().Add("md-show")
-						el2.Src = myPhoto.Photo
+						el2.Src = myPhoto.Data
 					}
 				}
 			}()

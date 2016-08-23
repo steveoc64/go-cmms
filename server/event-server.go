@@ -50,7 +50,7 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 	// Process the photo if present
 	if issue.Photo != "" {
 		photo := shared.Photo{
-			Photo:    issue.Photo,
+			Data:     issue.Photo,
 			Entity:   "event",
 			EntityID: *id,
 		}
@@ -529,13 +529,13 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 	*id = task.ID
 
 	// if there is a new photo attached, then process it
-	if data.NewPhoto != "" {
+	if data.NewPhoto.Data != "" {
 		photo := shared.Photo{
-			Photo:    data.NewPhoto,
+			Data:     data.NewPhoto.Data,
 			Entity:   "task",
 			EntityID: task.ID,
 		}
-		decodePhoto(photo.Photo, &photo.Preview, &photo.Thumb)
+		decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
 		DB.InsertInto("photo").
 			Columns("entity", "entity_id", "photo", "thumb", "preview").
 			Record(photo).

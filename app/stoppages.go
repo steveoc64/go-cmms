@@ -280,7 +280,7 @@ func _stoppageEdit(action string, id int) {
 					ID:      event.PhotoID,
 				}, &photo)
 
-				photoPreview.Src = photo.Photo
+				photoPreview.Src = photo.Data
 				photoPreview.Class().Remove("photopreview")
 				photoPreview.Class().Add("photofull")
 				hideProgress()
@@ -410,7 +410,7 @@ func stoppageNewTask(context *router.Context) {
 			StartDate:   &now1,
 			DueDate:     &now2,
 			Notes:       event.Notes,
-			NewPhoto:    "",
+			NewPhoto:    formulate.FileField{},
 			Preview:     event.PhotoPreview,
 		}
 
