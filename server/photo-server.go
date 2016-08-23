@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"image"
 	"image/gif"
-	_ "image/jpeg"
 	_ "image/png"
 	"strings"
 	"time"
@@ -55,13 +54,17 @@ func decodePhoto(photo *shared.Photo) error {
 		var tb bytes.Buffer
 		thumbVar := resize.Resize(64, 0, m, resize.Lanczos3)
 		encoder := base64.NewEncoder(base64.StdEncoding, &tb)
+		// jpeg.Encode(encoder, thumbVar, &jpeg.Options{Quality: 50})
 		gif.Encode(encoder, thumbVar, &gif.Options{NumColors: 256})
+		// photo.Thumb = "data:image/jpeg;base64," + tb.String()
 		photo.Thumb = "data:image/gif;base64," + tb.String()
 
 		var pb bytes.Buffer
 		previewVar := resize.Resize(240, 0, m, resize.Lanczos3)
 		encoder = base64.NewEncoder(base64.StdEncoding, &pb)
+		// jpeg.Encode(encoder, previewVar, &jpeg.Options{Quality: 75})
 		gif.Encode(encoder, previewVar, &gif.Options{NumColors: 256})
+		// photo.Preview = "data:image/jpeg;base64," + pb.String()
 		photo.Preview = "data:image/gif;base64," + pb.String()
 	}
 
