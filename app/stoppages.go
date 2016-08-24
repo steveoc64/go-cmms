@@ -39,7 +39,7 @@ func _stoppageList(action string, id int) {
 	// form.Column("Machine", "MachineName")
 	// form.Column("Component", "ToolType")
 	form.Column("Component", "GetComponent")
-	form.ImgColumn("Photo", "PhotoThumbnail")
+	form.ImgColumn("Photo", "Photo")
 	form.Column("Notes", "Notes")
 
 	switch Session.UserRole {
@@ -93,7 +93,7 @@ func _stoppageList(action string, id int) {
 		// cform.Column("Machine", "MachineName")
 		// cform.Column("Component", "ToolType")
 		cform.Column("Component", "GetComponent")
-		cform.ImgColumn("Photo", "PhotoThumbnail")
+		cform.ImgColumn("Photo", "Photo")
 		cform.Column("Notes", "Notes")
 		// cform.Column("Status", "GetStatus")
 
@@ -188,8 +188,9 @@ func _stoppageEdit(action string, id int) {
 			AddDisplay(1, "StartDate", "DisplayDate").
 			AddDisplay(1, "Raised By", "Username")
 
-		form.Row(1).
-			AddPreview(1, "Photo", "PhotoPreview")
+		form.Row(5).
+			AddPhoto(1, "Add Photo", "NewPhoto").
+			AddCustom(4, "Photos", "Photos", "")
 
 		form.Row(1).
 			AddBigTextarea(1, "Notes", "Notes")
@@ -266,7 +267,7 @@ func _stoppageEdit(action string, id int) {
 	photoPreview := doc.QuerySelector("[name=PhotoPreviewPreview]").(*dom.HTMLImageElement)
 
 	// If photo is blank, hide the preview
-	if event.PhotoPreview == "" {
+	if event.Photo.Preview == "" {
 		photoPreview.Class().Add("hidden")
 	} else {
 		photoPreview.AddEventListener("click", false, func(evt dom.Event) {
@@ -410,8 +411,7 @@ func stoppageNewTask(context *router.Context) {
 			StartDate:   &now1,
 			DueDate:     &now2,
 			Notes:       event.Notes,
-			NewPhoto:    formulate.FileField{},
-			Preview:     event.PhotoPreview,
+			Photo:       event.Photo,
 		}
 
 		title := fmt.Sprintf("Raise Task for Stoppage - %06d", id)

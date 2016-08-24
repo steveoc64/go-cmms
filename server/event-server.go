@@ -48,17 +48,13 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 		QueryScalar(id)
 
 	// Process the photo if present
-	if issue.Photo != "" {
-		photo := shared.Photo{
-			Data:     issue.Photo,
-			Entity:   "event",
-			EntityID: *id,
-		}
-		// decodePhoto(issue.Photo, &photo.Preview, &photo.Thumb, &photo.Type, &photo.Datatype)
-		decodePhoto(&photo)
+	if issue.Photo.Data != "" {
+		issue.Photo.Entity = "event"
+		issue.Photo.EntityID = *id
+		decodePhoto(&issue.Photo)
 		DB.InsertInto("photo").
 			Columns("entity", "entity_id", "photo", "thumb", "preview").
-			Record(photo).
+			Record(issue.Photo).
 			Exec()
 	}
 	conn.Broadcast("event", "insert", *id)
@@ -222,7 +218,7 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 
 		DB.SQL(`select thumb from photo where entity='event' and entity_id=$1`, v.ID).
 			QueryStruct(&photo)
-		(*events)[i].PhotoThumbnail = photo.Thumb
+		(*events)[i].Photo.Thumb = photo.Thumb
 
 	}
 
@@ -303,7 +299,7 @@ func (e *EventRPC) ListCompleted(channel int, events *[]shared.Event) error {
 			where entity='event' 
 			and entity_id=$1`, v.ID).
 			QueryStruct(&photo)
-		(*events)[i].PhotoThumbnail = photo.Thumb
+		(*events)[i].Photo.Thumb = photo.Thumb
 	}
 
 	logger(start, "Event.ListCompleted",
@@ -345,7 +341,7 @@ func (e *EventRPC) Get(data shared.EventRPCData, event *shared.Event) error {
 	DB.SQL(`select id,preview,filename,type,datatype,entity,entity_id,notes
 		from photo 
 		where entity='event' and entity_id=$1`, id).
-		QueryScalar(&event.PhotoID, &event.PhotoPreview)
+		QueryScalar(&event.Photo)
 
 	logger(start, "Event.Get",
 		fmt.Sprintf("ID %d", id),
@@ -532,18 +528,14 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 	*id = task.ID
 
 	// if there is a new photo attached, then process it
-	if data.NewPhoto.Data != "" {
-		photo := shared.Photo{
-			Data:     data.NewPhoto.Data,
-			Filename: data.NewPhoto.Filename,
-			Entity:   "task",
-			EntityID: task.ID,
-		}
+	if data.Photo.Data != "" {
+		data.Photo.Entity = "task"
+		data.Photo.EntityID = task.ID
 		// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb, &photo.Type, &photo.Datatype)
-		decodePhoto(&photo)
+		decodePhoto(&data.Photo)
 		DB.InsertInto("photo").
 			Columns("entity", "entity_id", "photo", "thumb", "preview").
-			Record(photo).
+			Record(data.Photo).
 			Exec()
 	}
 

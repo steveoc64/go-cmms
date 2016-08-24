@@ -3,8 +3,6 @@ package shared
 import (
 	"fmt"
 	"time"
-
-	"github.com/steveoc64/formulate"
 )
 
 type RaiseIssue struct {
@@ -16,38 +14,37 @@ type RaiseIssue struct {
 	Component *Component
 	NonTool   string
 	Descr     string
-	Photo     string
+	Photo     Photo
 }
 
 type Event struct {
-	ID             int        `db:"id"`
-	SiteID         int        `db:"site_id"`
-	Type           string     `db:"type"`
-	MachineID      int        `db:"machine_id"`
-	MachineName    string     `db:"machine_name"`
-	SiteName       string     `db:"site_name"`
-	SiteHighlight  *bool      `db:"site_highlight"`
-	ToolID         int        `db:"tool_id"`
-	ToolType       string     `db:"tool_type"`
-	Priority       int        `db:"priority"`
-	Status         string     `db:"status"`
-	StartDate      time.Time  `db:"startdate"`
-	DisplayDate    string     `db:"display_date"`
-	CreatedBy      int        `db:"created_by"`
-	AllocatedBy    int        `db:"allocated_by"`
-	Username       string     `db:"username"`
-	AllocatedTo    int        `db:"allocated_to"`
-	Completed      *time.Time `db:"completed"`
-	LabourCost     float64    `db:"labour_cost"`
-	MaterialCost   float64    `db:"material_cost"`
-	OtherCost      float64    `db:"other_cost"`
-	Notes          string     `db:"notes"`
-	ParentEvent    int        `db:"parent_event"`
-	AssignedTo     []string   `db:"assigned_to"`
-	PhotoID        int        `db:"photo_id"`
-	Photo          string     `db:"photo"`
-	PhotoPreview   string     `db:"photo_preview"`
-	PhotoThumbnail string     `db:"photo_thumbnail"`
+	ID            int        `db:"id"`
+	SiteID        int        `db:"site_id"`
+	Type          string     `db:"type"`
+	MachineID     int        `db:"machine_id"`
+	MachineName   string     `db:"machine_name"`
+	SiteName      string     `db:"site_name"`
+	SiteHighlight *bool      `db:"site_highlight"`
+	ToolID        int        `db:"tool_id"`
+	ToolType      string     `db:"tool_type"`
+	Priority      int        `db:"priority"`
+	Status        string     `db:"status"`
+	StartDate     time.Time  `db:"startdate"`
+	DisplayDate   string     `db:"display_date"`
+	CreatedBy     int        `db:"created_by"`
+	AllocatedBy   int        `db:"allocated_by"`
+	Username      string     `db:"username"`
+	AllocatedTo   int        `db:"allocated_to"`
+	Completed     *time.Time `db:"completed"`
+	LabourCost    float64    `db:"labour_cost"`
+	MaterialCost  float64    `db:"material_cost"`
+	OtherCost     float64    `db:"other_cost"`
+	Notes         string     `db:"notes"`
+	ParentEvent   int        `db:"parent_event"`
+	AssignedTo    []string   `db:"assigned_to"`
+	PhotoID       int        `db:"photo_id"`
+	NewPhoto      Photo      `db:"new_photo"`
+	Photos        []Photo    `db:"photo"`
 }
 
 type AssignEvent struct {
@@ -64,8 +61,7 @@ type AssignEvent struct {
 	DisplayDate string
 	Username    string
 	Notes       string
-	NewPhoto    formulate.FileField
-	Preview     string
+	Photo       Photo
 }
 
 type EventRPCData struct {

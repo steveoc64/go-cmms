@@ -776,6 +776,10 @@ func showTaskPhotos(task shared.Task) {
 			div.AppendChild(wspan)
 		case "Image":
 			div.AppendChild(i)
+		case "photo":
+			print("WARNING: This is an old format attachment of type photo")
+			print("v", v)
+			print("Please run  \"update photo set type='Image' where type='photo';\" on database ....")
 		default:
 			print("adding attachment of unknown type", v.Type, "dt", v.Datatype, "fn", v.Filename)
 			print("v", v)
