@@ -455,7 +455,8 @@ func (t *TaskRPC) SchedList(data shared.TaskRPCData, tasks *[]shared.Task) error
 			from photo 
 			where (entity='task' and entity_id=$1) 
 			or (entity='event' and entity_id=$2) 
-			order by id desc limit 8`, v.ID, v.EventID).
+			or (entity='sched' and entity_id=$3) 
+			order by type,id desc`, v.ID, v.EventID, v.SchedID).
 			QueryStructs(&photos)
 		(*tasks)[k].Photos = photos
 	}

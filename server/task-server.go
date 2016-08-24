@@ -224,7 +224,8 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			from photo 
 			where (entity='task' and entity_id=$1) 
 			or (entity='event' and entity_id=$2) 
-			order by id desc limit 8`, v.ID, v.EventID).
+			or (entity='sched' and entity_id=$3) 
+			order by type,id desc`, v.ID, v.EventID, v.SchedID).
 			QueryStructs(&photos)
 		(*tasks)[i].Photos = photos
 	}
@@ -321,7 +322,8 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 			from photo 
 			where (entity='task' and entity_id=$1) 
 			or (entity='event' and entity_id=$2) 
-			order by id desc limit 8`, v.ID, v.EventID).
+			or (entity='sched' and entity_id=$3) 
+			order by type,id desc`, v.ID, v.EventID, v.SchedID).
 			QueryStructs(&photos)
 		(*tasks)[k].Photos = photos
 	}
@@ -375,24 +377,14 @@ func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 
 	// Get the photo previews for this task
 	photos := []shared.Photo{}
-	if task.SchedID == 0 {
-		DB.SQL(`select id,preview,type,datatype,filename,entity,entity_id,notes
-	 from photo
-	 where (entity='task' and entity_id=$1) 
-	 or (entity='event' and entity_id=$2) 
-	 order by type, id desc`, data.ID, task.EventID).
-			QueryStructs(&photos)
 
-	} else { // This task came from a schedule, so include all the sched attachments as well
-
-		DB.SQL(`select id,preview,type,datatype,filename,entity,entity_id,notes
+	DB.SQL(`select id,preview,type,datatype,filename,entity,entity_id,notes
 	 from photo
 	 where (entity='task' and entity_id=$1) 
 	 or (entity='event' and entity_id=$2) 
 	 or (entity='sched' and entity_id=$3) 
 	 order by type, id desc`, data.ID, task.EventID, task.SchedID).
-			QueryStructs(&photos)
-	}
+		QueryStructs(&photos)
 	task.Photos = photos
 
 	// Now, if the user requesting this read is the person assigned to, then
@@ -471,7 +463,8 @@ func (t *TaskRPC) SiteList(data shared.TaskRPCData, tasks *[]shared.Task) error 
 			from photo 
 			where (entity='task' and entity_id=$1) 
 			or (entity='event' and entity_id=$2) 
-			order by id desc limit 8`, v.ID, v.EventID).
+			or (entity='sched' and entity_id=$3)
+			order by type,id desc`, v.ID, v.EventID, v.SchedID).
 			QueryStructs(&photos)
 		(*tasks)[k].Photos = photos
 	}
@@ -525,7 +518,8 @@ func (t *TaskRPC) StoppageList(data shared.TaskRPCData, tasks *[]shared.Task) er
 			from photo 
 			where (entity='task' and entity_id=$1) 
 			or (entity='event' and entity_id=$2) 
-			order by id desc limit 8`, v.ID, v.EventID).
+			or (entity='sched' and entity_id=$3) 
+			order by type,id desc`, v.ID, v.EventID, v.SchedID).
 			QueryStructs(&photos)
 		(*tasks)[k].Photos = photos
 	}
