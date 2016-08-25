@@ -5,7 +5,6 @@ import (
 	_ "image/png"
 	"log"
 	"os/exec"
-	"strings"
 	"time"
 
 	"itrak-cmms/shared"
@@ -254,115 +253,116 @@ func (u *UtilRPC) MTT(channel int, result *string) error {
 }
 
 // Move all photos into their own table
-func (u *UtilRPC) PhotoMove(channel int, result *string) error {
-	start := time.Now()
+// TODO - this function can be removed soon, as its no longer needed
+// func (u *UtilRPC) PhotoMove(channel int, result *string) error {
+// 	start := time.Now()
 
-	conn := Connections.Get(channel)
-	*result = ""
+// 	conn := Connections.Get(channel)
+// 	*result = ""
 
-	if conn.UserRole == "Admin" && conn.Username == "steve" {
-		r := "Processing Photos into their own tables\n"
+// 	if conn.UserRole == "Admin" && conn.Username == "steve" {
+// 		r := "Processing Photos into their own tables\n"
 
-		println("events")
-		events := []shared.Event{}
-		err := DB.SQL(`select id,photo,photo_preview,photo_thumbnail from event where length(photo)>0`).QueryStructs(&events)
+// 		println("events")
+// 		events := []shared.Event{}
+// 		err := DB.SQL(`select id,photo,photo_preview,photo_thumbnail from event where length(photo)>0`).QueryStructs(&events)
 
-		// patched := 0
-		for k, v := range events {
-			r += fmt.Sprintf("Event %d\n", v.ID)
-			println(k, ":", v.ID)
+// 		// patched := 0
+// 		for k, v := range events {
+// 			r += fmt.Sprintf("Event %d\n", v.ID)
+// 			println(k, ":", v.ID)
 
-			id := 0
-			pf := strings.Split(v.Photo.Data, `,`)
-			phototype := pf[0]
+// 			id := 0
+// 			pf := strings.Split(v.NewPhoto, `,`)
+// 			phototype := pf[0]
 
-			if v.Photo.Data != "" {
-				err = DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
-					phototype, `event`, v.ID, v.Photo.Data, v.Photo.Preview, v.Photo.Thumb).
-					QueryScalar(&id)
-				if err != nil {
-					r += err.Error()
-				}
-				r += fmt.Sprintf("Event Photo1 %d = %d\n", v.ID, id)
-			}
-		}
+// 			if v.Photo.Data != "" {
+// 				err = DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+// 					phototype, `event`, v.ID, v.Photo.Data, v.Photo.Preview, v.Photo.Thumb).
+// 					QueryScalar(&id)
+// 				if err != nil {
+// 					r += err.Error()
+// 				}
+// 				r += fmt.Sprintf("Event Photo1 %d = %d\n", v.ID, id)
+// 			}
+// 		}
 
-		// now strip the photos from the events table
-		// DB.SQL(`alter table event drop photo`).Exec()
-		// DB.SQL(`alter table event drop photo_preview`).Exec()
-		// DB.SQL(`alter table event drop photo_thumbnail`).Exec()
+// 		// now strip the photos from the events table
+// 		// DB.SQL(`alter table event drop photo`).Exec()
+// 		// DB.SQL(`alter table event drop photo_preview`).Exec()
+// 		// DB.SQL(`alter table event drop photo_thumbnail`).Exec()
 
-		println("tasks")
-		tasks := []shared.Task{}
-		DB.SQL(`select id,photo1,photo2,photo3,preview1,preview2,preview3,thumb1,thumb2,thumb3 from task where length(photo1)>0`).QueryStructs(&tasks)
+// 		println("tasks")
+// 		tasks := []shared.Task{}
+// 		DB.SQL(`select id,photo1,photo2,photo3,preview1,preview2,preview3,thumb1,thumb2,thumb3 from task where length(photo1)>0`).QueryStructs(&tasks)
 
-		// patched := 0
-		for k, v := range tasks {
-			r += fmt.Sprintf("Task %d\n", v.ID)
-			println(k, ":", v.ID)
+// 		// patched := 0
+// 		for k, v := range tasks {
+// 			r += fmt.Sprintf("Task %d\n", v.ID)
+// 			println(k, ":", v.ID)
 
-			id := 0
-			pf := strings.Split(v.Photo1, `,`)
-			phototype := pf[0]
+// 			id := 0
+// 			pf := strings.Split(v.Photo1, `,`)
+// 			phototype := pf[0]
 
-			if v.Photo1 != "" {
-				err = DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
-					phototype, `task`, v.ID, v.Photo1, v.Preview1, v.Thumb1).
-					QueryScalar(&id)
-				println("Added photo", id)
-				r += fmt.Sprintf("Task Photo1 %d = %d\n", v.ID, id)
-			}
+// 			if v.Photo1 != "" {
+// 				err = DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+// 					phototype, `task`, v.ID, v.Photo1, v.Preview1, v.Thumb1).
+// 					QueryScalar(&id)
+// 				println("Added photo", id)
+// 				r += fmt.Sprintf("Task Photo1 %d = %d\n", v.ID, id)
+// 			}
 
-			if v.Photo2 != "" {
-				err = DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
-					phototype, `task`, v.ID, v.Photo2, v.Preview2, v.Thumb2).
-					QueryScalar(&id)
-				r += fmt.Sprintf("Task Photo2 %d = %d\n", v.ID, id)
-			}
+// 			if v.Photo2 != "" {
+// 				err = DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+// 					phototype, `task`, v.ID, v.Photo2, v.Preview2, v.Thumb2).
+// 					QueryScalar(&id)
+// 				r += fmt.Sprintf("Task Photo2 %d = %d\n", v.ID, id)
+// 			}
 
-			if v.Photo3 != "" {
-				err = DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
-					phototype, `task`, v.ID, v.Photo3, v.Preview3, v.Thumb3).
-					QueryScalar(&id)
-				r += fmt.Sprintf("Task Photo3 %d = %d\n", v.ID, id)
-			}
-			if err != nil {
-				r += err.Error()
-			}
-		}
+// 			if v.Photo3 != "" {
+// 				err = DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb) values($1,$2,$3,$4,$5,$6) returning id`,
+// 					phototype, `task`, v.ID, v.Photo3, v.Preview3, v.Thumb3).
+// 					QueryScalar(&id)
+// 				r += fmt.Sprintf("Task Photo3 %d = %d\n", v.ID, id)
+// 			}
+// 			if err != nil {
+// 				r += err.Error()
+// 			}
+// 		}
 
-		// Copy over the phototest elements
-		ptest := []shared.Phototest{}
-		DB.SQL(`select * from phototest`).QueryStructs(&ptest)
-		for k, v := range ptest {
-			r += fmt.Sprintf("PhotoTest %d\n", v.ID)
-			println(k, ":", v.ID)
+// 		// Copy over the phototest elements
+// 		ptest := []shared.Phototest{}
+// 		DB.SQL(`select * from phototest`).QueryStructs(&ptest)
+// 		for k, v := range ptest {
+// 			r += fmt.Sprintf("PhotoTest %d\n", v.ID)
+// 			println(k, ":", v.ID)
 
-			id := 0
-			pf := strings.Split(v.Photo.Data, `,`)
-			phototype := pf[0]
+// 			id := 0
+// 			pf := strings.Split(v.Photo.Data, `,`)
+// 			phototype := pf[0]
 
-			if v.Photo.Data != "" {
-				DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb,filename) values($1,$2,$3,$4,$5,$6) returning id`,
-					phototype, `test`, v.ID, v.Photo, v.Preview, v.Thumbnail).
-					QueryScalar(&id)
-				println("Added photo", id)
-				r += fmt.Sprintf("Test Photo %d = %d\n", v.ID, id)
-			}
-		}
+// 			if v.Photo.Data != "" {
+// 				DB.SQL(`insert into photo (datatype,entity,entity_id,photo,preview,thumb,filename) values($1,$2,$3,$4,$5,$6) returning id`,
+// 					phototype, `test`, v.ID, v.Photo, v.Preview, v.Thumbnail).
+// 					QueryScalar(&id)
+// 				println("Added photo", id)
+// 				r += fmt.Sprintf("Test Photo %d = %d\n", v.ID, id)
+// 			}
+// 		}
 
-		*result = r
+// 		*result = r
 
-	}
+// 	}
 
-	logger(start, "Util.PhotoMove",
-		fmt.Sprintf("Channel %d, User %d %s %s",
-			channel, conn.UserID, conn.Username, conn.UserRole),
-		*result,
-		channel, conn.UserID, "photo", 0, true)
+// 	logger(start, "Util.PhotoMove",
+// 		fmt.Sprintf("Channel %d, User %d %s %s",
+// 			channel, conn.UserID, conn.Username, conn.UserRole),
+// 		*result,
+// 		channel, conn.UserID, "photo", 0, true)
 
-	return nil
-}
+// 	return nil
+// }
 
 // Construct the parts categories for bootstrap
 func (u *UtilRPC) Cats(channel int, result *string) error {

@@ -13,6 +13,9 @@ type Photo struct {
 	Preview  string `db:"preview"`
 	Thumb    string `db:"thumb"`
 	Notes    string `db:"notes"`
+	Length   int    `db:"length"`
+	LengthP  int    `db:"length_p"`
+	LengthT  int    `db:"length_t"`
 }
 
 type Phototest struct {

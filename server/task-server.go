@@ -55,7 +55,7 @@ func (t *TaskRPC) Update(data shared.TaskRPCData, updatedTask *shared.Task) erro
 
 	// If there is a new photo to be added to the task, then add it
 	if data.Task.NewPhoto.Data != "" {
-		// println("Adding new photo", data.Task.NewPhoto)
+		println("Adding new photo", data.Task.NewPhoto.Data[:22])
 		photo := shared.Photo{
 			Data:     data.Task.NewPhoto.Data,
 			Filename: data.Task.NewPhoto.Filename,
@@ -66,7 +66,7 @@ func (t *TaskRPC) Update(data shared.TaskRPCData, updatedTask *shared.Task) erro
 		// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
 		decodePhoto(&photo)
 		DB.InsertInto("photo").
-			Columns("entity", "entity_id", "photo", "thumb", "preview", "filename").
+			Columns("entity", "entity_id", "photo", "thumb", "preview", "type", "datatype", "filename").
 			Record(photo).
 			Exec()
 	}

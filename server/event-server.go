@@ -36,7 +36,6 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 		Notes:     issue.Descr,
 		Priority:  1,
 		Status:    "Pending",
-		Photo:     issue.Photo,
 	}
 
 	// Create the event record and get its ID
@@ -53,7 +52,7 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 		issue.Photo.EntityID = *id
 		decodePhoto(&issue.Photo)
 		DB.InsertInto("photo").
-			Columns("entity", "entity_id", "photo", "thumb", "preview").
+			Columns("entity", "entity_id", "photo", "thumb", "preview", "type", "datatype", "filename").
 			Record(issue.Photo).
 			Exec()
 	}
@@ -214,11 +213,15 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 		}
 
 		// Get any thumbnails if present
-		photo := shared.Photo{}
+		photos := []shared.Photo{}
 
-		DB.SQL(`select thumb from photo where entity='event' and entity_id=$1`, v.ID).
-			QueryStruct(&photo)
-		(*events)[i].Photo.Thumb = photo.Thumb
+		DB.SQL(`select
+			id,thumb
+			from photo
+			where entity='event' and entity_id=$1
+			order by type,id desc`, v.ID).
+			QueryStructs(&photos)
+		(*events)[i].Photos = photos
 
 	}
 
@@ -292,14 +295,14 @@ func (e *EventRPC) ListCompleted(channel int, events *[]shared.Event) error {
 		}
 
 		// Get any thumbnails if present
-		photo := shared.Photo{}
+		photos := []shared.Photo{}
 
 		DB.SQL(`select id,thumb 
 			from photo 
 			where entity='event' 
 			and entity_id=$1`, v.ID).
-			QueryStruct(&photo)
-		(*events)[i].Photo.Thumb = photo.Thumb
+			QueryStructs(&photos)
+		(*events)[i].Photos = photos
 	}
 
 	logger(start, "Event.ListCompleted",
@@ -341,7 +344,7 @@ func (e *EventRPC) Get(data shared.EventRPCData, event *shared.Event) error {
 	DB.SQL(`select id,preview,filename,type,datatype,entity,entity_id,notes
 		from photo 
 		where entity='event' and entity_id=$1`, id).
-		QueryScalar(&event.Photo)
+		QueryStruct(&event.Photos)
 
 	logger(start, "Event.Get",
 		fmt.Sprintf("ID %d", id),

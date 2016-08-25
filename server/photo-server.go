@@ -23,6 +23,8 @@ func decodePhoto(photo *shared.Photo) error {
 		print("photo is empty")
 		photo.Preview = ""
 		photo.Thumb = ""
+		photo.Type = ""
+		photo.Datatype = ""
 		return nil
 	}
 	theImage := ""
@@ -43,6 +45,7 @@ func decodePhoto(photo *shared.Photo) error {
 		return nil
 	default:
 		println("unknown file format", f[0])
+		photo.Type = "Unknown"
 		return nil
 	}
 
@@ -107,7 +110,13 @@ func (u *UtilRPC) GetPhoto(data shared.PhotoRPCData, photo *shared.Photo) error 
 
 	conn := Connections.Get(data.Channel)
 
-	DB.SQL(`select id,notes,preview,entity,entity_id,filename from photo where id=$1`, data.ID).QueryStruct(photo)
+	DB.SQL(`select
+			id,notes,preview,entity,entity_id,filename,
+			length(photo) as length,
+			length(preview) as length_p,
+			length(thumb) as length_t
+			from photo
+			where id=$1`, data.ID).QueryStruct(photo)
 
 	logger(start, "Util.GetPhoto",
 		fmt.Sprintf("Channel %d, ID %d, User %d %s %s",
@@ -123,7 +132,12 @@ func (u *UtilRPC) GetFullPhoto(data shared.PhotoRPCData, photo *shared.Photo) er
 
 	conn := Connections.Get(data.Channel)
 
-	DB.SQL(`select id,notes,photo,preview,entity,entity_id,filename from photo where id=$1`, data.ID).QueryStruct(photo)
+	DB.SQL(`select
+		id,notes,photo,preview,entity,entity_id,filename,
+		length(photo) as length,
+		length(preview) as length_p,
+		length(thumb) as length_t
+		from photo where id=$1`, data.ID).QueryStruct(photo)
 
 	logger(start, "Util.GetFullPhoto",
 		fmt.Sprintf("Channel %d, ID %d, User %d %s %s",
@@ -157,7 +171,7 @@ func (u *UtilRPC) UpdatePhoto(data shared.PhotoRPCData, done *bool) error {
 
 	// Save the data
 	DB.Update("photo").
-		SetWhitelist(data.Photo, "notes", "entity", "entity_id").
+		SetWhitelist(data.Photo, "notes", "entity", "entity_id", "type", "datatype", "filename").
 		Where("id = $1", data.ID).
 		Exec()
 

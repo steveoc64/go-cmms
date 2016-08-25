@@ -20,6 +20,8 @@ import (
 var ws net.Conn
 var rpcClient *rpc.Client
 
+var RxTxLights dom.Element
+
 func getWSBaseURL() string {
 	document := dom.GetWindow().Document().(dom.HTMLDocument)
 	location := document.Location()
@@ -29,6 +31,30 @@ func getWSBaseURL() string {
 		wsProtocol = "wss"
 	}
 	return fmt.Sprintf("%s://%s:%s/ws", wsProtocol, location.Hostname, location.Port)
+}
+
+func Lights(s string) {
+	if RxTxLights == nil {
+		return
+	}
+
+	print("Setting Lights", s)
+	// c := RxTxLights.Class()
+	switch s {
+	case "":
+		RxTxLights.SetAttribute("src", "/img/RxTx-none.png")
+		// c.SetString("rxtx-lights")
+	case "both":
+		RxTxLights.SetAttribute("src", "/img/RxTx.png")
+		// c.SetString("rxtx-lights rxtx-both")
+	case "rx":
+		RxTxLights.SetAttribute("src", "/img/Rx__.png")
+		// c.SetString("rxtx-lights rxtx-rx")
+	case "tx":
+		// RxTxLights.SetAttribute("src", "/img/__Tx.png")
+		RxTxLights.SetAttribute("src", "/img/loader.gif")
+		// c.SetString("rxtx-lights rxtx-tx")
+	}
 }
 
 func websocketInit() net.Conn {
@@ -55,6 +81,16 @@ func websocketInit() net.Conn {
 	out := &shared.AsyncMessage{}
 	rpcClient.Call("PingRPC.Ping", "init channel", out)
 
+	w := dom.GetWindow()
+	doc := w.Document()
+	RxTxLights = doc.QuerySelector("#rxtx")
+	print("set lights to be", RxTxLights)
+	if RxTxLights == nil {
+		print("ERROR: No Lights !!!")
+	} else {
+		Lights("")
+	}
+
 	return wss
 }
 
@@ -70,6 +106,8 @@ type myClientCodec struct {
 
 func (c *myClientCodec) WriteRequest(r *rpc.Request, body interface{}) (err error) {
 	// print("rpc ->", r.ServiceMethod)
+	Lights("tx")
+	defer Lights("")
 	if err = c.enc.Encode(r); err != nil {
 		return
 	}
@@ -84,9 +122,14 @@ type MsgPayload struct {
 }
 
 func (c *myClientCodec) ReadResponseHeader(r *rpc.Response) error {
+
+	Lights("")
+
 	c.async = false
 	c.serviceMethod = ""
 	err := c.dec.Decode(r)
+	Lights("rx")
+
 	// print("rpc header <-", r)
 	if err != nil {
 
@@ -141,6 +184,7 @@ func (c *myClientCodec) ReadResponseBody(body interface{}) error {
 		// print("appear to be async with body of ", body)
 		// processAsync(c.serviceMethod, body)
 		processAsync(c.serviceMethod, msg)
+		Lights("")
 		return nil
 	}
 

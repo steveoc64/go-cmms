@@ -242,10 +242,10 @@ func adminUtils(context *router.Context) {
 				if w.Confirm("Generat MTT Links ?") {
 					rpcClient.Call("UtilRPC.MTT", Session.Channel, &retval)
 				}
-			case "photomove":
-				if w.Confirm("Generate Photos ?") {
-					rpcClient.Call("UtilRPC.PhotoMove", Session.Channel, &retval)
-				}
+			// case "photomove":
+			// 	if w.Confirm("Generate Photos ?") {
+			// 		rpcClient.Call("UtilRPC.PhotoMove", Session.Channel, &retval)
+			// 	}
 			case "sms":
 				Session.Navigate("/sms")
 				return

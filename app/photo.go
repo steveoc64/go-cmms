@@ -174,6 +174,16 @@ func phototestEdit(context *router.Context) {
 		form.Row(1).
 			AddPreview(1, "Preview", "Preview")
 
+		form.Row(2).
+			AddInput(1, "Type", "Type").
+			AddInput(1, "DataType", "Datatype")
+
+		form.Row(6).
+			AddInput(3, "Filename", "Filename").
+			AddDisplay(1, "Full File Size", "Length").
+			AddDisplay(1, "Preview Size", "LengthP").
+			AddDisplay(1, "Thumbnail Size", "LengthT")
+
 		// Add event handlers
 		form.CancelEvent(func(evt dom.Event) {
 			evt.PreventDefault()

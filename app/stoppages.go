@@ -262,33 +262,33 @@ func _stoppageEdit(action string, id int) {
 	// All done, so render the form
 	form.Render("edit-form", "main", &event)
 
-	w := dom.GetWindow()
-	doc := w.Document()
-	photoPreview := doc.QuerySelector("[name=PhotoPreviewPreview]").(*dom.HTMLImageElement)
+	// w := dom.GetWindow()
+	// doc := w.Document()
+	// photoPreview := doc.QuerySelector("[name=PhotoPreviewPreview]").(*dom.HTMLImageElement)
 
-	// If photo is blank, hide the preview
-	if event.Photo.Preview == "" {
-		photoPreview.Class().Add("hidden")
-	} else {
-		photoPreview.AddEventListener("click", false, func(evt dom.Event) {
-			evt.PreventDefault()
+	// // If photo is blank, hide the preview
+	// if event.Photo.Preview == "" {
+	// 	photoPreview.Class().Add("hidden")
+	// } else {
+	// 	photoPreview.AddEventListener("click", false, func(evt dom.Event) {
+	// 		evt.PreventDefault()
 
-			go func() {
-				showProgress("Loading Photo ...")
-				photo := shared.Photo{}
-				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
-					Channel: Session.Channel,
-					ID:      event.PhotoID,
-				}, &photo)
+	// 		go func() {
+	// 			showProgress("Loading Photo ...")
+	// 			photo := shared.Photo{}
+	// 			rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
+	// 				Channel: Session.Channel,
+	// 				ID:      event.PhotoID,
+	// 			}, &photo)
 
-				photoPreview.Src = photo.Data
-				photoPreview.Class().Remove("photopreview")
-				photoPreview.Class().Add("photofull")
-				hideProgress()
-			}()
+	// 			photoPreview.Src = photo.Data
+	// 			photoPreview.Class().Remove("photopreview")
+	// 			photoPreview.Class().Add("photofull")
+	// 			hideProgress()
+	// 		}()
 
-		})
-	}
+	// 	})
+	// }
 
 	// and show the assignments
 	loadTemplate("stoppage-assigned-to", "[name=AssignedTo]", event)
@@ -411,7 +411,7 @@ func stoppageNewTask(context *router.Context) {
 			StartDate:   &now1,
 			DueDate:     &now2,
 			Notes:       event.Notes,
-			Photo:       event.Photo,
+			Photo:       event.NewPhoto,
 		}
 
 		title := fmt.Sprintf("Raise Task for Stoppage - %06d", id)
