@@ -33,28 +33,32 @@ func getWSBaseURL() string {
 	return fmt.Sprintf("%s://%s:%s/ws", wsProtocol, location.Hostname, location.Port)
 }
 
-func Lights(s string) {
+var rxOn bool
+var txOn bool
+
+func Lights() {
 	if RxTxLights == nil {
 		return
 	}
 
-	print("Setting Lights", s)
-	// c := RxTxLights.Class()
-	switch s {
-	case "":
-		RxTxLights.SetAttribute("src", "/img/RxTx-none.png")
-		// c.SetString("rxtx-lights")
-	case "both":
-		RxTxLights.SetAttribute("src", "/img/RxTx.png")
-		// c.SetString("rxtx-lights rxtx-both")
-	case "rx":
-		RxTxLights.SetAttribute("src", "/img/Rx__.png")
-		// c.SetString("rxtx-lights rxtx-rx")
-	case "tx":
-		// RxTxLights.SetAttribute("src", "/img/__Tx.png")
-		print("setting loader")
-		RxTxLights.SetAttribute("src", "/img/loader.gif")
-		// c.SetString("rxtx-lights rxtx-tx")
+	// print("setting lights", rxOn, txOn)
+
+	if rxOn {
+		if txOn {
+			RxTxLights.SetAttribute("src", "/img/RoundRxTx.png")
+
+		} else {
+			RxTxLights.SetAttribute("src", "/img/RoundRx__.png")
+
+		}
+	} else {
+		if txOn {
+			RxTxLights.SetAttribute("src", "/img/Round__Tx.png")
+
+		} else {
+			RxTxLights.SetAttribute("src", "/img/RoundRxTx-none.png")
+
+		}
 	}
 }
 
@@ -85,11 +89,14 @@ func websocketInit() net.Conn {
 	w := dom.GetWindow()
 	doc := w.Document()
 	RxTxLights = doc.QuerySelector("#rxtx")
-	print("set lights to be", RxTxLights)
+	// print("set lights to be", RxTxLights)
 	if RxTxLights == nil {
 		print("ERROR: No Lights !!!")
 	} else {
-		Lights("")
+		// print("init lights null")
+		rxOn = false
+		txOn = false
+		Lights()
 	}
 
 	return wss
@@ -105,10 +112,36 @@ type myClientCodec struct {
 	async         bool
 }
 
+func txOff() {
+	// run this in a goroutine with a short delay, in order to yield the
+	// CPU and give the browser a chance to update the lights
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		// print("txOff")
+		txOn = false
+		Lights()
+	}()
+}
+
+func rxOff() {
+	// run this in a goroutine with a short delay, in order to yield the
+	// CPU and give the browser a chance to update the lights
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		// print("rxOff")
+		rxOn = false
+		Lights()
+	}()
+}
+
 func (c *myClientCodec) WriteRequest(r *rpc.Request, body interface{}) (err error) {
 	// print("rpc ->", r.ServiceMethod)
-	Lights("tx")
-	defer Lights("")
+	// print("wr")
+	txOn = true
+	Lights()
+
+	defer txOff()
+
 	if err = c.enc.Encode(r); err != nil {
 		return
 	}
@@ -124,12 +157,20 @@ type MsgPayload struct {
 
 func (c *myClientCodec) ReadResponseHeader(r *rpc.Response) error {
 
-	Lights("")
+	// print("rrh - blocking read")
+	rxOff()
+	// rxOn = false
+	// Lights()
 
 	c.async = false
 	c.serviceMethod = ""
+
+	// This will block untill there is something new on the socket to read
 	err := c.dec.Decode(r)
-	Lights("rx")
+
+	// print("rrh - got a header, start reading body")
+	rxOn = true
+	Lights()
 
 	// print("rpc header <-", r)
 	if err != nil {
@@ -185,11 +226,16 @@ func (c *myClientCodec) ReadResponseBody(body interface{}) error {
 		// print("appear to be async with body of ", body)
 		// processAsync(c.serviceMethod, body)
 		processAsync(c.serviceMethod, msg)
-		Lights("")
+		// print("pa")
+		txOn = false
+		Lights()
 		return nil
 	}
 
 	err := c.dec.Decode(body)
+	print("rrb")
+	txOn = false
+	Lights()
 	return err
 }
 
