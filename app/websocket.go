@@ -45,18 +45,22 @@ func Lights() {
 
 	if rxOn {
 		if txOn {
-			RxTxLights.SetAttribute("src", "/img/RoundRxTx.png")
+			// RxTxLights.SetAttribute("src", "/img/RoundRxTxB.png")
+			RxTxLights.SetAttribute("src", "/img/sbs-logo-tr.png")
 
 		} else {
-			RxTxLights.SetAttribute("src", "/img/RoundRx__.png")
+			// RxTxLights.SetAttribute("src", "/img/RoundRx__B.png")
+			RxTxLights.SetAttribute("src", "/img/sbs-logo-nr.png")
 
 		}
 	} else {
 		if txOn {
-			RxTxLights.SetAttribute("src", "/img/Round__Tx.png")
+			// RxTxLights.SetAttribute("src", "/img/Round__TxB.png")
+			RxTxLights.SetAttribute("src", "/img/sbs-logo-tn.png")
 
 		} else {
-			RxTxLights.SetAttribute("src", "/img/RoundRxTx-none.png")
+			// RxTxLights.SetAttribute("src", "/img/RoundRxTx-none.png")
+			RxTxLights.SetAttribute("src", "/img/sbs-logo-nn.png")
 
 		}
 	}
@@ -233,9 +237,10 @@ func (c *myClientCodec) ReadResponseBody(body interface{}) error {
 	}
 
 	err := c.dec.Decode(body)
-	print("rrb")
-	txOn = false
-	Lights()
+	txOff()
+	// print("rrb")
+	// txOn = false
+	// Lights()
 	return err
 }
 

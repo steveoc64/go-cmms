@@ -93,7 +93,7 @@ func _stoppageList(action string, id int) {
 		// cform.Column("Machine", "MachineName")
 		// cform.Column("Component", "ToolType")
 		cform.Column("Component", "GetComponent")
-		cform.ImgColumn("Photo", "Photo")
+		cform.MultiImgColumn("Photo", "Photos", "Thumb")
 		cform.Column("Notes", "Notes")
 		// cform.Column("Status", "GetStatus")
 
