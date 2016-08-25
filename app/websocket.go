@@ -52,6 +52,7 @@ func Lights(s string) {
 		// c.SetString("rxtx-lights rxtx-rx")
 	case "tx":
 		// RxTxLights.SetAttribute("src", "/img/__Tx.png")
+		print("setting loader")
 		RxTxLights.SetAttribute("src", "/img/loader.gif")
 		// c.SetString("rxtx-lights rxtx-tx")
 	}

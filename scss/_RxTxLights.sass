@@ -1,0 +1,32 @@
+// RxTx Lights  FTW
+// ––––––––––––––––––––––––––––––––––––––––––––––––––
+
+// The base font-size is set at 62.5% for having the convenience
+// of sizing rems in a way that is similar to using px. 1.6rem=16px
+html
+	box-sizing: border-box
+	font-size: 62.5%
+
+.rxtx-lights
+  height: 24
+  width: 24
+  display: inline
+  float: right
+
+@media print
+  .rxtx-lights
+  display: none !important
+
+.rxtx-rx
+  // background: url("../img/Rx__.png")
+  content: url("../img/Rx__.png")
+  // content: url("../img/loader.gif")
+
+.rxtx-tx
+  // background: url("../img/__Tx.png")
+  content: url("../img/__Tx.png")
+  // content: url("../img/loader.gif")
+
+.rxtx-both
+  background: url("../img/RxTx.png")
+
