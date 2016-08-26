@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"itrak-cmms/shared"
@@ -39,7 +40,7 @@ func _stoppageList(action string, id int) {
 	// form.Column("Machine", "MachineName")
 	// form.Column("Component", "ToolType")
 	form.Column("Component", "GetComponent")
-	form.ImgColumn("Photo", "Photo")
+	form.MultiImgColumn("Photo", "Photos", "Thumb")
 	form.Column("Notes", "Notes")
 
 	switch Session.UserRole {
@@ -208,8 +209,9 @@ func _stoppageEdit(action string, id int) {
 			AddDisplay(1, "StartDate", "DisplayDate").
 			AddDisplay(1, "Raised By", "Username")
 
-		form.Row(1).
-			AddPreview(1, "Photo", "PhotoPreview")
+		form.Row(5).
+			AddPhoto(1, "Add Photo", "NewPhoto").
+			AddCustom(4, "Photos", "Photos", "")
 
 		form.Row(1).
 			AddDisplayArea(1, "Notes", "Notes")
@@ -247,12 +249,25 @@ func _stoppageEdit(action string, id int) {
 			form.SaveEvent(func(evt dom.Event) {
 				evt.PreventDefault()
 				form.Bind(&event)
+
+				if event.NewPhoto.Data != "" {
+					showProgress("Updating Event ...")
+
+					// If the uploaded data is a PDF, then use that data instead of the preview
+					if isPDF {
+						event.NewPhoto.Data = PDFData
+						isPDF = false
+					}
+
+				}
+
 				go func() {
 					done := false
 					rpcClient.Call("EventRPC.Update", shared.EventRPCData{
 						Channel: Session.Channel,
 						Event:   &event,
 					}, &done)
+					hideProgress()
 					Session.Navigate(BackURL)
 				}()
 			})
@@ -261,34 +276,8 @@ func _stoppageEdit(action string, id int) {
 
 	// All done, so render the form
 	form.Render("edit-form", "main", &event)
-
-	// w := dom.GetWindow()
-	// doc := w.Document()
-	// photoPreview := doc.QuerySelector("[name=PhotoPreviewPreview]").(*dom.HTMLImageElement)
-
-	// // If photo is blank, hide the preview
-	// if event.Photo.Preview == "" {
-	// 	photoPreview.Class().Add("hidden")
-	// } else {
-	// 	photoPreview.AddEventListener("click", false, func(evt dom.Event) {
-	// 		evt.PreventDefault()
-
-	// 		go func() {
-	// 			showProgress("Loading Photo ...")
-	// 			photo := shared.Photo{}
-	// 			rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
-	// 				Channel: Session.Channel,
-	// 				ID:      event.PhotoID,
-	// 			}, &photo)
-
-	// 			photoPreview.Src = photo.Data
-	// 			photoPreview.Class().Remove("photopreview")
-	// 			photoPreview.Class().Add("photofull")
-	// 			hideProgress()
-	// 		}()
-
-	// 	})
-	// }
+	setPhotoField("NewPhoto")
+	showEventPhotos(event)
 
 	// and show the assignments
 	loadTemplate("stoppage-assigned-to", "[name=AssignedTo]", event)
@@ -317,6 +306,71 @@ func _stoppageEdit(action string, id int) {
 		}
 	}
 
+}
+
+func showEventPhotos(event shared.Event) {
+	// print("populate the photos", event)
+
+	w := dom.GetWindow()
+	doc := w.Document()
+	div := doc.QuerySelector("[name=Photos]")
+	div.SetInnerHTML("")
+
+	for _, v := range event.Photos {
+		// print(k, ":", v)
+		// Create an image widget, and add it to the photos block
+		i := doc.CreateElement("img").(*dom.HTMLImageElement)
+		i.SetAttribute("photo-id", fmt.Sprintf("%d", v.ID))
+		i.Class().SetString("photopreview")
+		i.Src = v.Preview
+		switch v.Type {
+		case "PDF":
+			// Is a PDF, so wrap the image with a box that includes the filename
+			// and auto-break on each doc
+
+			wspan := doc.CreateElement("div")
+			wspan.AppendChild(i)
+			p := doc.CreateElement("p")
+			p.SetInnerHTML(v.Filename)
+			wspan.AppendChild(p)
+			div.AppendChild(wspan)
+		case "Image":
+			div.AppendChild(i)
+		case "photo":
+			print("WARNING: This is an old format attachment of type photo")
+			print("v", v)
+			print("Please run  \"update photo set type='Image' where type='photo';\" on database ....")
+		default:
+			print("adding attachment of unknown type", v.Type, "dt", v.Datatype, "fn", v.Filename)
+			print("v", v)
+		}
+		// print("attaching click event to i", i)
+		i.AddEventListener("click", false, func(evt dom.Event) {
+			print("click on attachment preview image")
+			evt.PreventDefault()
+			theID, _ := strconv.Atoi(evt.Target().GetAttribute("photo-id"))
+
+			go func() {
+				photo := shared.Photo{}
+				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
+					Channel: Session.Channel,
+					ID:      theID,
+				}, &photo)
+				flds := strings.SplitN(photo.Data, ",", 2)
+				print("got full photo", flds[0])
+				switch flds[0] {
+				case "data:application/pdf;base64":
+					w.Open(photo.Data, "", "")
+				case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
+					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
+						doc.QuerySelector("#show-image").Class().Add("md-show")
+						el2.Src = photo.Data
+					}
+				}
+
+			}()
+		})
+	}
 }
 
 func stoppageComplete(context *router.Context) {

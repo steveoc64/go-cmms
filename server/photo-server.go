@@ -111,7 +111,7 @@ func (u *UtilRPC) GetPhoto(data shared.PhotoRPCData, photo *shared.Photo) error 
 	conn := Connections.Get(data.Channel)
 
 	DB.SQL(`select
-			id,notes,preview,entity,entity_id,filename,
+			id,notes,preview,entity,entity_id,filename,type,datatype,
 			length(photo) as length,
 			length(preview) as length_p,
 			length(thumb) as length_t

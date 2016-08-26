@@ -315,10 +315,6 @@ func _taskEdit(action string, id int) {
 		form.Row(5).
 			AddPhoto(1, "Add Photo", "NewPhoto").
 			AddCustom(4, "Photos", "Photos", "")
-			// AddPreview(1, "", "StoppagePreview").
-			// AddPreview(1, "", "Preview1").
-			// AddPreview(1, "", "Preview2").
-			// AddPreview(1, "", "Preview3")
 
 		if task.CompletedDate == nil {
 			form.Row(1).

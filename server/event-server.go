@@ -344,7 +344,7 @@ func (e *EventRPC) Get(data shared.EventRPCData, event *shared.Event) error {
 	DB.SQL(`select id,preview,filename,type,datatype,entity,entity_id,notes
 		from photo 
 		where entity='event' and entity_id=$1`, id).
-		QueryStruct(&event.Photos)
+		QueryStructs(&event.Photos)
 
 	logger(start, "Event.Get",
 		fmt.Sprintf("ID %d", id),
@@ -363,6 +363,24 @@ func (e *EventRPC) Update(data shared.EventRPCData, done *bool) error {
 		SetWhitelist(data.Event, "notes").
 		Where("id = $1", data.Event.ID).
 		Exec()
+
+	// If there is a new photo to be added to the task, then add it
+	if data.Event.NewPhoto.Data != "" {
+		println("Adding new photo", data.Event.NewPhoto.Data[:22])
+		photo := shared.Photo{
+			Data:     data.Event.NewPhoto.Data,
+			Filename: data.Event.NewPhoto.Filename,
+			Entity:   "event",
+			EntityID: data.Event.ID,
+		}
+
+		// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
+		decodePhoto(&photo)
+		DB.InsertInto("photo").
+			Columns("entity", "entity_id", "photo", "thumb", "preview", "type", "datatype", "filename").
+			Record(photo).
+			Exec()
+	}
 
 	logger(start, "Event.Update",
 		fmt.Sprintf("Channel %d, Event %d User %d %s %s",
