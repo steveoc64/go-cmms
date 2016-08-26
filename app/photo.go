@@ -14,14 +14,63 @@ import (
 	"honnef.co/go/js/dom"
 )
 
-var PDFImage string
-var PDFData string
-var isPDF bool
+type CachedImages struct {
+	ImageData string
+
+	PDFImage string
+	PDFData  string
+	isPDF    bool
+
+	RawDataImage string
+	RawData      string
+	isRawData    bool
+}
+
+func (c *CachedImages) Clear() {
+	c.isPDF = false
+	c.isRawData = false
+	c.PDFData = ""
+	c.RawData = ""
+	c.ImageData = ""
+}
+
+func (c *CachedImages) SetPDF(data string) {
+	c.PDFData = data
+	c.isPDF = true
+	c.isRawData = false
+}
+
+func (c *CachedImages) SetRawData(data string) {
+	c.RawData = data
+	c.isRawData = true
+	c.isPDF = false
+}
+
+func (c *CachedImages) SetImage(data string) {
+	c.ImageData = data
+	c.isRawData = false
+	c.isPDF = false
+}
+
+func (c *CachedImages) GetImage() string {
+	if c.isPDF {
+		return c.PDFData
+	}
+	if c.isRawData {
+		return c.RawData
+	}
+	return c.ImageData
+}
+
+var ImageCache CachedImages
 
 func GetPDFImage() {
 	go func() {
-		rpcClient.Call("UtilRPC.GetPDF", Session.Channel, &PDFImage)
-		print("Cached standard PDF image", PDFImage[:44])
+		rpcClient.Call("UtilRPC.GetPDFImage", Session.Channel, &ImageCache.PDFImage)
+		print("Cached standard PDF image", ImageCache.PDFImage[:44])
+
+		rpcClient.Call("UtilRPC.GetRawDataImage", Session.Channel, &ImageCache.RawDataImage)
+		print("Cached raw data image", ImageCache.RawDataImage[:44])
 	}()
 }
 
@@ -56,19 +105,20 @@ func setPhotoUploadField(f string, allowPDF bool) {
 			fileReader.Set("onload", func(e *js.Object) {
 				target := e.Get("target")
 				imgData := target.Get("result").String()
-				print("imgdata =", imgData[:80])
+				// print("imgdata =", imgData[:80])
 				flds := strings.Split(imgData, ";")
+				print("attachment type", flds[0])
 				imgEl := doc.QuerySelector(fmt.Sprintf("[name=%sPreview]", f)).(*dom.HTMLImageElement)
 
+				ImageCache.Clear()
 				switch flds[0] {
 				case "data:application/pdf":
 					// if is pdf, then load the standard preview into the field
 					if allowPDF {
 
-						imgEl.Src = PDFImage
+						imgEl.Src = ImageCache.PDFImage
 						imgEl.Class().Remove("hidden")
-						PDFData = imgData
-						isPDF = true
+						ImageCache.SetPDF(imgData)
 						print("photo changed and looks like a PDF")
 					} else {
 						w.Alert("ERROR: This screen only allows photos, not PDF files.")
@@ -76,8 +126,15 @@ func setPhotoUploadField(f string, allowPDF bool) {
 				case "data:image/jpeg", "data:image/png", "data:image/gif":
 					// if is image, then load the image into the preview
 					imgEl.Src = imgData
+					ImageCache.SetImage(imgData)
 					imgEl.Class().Remove("hidden")
-					isPDF = false
+				default:
+					print("Adding data of unknown type", flds[0])
+					if allowPDF {
+						imgEl.Src = ImageCache.RawDataImage
+						imgEl.Class().Remove("hidden")
+						ImageCache.SetRawData(imgData)
+					}
 				}
 			})
 			fileReader.Set("onerror", func(e *js.Object) {
@@ -313,9 +370,7 @@ func phototestAdd(context *router.Context) {
 			print("post bind into", photo)
 
 			// If the uploaded data is a PDF, then use that data instead of the preview
-			if isPDF {
-				photo.Photo.Data = PDFData
-			}
+			photo.Photo.Data = ImageCache.GetImage()
 
 			go func() {
 				newID := 0

@@ -362,6 +362,7 @@ create index stdimg_code_idx on stdimg (code);
 
 truncate stdimg restart IDENTITY;
 insert into stdimg (code,photo,preview,thumb) select 'PDF',photo,preview,thumb from photo where id=xxxxx;
+insert into stdimg (code,photo,preview,thumb) select 'Data',photo,preview,thumb from photo where id=xxxxx;
 
 insert into migration (name) values ('Add standard img table');
 

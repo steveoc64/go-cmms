@@ -8,6 +8,7 @@ import (
 	"image/gif"
 	_ "image/jpeg"
 	_ "image/png"
+	"log"
 	"strings"
 	"time"
 
@@ -220,7 +221,7 @@ func cachePDFImage() {
 	}
 }
 
-func (u *UtilRPC) GetPDF(channel int, pdf *string) error {
+func (u *UtilRPC) GetPDFImage(channel int, pdf *string) error {
 	start := time.Now()
 
 	conn := Connections.Get(channel)
@@ -230,7 +231,36 @@ func (u *UtilRPC) GetPDF(channel int, pdf *string) error {
 	*pdf = ""
 	DB.SQL(`select id,photo from stdimg where code='PDF'`).QueryScalar(&id, pdf)
 
-	logger(start, "Util.GetPDF",
+	if id == 0 {
+		log.Println("ERROR: there is no std PDF image")
+		return nil
+	}
+
+	logger(start, "Util.GetPDFImage",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("Img ID %d size %d header %s", id, len(*pdf), (*pdf)[:44]),
+		channel, conn.UserID, "stdimg", id, false)
+
+	return nil
+}
+
+func (u *UtilRPC) GetRawDataImage(channel int, pdf *string) error {
+	start := time.Now()
+
+	conn := Connections.Get(channel)
+
+	// Save the data
+	id := 0
+	*pdf = ""
+	DB.SQL(`select id,photo from stdimg where code='Data'`).QueryScalar(&id, pdf)
+
+	if id == 0 {
+		log.Println("ERROR: there is no std RawData image")
+		return nil
+	}
+
+	logger(start, "Util.GetRawDataImage",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("Img ID %d size %d header %s", id, len(*pdf), (*pdf)[:44]),

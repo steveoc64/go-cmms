@@ -444,10 +444,7 @@ func schedEdit(context *router.Context) {
 			}
 
 			// If the uploaded data is a PDF, then use that data instead of the preview
-			if task.NewPhoto.Data != "" && isPDF {
-				task.NewPhoto.Data = PDFData
-				isPDF = false
-			}
+			task.NewPhoto.Data = ImageCache.GetImage()
 
 			go func() {
 				done := false

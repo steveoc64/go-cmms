@@ -413,11 +413,7 @@ func _taskEdit(action string, id int) {
 				showProgress("Updating Task ...")
 
 				// If the uploaded data is a PDF, then use that data instead of the preview
-				if isPDF {
-					task.NewPhoto.Data = PDFData
-					isPDF = false
-				}
-
+				task.NewPhoto.Data = ImageCache.GetImage()
 			}
 			go func() {
 				updatedTask := shared.Task{}

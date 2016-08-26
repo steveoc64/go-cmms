@@ -254,11 +254,7 @@ func _stoppageEdit(action string, id int) {
 					showProgress("Updating Event ...")
 
 					// If the uploaded data is a PDF, then use that data instead of the preview
-					if isPDF {
-						event.NewPhoto.Data = PDFData
-						isPDF = false
-					}
-
+					event.NewPhoto.Data = ImageCache.GetImage()
 				}
 
 				go func() {
