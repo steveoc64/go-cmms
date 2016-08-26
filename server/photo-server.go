@@ -5,9 +5,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"image"
-	"image/gif"
+	_ "image/gif"
 	_ "image/jpeg"
-	_ "image/png"
+	png "image/png"
 	"log"
 	"strings"
 	"time"
@@ -56,22 +56,33 @@ func decodePhoto(photo *shared.Photo) error {
 		println("Decode Error", err.Error())
 		// log.Fatal(err)
 	} else {
+		var Enc png.Encoder
+		Enc.CompressionLevel = -3 // best compression
+		bb := m.Bounds()
+		print("decoded image with bounds:", uint(bb.Dx()), ":", uint(bb.Dy()), "\n")
 		// create the thumbnail and a preview
 		var tb bytes.Buffer
-		thumbVar := resize.Resize(64, 0, m, resize.Lanczos3)
+		// thumbVar := resize.Resize(64, 0, m, resize.Lanczos3)
+		thumbVar := resize.Thumbnail(64, 64, m, resize.Lanczos3)
 		encoder := base64.NewEncoder(base64.StdEncoding, &tb)
 		// jpeg.Encode(encoder, thumbVar, &jpeg.Options{Quality: 50})
-		gif.Encode(encoder, thumbVar, &gif.Options{NumColors: 256})
+		// gif.Encode(encoder, thumbVar, &gif.Options{NumColors: 256})
+
+		Enc.Encode(encoder, thumbVar)
 		// photo.Thumb = "data:image/jpeg;base64," + tb.String()
-		photo.Thumb = "data:image/gif;base64," + tb.String()
+		// photo.Thumb = "data:image/gif;base64," + tb.String()
+		photo.Thumb = "data:image/png;base64," + tb.String()
 
 		var pb bytes.Buffer
-		previewVar := resize.Resize(240, 0, m, resize.Lanczos3)
+		// previewVar := resize.Resize(170, 0, m, resize.Lanczos3)
+		previewVar := resize.Thumbnail(170, 128, m, resize.Lanczos3)
 		encoder = base64.NewEncoder(base64.StdEncoding, &pb)
-		// jpeg.Encode(encoder, previewVar, &jpeg.Options{Quality: 75})
-		gif.Encode(encoder, previewVar, &gif.Options{NumColors: 256})
+		// jpeg.Encode(encoder, previewVar, &jpeg.Options{Quality: 100})
+		// gif.Encode(encoder, previewVar, &gif.Options{NumColors: 256})
+		Enc.Encode(encoder, previewVar)
 		// photo.Preview = "data:image/jpeg;base64," + pb.String()
-		photo.Preview = "data:image/gif;base64," + pb.String()
+		// photo.Preview = "data:image/gif;base64," + pb.String()
+		photo.Preview = "data:image/png;base64," + pb.String()
 	}
 
 	return nil

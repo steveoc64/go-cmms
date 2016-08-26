@@ -144,6 +144,7 @@ func stoppageEdit(context *router.Context) {
 func _stoppageEdit(action string, id int) {
 
 	BackURL := "/stoppages"
+	RefreshURL := fmt.Sprintf("/stoppage/%d", id)
 
 	switch action {
 	case "edit":
@@ -264,7 +265,9 @@ func _stoppageEdit(action string, id int) {
 						Event:   &event,
 					}, &done)
 					hideProgress()
-					Session.Navigate(BackURL)
+					// Session.Navigate(BackURL)
+					print("go to", RefreshURL)
+					Session.Navigate(RefreshURL)
 				}()
 			})
 		}

@@ -364,6 +364,10 @@ truncate stdimg restart IDENTITY;
 insert into stdimg (code,photo,preview,thumb) select 'PDF',photo,preview,thumb from photo where id=xxxxx;
 insert into stdimg (code,photo,preview,thumb) select 'Data',photo,preview,thumb from photo where id=xxxxx;
 
+update photo set preview=(select preview from stdimg where code='PDF') where type='PDF';
+update photo set thumb = (select thumb from stdimg where code='PDF') where type='PDF';
+
+	
 insert into migration (name) values ('Add standard img table');
 
 -- 2016 08 16

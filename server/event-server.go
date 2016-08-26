@@ -343,7 +343,8 @@ func (e *EventRPC) Get(data shared.EventRPCData, event *shared.Event) error {
 	// Get the photo preview if present
 	DB.SQL(`select id,preview,filename,type,datatype,entity,entity_id,notes
 		from photo 
-		where entity='event' and entity_id=$1`, id).
+		where entity='event' and entity_id=$1
+		order by type,id desc`, id).
 		QueryStructs(&event.Photos)
 
 	logger(start, "Event.Get",
