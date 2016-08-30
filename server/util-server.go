@@ -252,6 +252,48 @@ func (u *UtilRPC) MTT(channel int, result *string) error {
 	return nil
 }
 
+// Patch up the Machine Components to point to the correct Machine Type Tool by ID
+func (u *UtilRPC) Thumbnails(channel int, result *string) error {
+	start := time.Now()
+
+	conn := Connections.Get(channel)
+	*result = ""
+
+	if conn.UserRole == "Admin" && conn.Username == "steve" {
+		r := "Generating Thumbnails\n"
+
+		photos := []shared.Photo{}
+		DB.SQL(`select * from photo order by id`).QueryStructs(&photos)
+
+		mt := 0
+		mtt := 0
+
+		// patched := 0
+		for _, c := range components {
+
+			DB.SQL(`select machine_type from machine where id=$1`, c.MachineID).QueryScalar(&mt)
+			DB.SQL(`select id from machine_type_tool where machine_id=$1 and position=$2`, mt, c.Position).QueryScalar(&mtt)
+			r += fmt.Sprintf("Component ID %d: Machine %d:%d MT %d MTT %d  %s\n",
+				c.ID,
+				c.MachineID, c.Position,
+				mt, mtt,
+				c.Name)
+			DB.SQL(`update component set mtt_id=$1 where id=$2`, mtt, c.ID).Exec()
+
+		}
+		*result = r
+
+	}
+
+	logger(start, "Util.Thumbnails",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			channel, conn.UserID, conn.Username, conn.UserRole),
+		*result,
+		channel, conn.UserID, "component", 0, true)
+
+	return nil
+}
+
 // Move all photos into their own table
 // TODO - this function can be removed soon, as its no longer needed
 // func (u *UtilRPC) PhotoMove(channel int, result *string) error {

@@ -256,6 +256,10 @@ func adminUtils(context *router.Context) {
 				Session.Navigate("/testeditor")
 			case "phototest":
 				Session.Navigate("/phototest")
+			case "thumbnails":
+				if w.Confirm("Generate New Thumbnails and Previews ?") {
+					rpcClient.Call("UtilRPC.Thumbs", Session.Channel, &retval)
+				}
 			default:
 				print("ERROR - unknown utility", url)
 				return

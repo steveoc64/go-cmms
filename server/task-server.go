@@ -498,7 +498,7 @@ func (t *TaskRPC) StoppageList(data shared.TaskRPCData, tasks *[]shared.Task) er
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
 		where t.event_id=$1
-		order by t.startdate`, data.ID).
+		order by t.startdate desc,id desc`, data.ID).
 		QueryStructs(tasks)
 
 	if err != nil {
