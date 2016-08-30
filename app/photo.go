@@ -67,10 +67,10 @@ var ImageCache CachedImages
 func GetPDFImage() {
 	go func() {
 		rpcClient.Call("UtilRPC.GetPDFImage", Session.Channel, &ImageCache.PDFImage)
-		print("Cached standard PDF image", ImageCache.PDFImage[:44])
+		// print("Cached standard PDF image", ImageCache.PDFImage[:44])
 
 		rpcClient.Call("UtilRPC.GetRawDataImage", Session.Channel, &ImageCache.RawDataImage)
-		print("Cached raw data image", ImageCache.RawDataImage[:44])
+		// print("Cached raw data image", ImageCache.RawDataImage[:44])
 	}()
 }
 
@@ -92,14 +92,14 @@ func setPhotoUploadField(f string, allowPDF bool) {
 
 		// Set the attribute to say what types of data the field can accept
 		el.AddEventListener("change", false, func(evt dom.Event) {
-			print("filename may =", el.Value)
+			// print("filename may =", el.Value)
 			lastSlash := strings.LastIndex(el.Value, `\`)
 			fileName := el.Value
 			if lastSlash > -1 {
 				fileName = fileName[lastSlash+1:]
 			}
-			print("filename computed to", fileName)
-			print("in the change event and allowPDF = ", allowPDF)
+			// print("filename computed to", fileName)
+			// print("in the change event and allowPDF = ", allowPDF)
 			files := el.Files()
 			fileReader := js.Global.Get("FileReader").New()
 			fileReader.Set("onload", func(e *js.Object) {
@@ -107,7 +107,7 @@ func setPhotoUploadField(f string, allowPDF bool) {
 				imgData := target.Get("result").String()
 				// print("imgdata =", imgData[:80])
 				flds := strings.Split(imgData, ";")
-				print("attachment type", flds[0])
+				// print("attachment type", flds[0])
 				imgEl := doc.QuerySelector(fmt.Sprintf("[name=%sPreview]", f)).(*dom.HTMLImageElement)
 
 				ImageCache.Clear()
@@ -119,7 +119,7 @@ func setPhotoUploadField(f string, allowPDF bool) {
 						imgEl.Src = ImageCache.PDFImage
 						imgEl.Class().Remove("hidden")
 						ImageCache.SetPDF(imgData)
-						print("photo changed and looks like a PDF")
+						// print("photo changed and looks like a PDF")
 					} else {
 						w.Alert("ERROR: This screen only allows photos, not PDF files.")
 					}
@@ -129,11 +129,13 @@ func setPhotoUploadField(f string, allowPDF bool) {
 					ImageCache.SetImage(imgData)
 					imgEl.Class().Remove("hidden")
 				default:
-					print("Adding data of unknown type", flds[0])
+					// print("Adding data of unknown type", flds[0])
 					if allowPDF {
 						imgEl.Src = ImageCache.RawDataImage
 						imgEl.Class().Remove("hidden")
 						ImageCache.SetRawData(imgData)
+					} else {
+						w.Alert("ERROR: This screen only allows photos, please try again")
 					}
 				}
 			})
@@ -312,7 +314,12 @@ func phototestEdit(context *router.Context) {
 					print("got full photo", flds[0])
 					switch flds[0] {
 					case "data:application/pdf;base64":
+						print("open PDF in new window")
 						w.Open(photo.Data, "", "")
+					default:
+						print("file of type", flds[0])
+						w.Open(photo.Data, "", "")
+						// print("data is", photo.Data)
 					case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
 						// print("got fullsize image")
 						el.Src = photo.Data

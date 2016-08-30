@@ -230,6 +230,18 @@ func (t *Task) GetID() string {
 	return fmt.Sprintf("%06d%s", t.ID, s)
 }
 
+func (t *Task) GetUserNameID() string {
+	s := ""
+	if t.SchedID != 0 {
+		s = "-P"
+	}
+	u := ""
+	if t.Username != nil {
+		u = *t.Username
+	}
+	return fmt.Sprintf("%06d%s\n%s", t.ID, s, u)
+}
+
 func (t *Task) GetSource() string {
 	if t.SchedID != 0 {
 		return "P"
@@ -342,4 +354,9 @@ type HashtagRPCData struct {
 	Channel int
 	ID      int
 	Hashtag *Hashtag
+}
+
+type PartsUsedUpdate struct {
+	NewStockOnHand    float64
+	TotalMaterialCost float64
 }

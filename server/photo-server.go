@@ -45,8 +45,10 @@ func decodePhoto(photo *shared.Photo) error {
 		photo.Type = "PDF"
 		return nil
 	default:
-		println("unknown file format", f[0])
-		photo.Type = "Unknown"
+		println("Misc. file format", f[0])
+		photo.Type = "Data"
+		photo.Thumb = RawDataThumb
+		photo.Preview = RawDataPreview
 		return nil
 	}
 
@@ -220,6 +222,9 @@ func (u *UtilRPC) DeletePhoto(data shared.PhotoRPCData, done *bool) error {
 var PDFImage string
 var PDFPreview string
 var PDFThumb string
+var RawDataImage string
+var RawDataPreview string
+var RawDataThumb string
 
 func cachePDFImage() {
 	id := 0
@@ -229,6 +234,14 @@ func cachePDFImage() {
 		fmt.Printf("Cached PDF Image %d len %d header %s\n", id, len(PDFImage), PDFImage[:44])
 	} else {
 		println("*** No standard PDF Image in database ... please fix !!! ***")
+	}
+	id = 0
+	RawDataImage = ""
+	DB.SQL(`select id,photo,preview,thumb from stdimg where code='Data'`).QueryScalar(&id, &RawDataImage, &RawDataPreview, &RawDataThumb)
+	if id > 0 {
+		fmt.Printf("Cached RawData Image %d len %d header %s\n", id, len(RawDataImage), RawDataImage[:44])
+	} else {
+		println("*** No standard Data Image in database ... please fix !!! ***")
 	}
 }
 

@@ -29,7 +29,7 @@ func _stoppageList(action string, id int) {
 	form.New("fa-pause-circle-o", "Current Stoppages")
 
 	// Define the layout
-	form.Column("Raised By", "Username")
+	form.Column("ID/User", "GetUserNameID")
 	form.Column("Date", "GetStartDate")
 
 	// if Session.UserRole == "Admin" {
@@ -192,7 +192,7 @@ func _stoppageEdit(action string, id int) {
 
 		form.Row(5).
 			AddPhoto(1, "Add Photo", "NewPhoto").
-			AddCustom(4, "Photos", "Photos", "")
+			AddCustom(4, "Attachments", "Photos", "")
 
 		form.Row(1).
 			AddBigTextarea(1, "Notes", "Notes")
@@ -212,7 +212,7 @@ func _stoppageEdit(action string, id int) {
 
 		form.Row(5).
 			AddPhoto(1, "Add Photo", "NewPhoto").
-			AddCustom(4, "Photos", "Photos", "")
+			AddCustom(4, "Attachments", "Photos", "")
 
 		form.Row(1).
 			AddDisplayArea(1, "Notes", "Notes")
@@ -266,7 +266,7 @@ func _stoppageEdit(action string, id int) {
 					}, &done)
 					hideProgress()
 					// Session.Navigate(BackURL)
-					print("go to", RefreshURL)
+					// print("go to", RefreshURL)
 					Session.Navigate(RefreshURL)
 				}()
 			})
@@ -340,8 +340,12 @@ func showEventPhotos(event shared.Event) {
 			print("v", v)
 			print("Please run  \"update photo set type='Image' where type='photo';\" on database ....")
 		default:
-			print("adding attachment of unknown type", v.Type, "dt", v.Datatype, "fn", v.Filename)
-			print("v", v)
+			wspan := doc.CreateElement("div")
+			wspan.AppendChild(i)
+			p := doc.CreateElement("p")
+			p.SetInnerHTML(v.Filename)
+			wspan.AppendChild(p)
+			div.AppendChild(wspan)
 		}
 		// print("attaching click event to i", i)
 		i.AddEventListener("click", false, func(evt dom.Event) {
@@ -358,7 +362,8 @@ func showEventPhotos(event shared.Event) {
 				flds := strings.SplitN(photo.Data, ",", 2)
 				print("got full photo", flds[0])
 				switch flds[0] {
-				case "data:application/pdf;base64":
+				// case "data:application/pdf;base64":
+				default:
 					w.Open(photo.Data, "", "")
 				case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
 					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {

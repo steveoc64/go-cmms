@@ -400,7 +400,7 @@ func _siteMachines(action string, id int) {
 		ID:      id,
 	}, &data.Machines)
 
-	print("got machines", data.Machines)
+	// print("got machines", data.Machines)
 	if err != nil {
 		print("RPC error", err.Error())
 	} else {
@@ -425,11 +425,11 @@ func _siteMachines(action string, id int) {
 				machinediv.AddEventListener("click", false, func(evt dom.Event) {
 					machine_id, _ := strconv.Atoi(machinediv.GetAttribute("machine-id"))
 					machinemenu := doc.GetElementByID("machine-menu").(*dom.BasicHTMLElement)
-					print("click", evt)
+					// print("click", evt)
 
 					// evt.Target points to the SVG sub element that took the click
 					t1 := evt.Target()
-					print("t1", t1)
+					// print("t1", t1)
 
 					// now we have to walk UP the tree until we find a containing parent
 					// element that has a declared tool type
@@ -439,13 +439,13 @@ func _siteMachines(action string, id int) {
 
 					for !foundOne && !hitEnd {
 						tooltype = t1.GetAttribute("tooltype")
-						print("tooltype", tooltype)
+						// print("tooltype", tooltype)
 						if tooltype != "" {
-							print("clickd on ", t1.TagName(), " with tooltype =", tooltype)
+							// print("clickd on ", t1.TagName(), " with tooltype =", tooltype)
 							foundOne = true
 						} else {
 							t1 = t1.ParentElement()
-							print("stepping up to parent", t1.TagName())
+							// print("stepping up to parent", t1.TagName())
 							switch t1.TagName() {
 							case "div", "body", "DIV", "BODY", "HTML":
 								hitEnd = true

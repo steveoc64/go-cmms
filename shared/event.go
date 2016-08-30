@@ -86,6 +86,10 @@ func (e *Event) GetStartDate() string {
 	return e.StartDate.Format(datetimeDisplayFormat)
 }
 
+func (e *Event) GetUserNameID() string {
+	return fmt.Sprintf("%06d\n%s", e.ID, e.Username)
+}
+
 func (e *Event) GetStatus() string {
 	switch e.Status {
 	case "":

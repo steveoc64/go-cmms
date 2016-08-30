@@ -793,11 +793,11 @@ func machineTypeToolEdit(context *router.Context) {
 			for !foundOne && !hitEnd {
 				tooltype = t.GetAttribute("tooltype")
 				if tooltype != "" {
-					print("clickd on ", t.TagName(), " with tooltype =", tooltype)
+					// print("clickd on ", t.TagName(), " with tooltype =", tooltype)
 					foundOne = true
 				} else {
 					t = t.ParentElement()
-					print("stepping up to parent", t.TagName())
+					// print("stepping up to parent", t.TagName())
 					switch t.TagName() {
 					case "div", "body", "DIV", "BODY", "HTML":
 						hitEnd = true
@@ -809,7 +809,7 @@ func machineTypeToolEdit(context *router.Context) {
 			if toolid == "" {
 				print("not on a tool")
 			} else {
-				print("clicked on a tool", toolid)
+				// print("clicked on a tool", toolid)
 				tid, _ := strconv.Atoi(toolid)
 				if tid != tool {
 					Session.Navigate(fmt.Sprintf("/machinetype/%d/tool/%d", id, tid))

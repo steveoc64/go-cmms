@@ -221,7 +221,7 @@ func _taskEdit(action string, id int) {
 
 		form.Row(5).
 			AddPhoto(1, "Add Photo", "NewPhoto").
-			AddCustom(4, "Photos", "Photos", "")
+			AddCustom(4, "Attachments", "Photos", "")
 			// AddPreview(1, "", "StoppagePreview").
 			// AddPreview(1, "", "Preview1").
 			// AddPreview(1, "", "Preview2").
@@ -241,8 +241,10 @@ func _taskEdit(action string, id int) {
 
 		form.Row(3).
 			AddDecimal(1, fmt.Sprintf("Hours%s", rateStr), "LabourHrs", 2, "0.5").
-			AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1").
-			AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1")
+			// AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1").
+			AddDisplay(1, "Actual Labour $", "LabourCost").
+			// AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1")
+			AddDisplay(1, "Actual Material $", "MaterialCost")
 
 		// form.Row(4).
 		// 	AddDisplay(2, "Labour Est $", "LabourEst").
@@ -266,7 +268,7 @@ func _taskEdit(action string, id int) {
 
 		form.Row(5).
 			AddPhoto(1, "Add Photo", "NewPhoto").
-			AddCustom(4, "Photos", "Photos", "")
+			AddCustom(4, "Attachments", "Photos", "")
 			// AddPreview(1, "", "StoppagePreview").
 			// AddPreview(1, "", "Preview1").
 			// AddPreview(1, "", "Preview2").
@@ -280,8 +282,10 @@ func _taskEdit(action string, id int) {
 
 		form.Row(3).
 			AddDecimal(1, "Hours", "LabourHrs", 2, "0.5").
-			AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1").
-			AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1")
+			// AddDecimal(1, "Actual Labour $", "LabourCost", 2, "1").
+			AddDisplay(1, "Actual Labour $", "LabourCost").
+			// AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1")
+			AddDisplay(1, "Actual Material $", "MaterialCost")
 
 		// form.Row(4).
 		// 	AddDisplay(2, "Labour Est $", "LabourEst").
@@ -314,7 +318,7 @@ func _taskEdit(action string, id int) {
 
 		form.Row(5).
 			AddPhoto(1, "Add Photo", "NewPhoto").
-			AddCustom(4, "Photos", "Photos", "")
+			AddCustom(4, "Attachments", "Photos", "")
 
 		if task.CompletedDate == nil {
 			form.Row(1).
@@ -563,22 +567,25 @@ func _taskEdit(action string, id int) {
 
 				// Add a change function on the Qty field
 				doc.QuerySelector("[name=QtyUsed]").AddEventListener("change", false, func(evt dom.Event) {
-					print("Change in value of QtyUsed on task", currentPart, id)
+					// print("Change in value of QtyUsed on task", currentPart, id)
 					qtyValue := doc.QuerySelector("[name=QtyUsed]").(*dom.HTMLInputElement).Value
-					print("qv", qtyValue)
+					// print("qv", qtyValue)
 					qty, _ := strconv.ParseFloat(qtyValue, 64)
-					print("new qty", qty)
+					// print("new qty", qty)
 
 					go func() {
-						newStockLevel := 0.0
+						partsUsedUpdate := shared.PartsUsedUpdate{}
+
 						rpcClient.Call("TaskRPC.AddParts", shared.TaskRPCPartData{
 							Channel: Session.Channel,
 							ID:      id,
 							Part:    currentPart,
 							Qty:     qty,
-						}, &newStockLevel)
-						print("new stock level after using", qty, "=", newStockLevel)
-						doc.QuerySelector("[name=CurrentStock]").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", newStockLevel)
+						}, &partsUsedUpdate)
+						// print("parts used update", partsUsedUpdate)
+						// print("new stock level after using", qty, "=", newStockLevel)
+						doc.QuerySelector("[name=CurrentStock]").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", partsUsedUpdate.NewStockOnHand)
+						doc.QuerySelector("[name=MaterialCost]").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", partsUsedUpdate.TotalMaterialCost)
 
 						// populate the parts button display
 						showPartsButtons(id)
@@ -766,6 +773,13 @@ func showTaskPhotos(task shared.Task) {
 			p.SetInnerHTML(v.Filename)
 			wspan.AppendChild(p)
 			div.AppendChild(wspan)
+		case "Data":
+			wspan := doc.CreateElement("div")
+			wspan.AppendChild(i)
+			p := doc.CreateElement("p")
+			p.SetInnerHTML(v.Filename)
+			wspan.AppendChild(p)
+			div.AppendChild(wspan)
 		case "Image":
 			div.AppendChild(i)
 		case "photo":
@@ -791,7 +805,8 @@ func showTaskPhotos(task shared.Task) {
 				flds := strings.SplitN(photo.Data, ",", 2)
 				print("got full photo", flds[0])
 				switch flds[0] {
-				case "data:application/pdf;base64":
+				// case "data:application/pdf;base64":
+				default:
 					w.Open(photo.Data, "", "")
 				case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
 					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
@@ -844,7 +859,7 @@ func showTaskPhotosOld(task shared.Task) {
 }
 
 func showPartsButtons(id int) {
-	print("populate the parts buttons")
+	// print("populate the parts buttons")
 	w := dom.GetWindow()
 	doc := w.Document()
 	if el := doc.QuerySelector("[name=PartsUsed]"); el != nil {
@@ -919,10 +934,12 @@ func _taskList(action string, id int) {
 	// Define the layout
 	switch Session.UserRole {
 	case "Admin", "Site Manager":
-		form.Column("User", "Username")
+		form.Column("TaskID", "GetUserNameID")
+		// form.Column("User", "Username")
 		form.BoolColumn("Read", "IsRead")
+	default:
+		form.Column("ID", "GetID")
 	}
-	form.Column("TaskID", "GetID")
 	// form.Column("Src", "GetSource")
 	form.MultiImgColumn("Photos", "Photos", "Thumb")
 	form.Column("Date", "GetStartDate")
@@ -964,9 +981,10 @@ func _taskList(action string, id int) {
 	// Define the layout
 	switch Session.UserRole {
 	case "Admin", "Site Manager":
-		cform.Column("User", "Username")
+		cform.Column("User", "GetUserNameID")
+	default:
+		cform.Column("TaskID", "GetID")
 	}
-	cform.Column("TaskID", "GetID")
 	// cform.Column("Src", "GetSource")
 	cform.MultiImgColumn("Photos", "Photos", "Thumb")
 	cform.Column("Date", "GetStartDate")

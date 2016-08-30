@@ -783,7 +783,7 @@ func (t *TaskRPC) Retransmit(data shared.TaskRPCData, result *string) error {
 	return nil
 }
 
-func (t *TaskRPC) AddParts(data shared.TaskRPCPartData, newStockOnHand *float64) error {
+func (t *TaskRPC) AddParts(data shared.TaskRPCPartData, partsUsedUpdate *shared.PartsUsedUpdate) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
@@ -809,24 +809,36 @@ func (t *TaskRPC) AddParts(data shared.TaskRPCPartData, newStockOnHand *float64)
 	// Update the stock on hand value on the part
 	oldStockOnHand := 0.0
 	DB.SQL(`select current_stock from part where id=$1`, data.Part).QueryScalar(&oldStockOnHand)
-	*newStockOnHand = oldStockOnHand - delta
-	// println("oldStockOnHand", oldStockOnHand, "newStockOnHand", *newStockOnHand)
+	newStockOnHand := oldStockOnHand - delta
 
-	DB.SQL(`update part set current_stock=$2 where id=$1`, data.Part, *newStockOnHand).Exec()
+	DB.SQL(`update part set current_stock=$2 where id=$1`, data.Part, newStockOnHand).Exec()
 
 	// Insert a stock audit record against the part
 	DB.SQL(`insert into part_stock
 		(part_id,stock_level,descr)
 		values ($1,$2,$3)`,
 		data.Part,
-		*newStockOnHand,
+		newStockOnHand,
 		fmt.Sprintf("Used %.1f on Task %06d", delta, data.ID)).Exec()
+
+	// Get the new total material cost for this whole task
+
+	totalMaterialCost := 0.0
+	DB.SQL(`select 
+		sum(t.qty_used * p.latest_price) as totalm 
+		from task_part t 
+		left join part p on p.id=t.part_id 
+		where t.task_id=$1`, data.ID).QueryScalar(&totalMaterialCost)
+	DB.SQL(`update task set material_cost=$2 where id=$1`, data.ID, totalMaterialCost).Exec()
 
 	logger(start, "Task.AddParts",
 		fmt.Sprintf("Channel %d, Task %d Part %d Qty %.2f User %d %s %s",
 			data.Channel, data.ID, data.Part, data.Qty, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("Delta %.2f", delta),
 		data.Channel, conn.UserID, "task_part", data.ID, true)
+
+	partsUsedUpdate.NewStockOnHand = newStockOnHand
+	partsUsedUpdate.TotalMaterialCost = totalMaterialCost
 
 	return nil
 }
