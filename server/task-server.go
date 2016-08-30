@@ -617,6 +617,15 @@ func (t *TaskRPC) Complete(data shared.TaskRPCData, done *bool) error {
 					fieldName = "uncoiler"
 				case "Rollbed":
 					fieldName = "rollbed"
+				case "Pnuematic":
+					fieldName = "pnuematic"
+				case "Conveyor":
+					fieldName = "conveyor"
+				case "Encoder":
+					fieldName = "encoder"
+				case "StripGuide":
+					fieldName = "strip_guide"
+
 				}
 				if fieldName != "" {
 					DB.SQL(fmt.Sprintf("update machine set %s='Running' where id=$1", fieldName), event.MachineID).Exec()
@@ -640,6 +649,10 @@ func (t *TaskRPC) Complete(data shared.TaskRPCData, done *bool) error {
 				machine.Console != "Running" ||
 				machine.Rollbed != "Running" ||
 				machine.Uncoiler != "Running" ||
+				machine.Pnuematic != "Running" ||
+				machine.Conveyor != "Running" ||
+				machine.Encoder != "Running" ||
+				machine.StripGuide != "Running" ||
 				machine.Lube != "Running" {
 				machineIsClear = false
 			}

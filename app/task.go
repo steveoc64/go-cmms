@@ -539,8 +539,10 @@ func _taskEdit(action string, id int) {
 	// click on the parts button, expand the div to show a tree
 	if el := doc.QuerySelector("[name=parts-button]"); el != nil {
 		el.AddEventListener("click", false, func(evt dom.Event) {
-
 			evt.PreventDefault()
+			// 		loadPartsTree()
+			// 	}
+			// }
 
 			print("show parts tree here")
 

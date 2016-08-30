@@ -497,7 +497,7 @@ func stoppageNewTask(context *router.Context) {
 			AddDate(1, "Workorder Due Date", "DueDate")
 
 		form.Row(2).
-			AddPhoto(1, "Photos", "NewPhoto").
+			AddPhoto(1, "Photos", "Photo").
 			AddPreview(1, "", "Preview")
 
 		form.Row(1).
@@ -516,6 +516,7 @@ func stoppageNewTask(context *router.Context) {
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&assign)
+			print("post bind of the assign record", assign)
 			Session.Navigate(BackURL)
 			showProgress("Creating Task ...")
 
@@ -530,7 +531,7 @@ func stoppageNewTask(context *router.Context) {
 		// All done, so render the form
 		form.Render("edit-form", "main", &assign)
 		setMarkupButtons("Notes")
-		setPhotoField("NewPhoto")
+		setPhotoField("Photo")
 	}()
 
 }

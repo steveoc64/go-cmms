@@ -48,14 +48,32 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 
 	// Process the photo if present
 	if issue.Photo.Data != "" {
-		issue.Photo.Entity = "event"
-		issue.Photo.EntityID = *id
-		decodePhoto(&issue.Photo)
+		println("Adding new photo", issue.Photo.Data[:22])
+		photo := shared.Photo{
+			Data:     issue.Photo.Data,
+			Filename: issue.Photo.Filename,
+			Entity:   "event",
+			EntityID: *id,
+		}
+
+		// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
+		decodePhoto(&photo)
 		DB.InsertInto("photo").
 			Columns("entity", "entity_id", "photo", "thumb", "preview", "type", "datatype", "filename").
-			Record(issue.Photo).
+			Record(photo).
 			Exec()
 	}
+
+	// if issue.Photo.Data != "" {
+	// 	issue.Photo.Entity = "event"
+	// 	issue.Photo.EntityID = *id
+	// 	decodePhoto(&issue.Photo)
+	// 	DB.InsertInto("photo").
+	// 		Columns("entity", "entity_id", "photo", "thumb", "preview", "type", "datatype", "filename").
+	// 		Record(issue.Photo).
+	// 		Exec()
+	// }
+
 	conn.Broadcast("event", "insert", *id)
 
 	DB.SQL(`update machine 
@@ -549,15 +567,32 @@ func (e *EventRPC) Workorder(data shared.AssignEvent, id *int) error {
 
 	*id = task.ID
 
+	// if data.Photo.Data != "" {
+	// 	data.Photo.Entity = "task"
+	// 	data.Photo.EntityID = task.ID
+	// 	// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb, &photo.Type, &photo.Datatype)
+	// 	decodePhoto(&data.Photo)
+	// 	DB.InsertInto("photo").
+	// 		Columns("entity", "entity_id", "photo", "thumb", "preview").
+	// 		Record(data.Photo).
+	// 		Exec()
+	// }
+
 	// if there is a new photo attached, then process it
 	if data.Photo.Data != "" {
-		data.Photo.Entity = "task"
-		data.Photo.EntityID = task.ID
-		// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb, &photo.Type, &photo.Datatype)
-		decodePhoto(&data.Photo)
+		println("Adding new photo", data.Photo.Data[:22])
+		photo := shared.Photo{
+			Data:     data.Photo.Data,
+			Filename: data.Photo.Filename,
+			Entity:   "task",
+			EntityID: task.ID,
+		}
+
+		// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
+		decodePhoto(&photo)
 		DB.InsertInto("photo").
-			Columns("entity", "entity_id", "photo", "thumb", "preview").
-			Record(data.Photo).
+			Columns("entity", "entity_id", "photo", "thumb", "preview", "type", "datatype", "filename").
+			Record(photo).
 			Exec()
 	}
 
