@@ -68,6 +68,7 @@
                   {{if eq .Type "radio"}}
                     {{$model := .Model}}
                     <div name="radio-{{$model}}">
+                    <label></label>
                     {{range .Options}}
                     <label><input type="radio" name="{{$model}}" value="{{.Key}}" {{if .Selected}}checked="checked"{{end}}> {{.Display}}</label>
                     {{end}}
