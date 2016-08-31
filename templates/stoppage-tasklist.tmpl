@@ -1,0 +1,38 @@
+<div class="data-container">
+  <div class="row data-table-header">
+    <h3 class="column column-90" id="legend">
+      <i class="fa fa-server fa-lg" style="font-size: 3rem"></i> 
+      Tasks
+    </h3>
+  </div>
+
+<table class="data-table" id="task-list">
+  <thead>
+    <tr>
+    	<th>User</th>
+    	<th>Task</th>
+    	<th>Description</th>
+    	<th>Due Date</th>
+    	<th>Duration</th>
+    	<th>Completed</th>
+    	<th>$$</th>
+    </tr>
+  </thead>
+  <tbody>
+{{range .Tasks}}  
+    <tr class="data-row" 
+        key="{{.ID}}">
+        <td>{{.Username}}</td>
+        <td>{{.GetID}}</td>
+        <td>{{.Descr}}</td>
+        <td>{{.GetDueDate}}</td>
+        <td>{{.DurationDays}}</td>
+        <td>{{.GetCompletedDate}}</td>
+        <td>{{.LabourCost}}</td>
+    </tr>
+{{end}}  
+  <tbody>
+  </tbody>
+</table>
+
+</div>

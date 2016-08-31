@@ -347,6 +347,10 @@ func (e *EventRPC) Get(data shared.EventRPCData, event *shared.Event) error {
 			left join users u on u.id=e.created_by
 		where e.id=$1`, id).QueryStruct(event)
 
+	if err != nil {
+		log.Println(err.Error())
+	}
+
 	// fetch all assignments
 	DB.SQL(`select u.username
 			from task t
@@ -354,9 +358,13 @@ func (e *EventRPC) Get(data shared.EventRPCData, event *shared.Event) error {
 			where t.event_id=$1`, id).
 		QueryStructs(&event.AssignedTo)
 
-	if err != nil {
-		log.Println(err.Error())
-	}
+	// fetch all tasks
+	DB.SQL(`select t.*,u.username as username
+	 from task t
+	 left join users u on u.id=t.assigned_to
+	 where t.event_id=$1 
+	 order by t.id desc`, id).
+		QueryStructs(&event.Tasks)
 
 	// Get the photo preview if present
 	DB.SQL(`select id,preview,filename,type,datatype,entity,entity_id,notes

@@ -265,20 +265,10 @@ func (u *UtilRPC) Thumbnails(channel int, result *string) error {
 		photos := []shared.Photo{}
 		DB.SQL(`select * from photo order by id`).QueryStructs(&photos)
 
-		mt := 0
-		mtt := 0
+		for _, v := range photos {
 
-		// patched := 0
-		for _, c := range components {
-
-			DB.SQL(`select machine_type from machine where id=$1`, c.MachineID).QueryScalar(&mt)
-			DB.SQL(`select id from machine_type_tool where machine_id=$1 and position=$2`, mt, c.Position).QueryScalar(&mtt)
-			r += fmt.Sprintf("Component ID %d: Machine %d:%d MT %d MTT %d  %s\n",
-				c.ID,
-				c.MachineID, c.Position,
-				mt, mtt,
-				c.Name)
-			DB.SQL(`update component set mtt_id=$1 where id=$2`, mtt, c.ID).Exec()
+			r += fmt.Sprintf("Photo %d filename %s type %s datatype %s len %d\n",
+				v.ID, v.Filename, v.Type, v.Datatype, len(v.Data))
 
 		}
 		*result = r

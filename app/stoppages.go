@@ -197,8 +197,11 @@ func _stoppageEdit(action string, id int) {
 		form.Row(1).
 			AddBigTextarea(1, "Notes", "Notes")
 
+		// form.Row(1).
+		// 	AddCustom(1, "Assigned To", "AssignedTo", "")
+
 		form.Row(1).
-			AddCustom(1, "Assigned To", "AssignedTo", "")
+			AddCustom(1, "", "TaskList", "")
 
 	case "Site Manager":
 		form.Row(2).
@@ -217,8 +220,11 @@ func _stoppageEdit(action string, id int) {
 		form.Row(1).
 			AddDisplayArea(1, "Notes", "Notes")
 
+		// form.Row(1).
+		// 	AddCustom(1, "Assigned To", "AssignedTo", "")
+
 		form.Row(1).
-			AddCustom(1, "Assigned To", "AssignedTo", "")
+			AddCustom(1, "", "TaskList", "")
 	}
 
 	// Add event handlers
@@ -279,7 +285,26 @@ func _stoppageEdit(action string, id int) {
 	showEventPhotos(event)
 
 	// and show the assignments
-	loadTemplate("stoppage-assigned-to", "[name=AssignedTo]", event)
+	// loadTemplate("stoppage-assigned-to", "[name=AssignedTo]", event)
+	loadTemplate("stoppage-tasklist", "[name=TaskList]", event)
+
+	// add a click handler on the table
+	w := dom.GetWindow()
+	doc := w.Document()
+	doc.QuerySelector("#task-list").AddEventListener("click", false, func(evt dom.Event) {
+		td := evt.Target()
+		tr := td.ParentElement()
+		// Fix the issue where the user clicked on some clickable element inside the row
+		// which adds an extra level which we dont usually need
+		if tr.TagName() == "TD" {
+			tr = tr.ParentElement()
+		}
+		key, err := strconv.Atoi(tr.GetAttribute("key"))
+		if err == nil && key > 0 {
+			Session.Navigate(fmt.Sprintf("/task/%d", key))
+		}
+		print("clickd on ", key)
+	})
 
 	// And attach actions
 	switch Session.UserRole {
@@ -469,7 +494,7 @@ func stoppageNewTask(context *router.Context) {
 			StartDate:   &now1,
 			DueDate:     &now2,
 			Notes:       event.Notes,
-			Photo:       event.NewPhoto,
+			Photo:       shared.Photo{},
 		}
 
 		title := fmt.Sprintf("Raise Task for Stoppage - %06d", id)
@@ -497,8 +522,7 @@ func stoppageNewTask(context *router.Context) {
 			AddDate(1, "Workorder Due Date", "DueDate")
 
 		form.Row(2).
-			AddPhoto(1, "Photos", "Photo").
-			AddPreview(1, "", "Preview")
+			AddPhoto(1, "Photos", "Photo")
 
 		form.Row(1).
 			AddCustom(1, "Markup Rules", "Markup", "")
@@ -516,9 +540,17 @@ func stoppageNewTask(context *router.Context) {
 		form.SaveEvent(func(evt dom.Event) {
 			evt.PreventDefault()
 			form.Bind(&assign)
+
+			if assign.Photo.Data != "" {
+				showProgress("Creating Task ...")
+				print("data =", assign.Photo.Data[:22])
+
+				// If the uploaded data is a PDF, then use that data instead of the preview
+				assign.Photo.Data = ImageCache.GetImage()
+			}
+
 			print("post bind of the assign record", assign)
 			Session.Navigate(BackURL)
-			showProgress("Creating Task ...")
 
 			go func() {
 				newID := 0
