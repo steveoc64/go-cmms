@@ -376,3 +376,25 @@ insert into migration (name) values ('Add standard img table');
 alter table sched_task add months int;
 
 insert into migration (name) values ('Schedules with a freq of every N months');
+
+-- 2016 08 31
+-- External Invoices and other costs attached to a task
+
+alter table task drop other_cost_desc;
+alter table task drop other_cost;
+alter table sched_task drop other_cost_desc;
+alter table sched_task drop other_cost;
+
+drop table if exists task_item;
+create table task_item (
+	id serial not null primary key,
+	task_id int not null,
+	date timestamptz not null default localtimestamp,
+	ref text not null default '',
+	descr text not null default '',
+	vendor text not null default '',
+	value numeric(12,2)
+);
+create index task_item_task_idx on task_item (task_id, date);
+
+insert into migration (name) values ('Add task_item table');

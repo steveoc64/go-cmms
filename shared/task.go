@@ -29,8 +29,6 @@ type SchedTask struct {
 	DurationDays  int                 `db:"duration_days"`
 	LabourCost    float64             `db:"labour_cost"`
 	MaterialCost  float64             `db:"material_cost"`
-	OtherCostDesc *[]string           `db:"other_cost_desc"`
-	OtherCost     *[]float64          `db:"other_cost"`
 	LastGenerated *time.Time          `db:"last_generated"`
 	Paused        bool                `db:"paused"`
 	PartsRequired []PartReq           `db:"parts_required"`
@@ -147,6 +145,16 @@ type PartReqEdit struct {
 	Part    *PartReq
 }
 
+type TaskItem struct {
+	ID     int        `db:"id"`
+	TaskID int        `db:"id"`
+	Date   *time.Time `db:"date"`
+	Ref    string     `db:"ref"`
+	Descr  string     `db:"descr"`
+	Vendor string     `db:"vendor"`
+	Value  float64    `db:"value"`
+}
+
 type Task struct {
 	ID                int                 `db:"id"`
 	MachineID         int                 `db:"machine_id"`
@@ -180,8 +188,7 @@ type Task struct {
 	MaterialEst       float64             `db:"material_est"`
 	LabourCost        float64             `db:"labour_cost"`
 	MaterialCost      float64             `db:"material_cost"`
-	OtherCostDesc     *[]string           `db:"other_cost_desc"`
-	OtherCost         *[]float64          `db:"other_cost"`
+	OtherCost         float64             `db:"other_cost"`
 	Parts             []TaskPart          `db:"parts"`
 	Checks            []TaskCheck         `db:"checks"`
 	AllDone           bool                `db:"all_done"`
@@ -280,12 +287,7 @@ func (t *Task) GetLabour() string {
 }
 
 func (t *Task) TotalCost() string {
-	totalCost := t.LabourCost + t.MaterialCost
-	if t.OtherCost != nil {
-		for _, v := range *t.OtherCost {
-			totalCost += v
-		}
-	}
+	totalCost := t.LabourCost + t.MaterialCost + t.OtherCost
 	return fmt.Sprintf("%.2f", totalCost)
 }
 
