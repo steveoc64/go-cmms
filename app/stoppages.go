@@ -557,6 +557,7 @@ func stoppageNewTask(context *router.Context) {
 				rpcClient.Call("EventRPC.Workorder", assign, &newID)
 				print("new Task raised", newID)
 				hideProgress()
+				Session.Reload(context)
 			}()
 		})
 
