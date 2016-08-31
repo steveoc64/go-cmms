@@ -549,15 +549,12 @@ func stoppageNewTask(context *router.Context) {
 				assign.Photo.Data = ImageCache.GetImage()
 			}
 
-			print("post bind of the assign record", assign)
-			Session.Navigate(BackURL)
-
 			go func() {
 				newID := 0
 				rpcClient.Call("EventRPC.Workorder", assign, &newID)
 				print("new Task raised", newID)
 				hideProgress()
-				Session.Reload(context)
+				Session.Navigate(BackURL)
 			}()
 		})
 
