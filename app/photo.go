@@ -302,29 +302,53 @@ func phototestEdit(context *router.Context) {
 				// print("clicked on the photo")
 				evt.PreventDefault()
 
-				showProgress("Loading File ...")
-
 				go func() {
-					rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
-						Channel: Session.Channel,
-						ID:      id,
-					}, &photo)
+					// rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
+					// 	Channel: Session.Channel,
+					// 	ID:      id,
+					// }, &photo)
 
-					flds := strings.SplitN(photo.Data, ",", 2)
-					print("got full photo", flds[0])
-					switch flds[0] {
-					case "data:application/pdf;base64":
-						print("open PDF in new window")
+					// flds := strings.SplitN(photo.Data, ",", 2)
+					// print("got full photo", flds[0])
+					// switch flds[0] {
+					switch photo.Type {
+					case "PDF", "Data":
+						print("open file in new window")
+						if photo.Data == "" {
+							print("get copy of the full data")
+							showProgress("Loading File ...")
+							rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
+								Channel: Session.Channel,
+								ID:      id,
+							}, &photo)
+						}
 						w.Open(photo.Data, "", "")
-					default:
-						print("file of type", flds[0])
-						w.Open(photo.Data, "", "")
-						// print("data is", photo.Data)
-					case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
+					case "Image":
+						// case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
 						// print("got fullsize image")
-						el.Src = photo.Data
-						el.Class().Remove("photopreview")
-						el.Class().Add("photofull")
+
+						// toggle the state
+						cl := el.Class()
+						if cl.Contains("photopreview") {
+							cl.Remove("photopreview")
+							cl.Add("photofull")
+							// go fullscreen
+							if photo.Data == "" {
+								print("getting a copy of the full image")
+								showProgress("Loading File ...")
+								rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
+									Channel: Session.Channel,
+									ID:      id,
+								}, &photo)
+							}
+							el.Src = photo.Data
+						} else {
+							// reduce back to preview
+							el.Src = photo.Preview
+							cl.Add("photopreview")
+							cl.Remove("photofull")
+						}
+
 					}
 
 					hideProgress()
