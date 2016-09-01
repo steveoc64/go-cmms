@@ -493,11 +493,11 @@ func _taskEdit(action string, id int) {
 			case "INPUT":
 				btn := evt.Target().(*dom.HTMLInputElement)
 				partID, _ := strconv.Atoi(btn.GetAttribute("part-id"))
-				print("clicked on a btn", btn, partID)
+				// print("clicked on a btn", btn, partID)
 
 				// Now expand the tree to show the selected item
 				li := doc.QuerySelector(fmt.Sprintf("#part-%d", partID))
-				print("got LI", li)
+				// print("got LI", li)
 
 				// now walk up the tree from there, expanding the parent checkboxes
 				expandAll(li)
@@ -539,171 +539,173 @@ func _taskEdit(action string, id int) {
 			}
 		})
 	}
+
+	print("show parts tree here")
+
+	t := doc.QuerySelector(`[name="parts-tree-div"]`)
+	t.SetInnerHTML("") // Init the tree panel
+
+	// Create the Tree's UL element
+	ul := doc.CreateElement("ul").(*dom.HTMLUListElement)
+	ul.SetClass("treeview")
+
+	// Fetch the complete parts tree from the backend
+	go func() {
+		tree := []shared.Category{}
+		rpcClient.Call("PartRPC.GetTree", shared.PartTreeRPCData{
+			Channel:    Session.Channel,
+			CategoryID: 0,
+		}, &tree)
+		// print("got tree", tree)
+
+		// Recursively add elements to the tree
+		addTaskPartsTree(tree, ul, 0)
+
+		t.AppendChild(ul)
+
+		// Add a change function on the Qty field
+		doc.QuerySelector("[name=QtyUsed]").AddEventListener("change", false, func(evt dom.Event) {
+			// print("Change in value of QtyUsed on task", currentPart, id)
+			qtyValue := doc.QuerySelector("[name=QtyUsed]").(*dom.HTMLInputElement).Value
+			// print("qv", qtyValue)
+			qty, _ := strconv.ParseFloat(qtyValue, 64)
+			// print("new qty", qty)
+
+			go func() {
+				partsUsedUpdate := shared.PartsUsedUpdate{}
+
+				rpcClient.Call("TaskRPC.AddParts", shared.TaskRPCPartData{
+					Channel: Session.Channel,
+					ID:      id,
+					Part:    currentPart,
+					Qty:     qty,
+				}, &partsUsedUpdate)
+				// print("parts used update", partsUsedUpdate)
+				// print("new stock level after using", qty, "=", newStockLevel)
+				doc.QuerySelector("[name=CurrentStock]").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", partsUsedUpdate.NewStockOnHand)
+				doc.QuerySelector("[name=MaterialCost]").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", partsUsedUpdate.TotalMaterialCost)
+
+				// populate the parts button display
+				showPartsButtons(id)
+			}()
+
+		})
+
+		// Add functions on the tree
+		ul.AddEventListener("click", false, func(evt dom.Event) {
+			evt.PreventDefault()
+			li := evt.Target()
+			// print("click event on the list", evt, "with tag", li.TagName())
+
+			switch li.TagName() {
+			case "LI":
+				// print("This could be a part or category, or a whole line")
+				theType := li.GetAttribute("data-type")
+				// print("data-type", theType)
+				switch theType {
+				case "category", "part":
+					// print("valid LI, proceed")
+				default:
+					// check that it has an ID
+					if li.ID() == "" {
+						// print("Clicked on some empty line - ignore the click")
+						return
+					}
+					// print("valid category header .. get the matching label and work from there")
+					li = li.FirstChild().(dom.Element)
+					// print("li has morphed into", li)
+				}
+			case "LABEL":
+				// print("This must be a category")
+			case "INPUT":
+				// print("clicking on checkboxes in the tree is totally broken at the moment due to CSS weirdness, so eat the event and do nothing for now")
+				return
+				// print("Lets toggle the input for now")
+				theInput := li.(*dom.HTMLInputElement)
+				// print("theInput", theInput)
+				theInput.Checked = !theInput.Checked
+				// print("Clicked on the input, so lets find the label")
+				li = li.ParentElement().FirstChild().(dom.Element)
+				// print("li has morphed into", li)
+			default:
+				// print("dont know what to do about that object type - do nothing")
+				return
+			}
+
+			if lastSelectedClass != nil {
+				lastSelectedClass.Remove("listselected")
+			}
+			lastSelectedClass = li.Class()
+			// print("LI class =", lastSelectedClass)
+
+			// only add this if the target is a LI, otherwise it makes no sense to do this
+			lastSelectedClass.Add("listselected")
+
+			dataType := li.GetAttribute("data-type")
+			dataID := li.GetAttribute("data-id")
+			actualID, _ := strconv.Atoi(dataID)
+			switch dataType {
+			case "category":
+				go func() {
+					theCat := shared.Category{}
+					rpcClient.Call("PartRPC.GetCategory", shared.PartRPCData{
+						Channel: Session.Channel,
+						ID:      actualID,
+					}, &theCat)
+					// print("Cat", dataID, theCat)
+					currentCat = theCat.ID
+					doc.QuerySelector("[name=CatName]").(*dom.HTMLInputElement).Value = theCat.Name
+					doc.QuerySelector("[name=CatDescr]").(*dom.HTMLInputElement).Value = theCat.Descr
+					doc.QuerySelector("[name=CatStockCode]").(*dom.HTMLInputElement).Value = theCat.StockCode
+
+					// print("expand out the cat", currentCat)
+					theCheka := doc.QuerySelector(fmt.Sprintf("#category-%d-chek", currentCat)).(*dom.HTMLInputElement)
+					theCheka.Checked = !theCheka.Checked
+
+					swapper.Select(0)
+					doc.QuerySelector(`[name=CatName]`).(*dom.HTMLInputElement).Focus()
+				}()
+				// print("Category", dataID)
+				swapper.Select(0)
+			case "part":
+				go func() {
+					thePart := shared.Part{}
+					rpcClient.Call("PartRPC.Get", shared.PartRPCData{
+						Channel: Session.Channel,
+						ID:      actualID,
+					}, &thePart)
+					// print("Part", dataID, thePart)
+					currentPart = thePart.ID
+					swapper.Panels[1].Paint(&thePart)
+					// thePart.ValuationString = thePart.DisplayValuation()
+					// doc.QuerySelector("[name=ValuationString]").(*dom.HTMLInputElement).Value = thePart.ValuationString
+
+					// Now get the Qty used and populate that field
+					qtyUsed := 0.0
+					rpcClient.Call("TaskRPC.GetQtyUsed", shared.TaskRPCPartData{
+						Channel: Session.Channel,
+						ID:      id,
+						Part:    thePart.ID,
+					}, &qtyUsed)
+					swapper.Select(1)
+					qel := doc.QuerySelector("[name=QtyUsed]").(*dom.HTMLInputElement)
+					qel.Value = fmt.Sprintf("%.2f", qtyUsed)
+					qel.Focus()
+
+				}()
+			}
+		})
+
+		// }
+	}()
+
 	// click on the parts button, expand the div to show a tree
 	if el := doc.QuerySelector("[name=parts-button]"); el != nil {
 		el.AddEventListener("click", false, func(evt dom.Event) {
 			evt.PreventDefault()
-			// 		loadPartsTree()
-			// 	}
-			// }
+			// loadPartsTree()
 
-			print("show parts tree here")
-
-			t := doc.QuerySelector(`[name="parts-tree-div"]`)
-			t.SetInnerHTML("") // Init the tree panel
-
-			// Create the Tree's UL element
-			ul := doc.CreateElement("ul").(*dom.HTMLUListElement)
-			ul.SetClass("treeview")
-
-			// Fetch the complete parts tree from the backend
-			go func() {
-				tree := []shared.Category{}
-				rpcClient.Call("PartRPC.GetTree", shared.PartTreeRPCData{
-					Channel:    Session.Channel,
-					CategoryID: 0,
-				}, &tree)
-				// print("got tree", tree)
-
-				// Recursively add elements to the tree
-				addTaskPartsTree(tree, ul, 0)
-
-				t.AppendChild(ul)
-
-				// Add a change function on the Qty field
-				doc.QuerySelector("[name=QtyUsed]").AddEventListener("change", false, func(evt dom.Event) {
-					// print("Change in value of QtyUsed on task", currentPart, id)
-					qtyValue := doc.QuerySelector("[name=QtyUsed]").(*dom.HTMLInputElement).Value
-					// print("qv", qtyValue)
-					qty, _ := strconv.ParseFloat(qtyValue, 64)
-					// print("new qty", qty)
-
-					go func() {
-						partsUsedUpdate := shared.PartsUsedUpdate{}
-
-						rpcClient.Call("TaskRPC.AddParts", shared.TaskRPCPartData{
-							Channel: Session.Channel,
-							ID:      id,
-							Part:    currentPart,
-							Qty:     qty,
-						}, &partsUsedUpdate)
-						// print("parts used update", partsUsedUpdate)
-						// print("new stock level after using", qty, "=", newStockLevel)
-						doc.QuerySelector("[name=CurrentStock]").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", partsUsedUpdate.NewStockOnHand)
-						doc.QuerySelector("[name=MaterialCost]").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", partsUsedUpdate.TotalMaterialCost)
-
-						// populate the parts button display
-						showPartsButtons(id)
-					}()
-
-				})
-
-				// Add functions on the tree
-				ul.AddEventListener("click", false, func(evt dom.Event) {
-					evt.PreventDefault()
-					li := evt.Target()
-					// print("click event on the list", evt, "with tag", li.TagName())
-
-					switch li.TagName() {
-					case "LI":
-						// print("This could be a part or category, or a whole line")
-						theType := li.GetAttribute("data-type")
-						// print("data-type", theType)
-						switch theType {
-						case "category", "part":
-							// print("valid LI, proceed")
-						default:
-							// check that it has an ID
-							if li.ID() == "" {
-								// print("Clicked on some empty line - ignore the click")
-								return
-							}
-							// print("valid category header .. get the matching label and work from there")
-							li = li.FirstChild().(dom.Element)
-							// print("li has morphed into", li)
-						}
-					case "LABEL":
-						// print("This must be a category")
-					case "INPUT":
-						// print("clicking on checkboxes in the tree is totally broken at the moment due to CSS weirdness, so eat the event and do nothing for now")
-						return
-						// print("Lets toggle the input for now")
-						theInput := li.(*dom.HTMLInputElement)
-						// print("theInput", theInput)
-						theInput.Checked = !theInput.Checked
-						// print("Clicked on the input, so lets find the label")
-						li = li.ParentElement().FirstChild().(dom.Element)
-						// print("li has morphed into", li)
-					default:
-						// print("dont know what to do about that object type - do nothing")
-						return
-					}
-
-					if lastSelectedClass != nil {
-						lastSelectedClass.Remove("listselected")
-					}
-					lastSelectedClass = li.Class()
-					// print("LI class =", lastSelectedClass)
-
-					// only add this if the target is a LI, otherwise it makes no sense to do this
-					lastSelectedClass.Add("listselected")
-
-					dataType := li.GetAttribute("data-type")
-					dataID := li.GetAttribute("data-id")
-					actualID, _ := strconv.Atoi(dataID)
-					switch dataType {
-					case "category":
-						go func() {
-							theCat := shared.Category{}
-							rpcClient.Call("PartRPC.GetCategory", shared.PartRPCData{
-								Channel: Session.Channel,
-								ID:      actualID,
-							}, &theCat)
-							// print("Cat", dataID, theCat)
-							currentCat = theCat.ID
-							doc.QuerySelector("[name=CatName]").(*dom.HTMLInputElement).Value = theCat.Name
-							doc.QuerySelector("[name=CatDescr]").(*dom.HTMLInputElement).Value = theCat.Descr
-							doc.QuerySelector("[name=CatStockCode]").(*dom.HTMLInputElement).Value = theCat.StockCode
-
-							// print("expand out the cat", currentCat)
-							theCheka := doc.QuerySelector(fmt.Sprintf("#category-%d-chek", currentCat)).(*dom.HTMLInputElement)
-							theCheka.Checked = !theCheka.Checked
-
-							swapper.Select(0)
-							doc.QuerySelector(`[name=CatName]`).(*dom.HTMLInputElement).Focus()
-						}()
-						// print("Category", dataID)
-						swapper.Select(0)
-					case "part":
-						go func() {
-							thePart := shared.Part{}
-							rpcClient.Call("PartRPC.Get", shared.PartRPCData{
-								Channel: Session.Channel,
-								ID:      actualID,
-							}, &thePart)
-							// print("Part", dataID, thePart)
-							currentPart = thePart.ID
-							swapper.Panels[1].Paint(&thePart)
-							// thePart.ValuationString = thePart.DisplayValuation()
-							// doc.QuerySelector("[name=ValuationString]").(*dom.HTMLInputElement).Value = thePart.ValuationString
-
-							// Now get the Qty used and populate that field
-							qtyUsed := 0.0
-							rpcClient.Call("TaskRPC.GetQtyUsed", shared.TaskRPCPartData{
-								Channel: Session.Channel,
-								ID:      id,
-								Part:    thePart.ID,
-							}, &qtyUsed)
-							swapper.Select(1)
-							qel := doc.QuerySelector("[name=QtyUsed]").(*dom.HTMLInputElement)
-							qel.Value = fmt.Sprintf("%.2f", qtyUsed)
-							qel.Focus()
-
-						}()
-					}
-				})
-
-			}()
+			// }()
 		})
 	}
 
@@ -907,14 +909,25 @@ func expandAll(li dom.Element) {
 	}
 	prevInput := ul.PreviousSibling()
 	print("prevInput", prevInput)
+
+	// Generally looking for the parent UL of the line clicked, which should be preceeded by
+	// an input/checkbox field that defines whether or not the containing category is
+	// expanded or not.  Due to some edge cases in data, we can end up with multiple UL
+	// elements that follow the checkbox ... so the safe thing is to keep looking at the
+	// prev sibling till we find the correct INPUT field
+	for prevInput != nil && prevInput.NodeName() != "INPUT" {
+		prevInput = prevInput.PreviousSibling()
+	}
+
 	if prevInput == nil {
 		return
 	}
 	// got the parent checkbox, so expand it out
+	print("prevInput type is ", prevInput.NodeType(), " name ", prevInput.NodeName())
 	prevInput.(*dom.HTMLInputElement).Checked = true
 
 	parentLI := ul.ParentElement()
-	print("parent LI", parentLI)
+	// print("parent LI", parentLI)
 	if parentLI == nil {
 		return
 	}

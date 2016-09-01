@@ -148,7 +148,7 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			left join site s on s.id=m.site_id
 			left join users u on u.id=t.assigned_to
 		where t.assigned_to=$1 and completed_date is null
-		order by t.startdate desc`, conn.UserID).
+		order by t.startdate desc, id desc`, conn.UserID).
 			QueryStructs(tasks)
 		if err != nil {
 			log.Println(err.Error())
@@ -167,7 +167,7 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			left join users u on u.id=t.assigned_to
 			left join user_site x on x.user_id=$2 and x.site_id=m.site_id
 		where m.site_id in $1 and completed_date is null
-		order by t.startdate desc`, sites, conn.UserID).
+		order by t.startdate desc, id desc`, sites, conn.UserID).
 			QueryStructs(tasks)
 		if err != nil {
 			log.Println(err.Error())
@@ -182,7 +182,7 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			left join users u on u.id=t.assigned_to
 			left join user_site x on x.user_id=$1 and x.site_id=m.site_id
 		where completed_date is null
-		order by t.startdate desc`, conn.UserID).
+		order by t.startdate desc, id desc`, conn.UserID).
 			QueryStructs(tasks)
 		if err != nil {
 			log.Println(err.Error())
@@ -266,7 +266,7 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 		where t.assigned_to=$1 and t.completed_date is not null
 			and t.completed_date is not null
 			and t.startdate > NOW() - INTERVAL '1 month'
-		order by t.startdate desc`, conn.UserID).
+		order by t.startdate desc, id desc`, conn.UserID).
 			QueryStructs(tasks)
 		if err != nil {
 			log.Println(err.Error())
@@ -287,7 +287,7 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 		where m.site_id in $1 and t.completed_date is not null
 			and t.completed_date is not null
 			and t.startdate > NOW() - INTERVAL '1 month'
-		order by t.startdate desc`, sites, conn.UserID).
+		order by t.startdate desc, id desc`, sites, conn.UserID).
 			QueryStructs(tasks)
 		if err != nil {
 			log.Println(err.Error())
@@ -303,7 +303,7 @@ func (t *TaskRPC) ListCompleted(channel int, tasks *[]shared.Task) error {
 			left join user_site x on x.user_id=$1 and x.site_id=m.site_id
 		where t.completed_date is not null
 		  and t.startdate > NOW() - INTERVAL '1 month'
-		order by t.startdate desc`, conn.UserID).
+		order by t.startdate desc, id desc`, conn.UserID).
 			QueryStructs(tasks)
 		if err != nil {
 			log.Println(err.Error())
