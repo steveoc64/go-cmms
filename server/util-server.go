@@ -285,11 +285,11 @@ func (u *UtilRPC) Thumbnails(channel int, result *string) error {
 
 			decodePhoto(&v)
 			DB.SQL(`update photo
-				 set type='Image',
-				 datatype='data:image/jpeg;base64',
+				 set type=$4,
+				 datatype=$5,
 				 preview=$2,
 				 thumb=$3
-				 where id=$1`, v.ID, v.Preview, v.Thumb).Exec()
+				 where id=$1`, v.ID, v.Preview, v.Thumb, v.Type, v.Datatype).Exec()
 
 		}
 		*result = r
