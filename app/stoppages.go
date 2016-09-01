@@ -129,6 +129,77 @@ func _stoppageList(action string, id int) {
 
 }
 
+func getSiteName(theSite string) string {
+	switch theSite {
+	case "edinburgh":
+		return "Edinburgh Sites - SA"
+	case "minto":
+		return "Minto Site - NSW"
+	case "tomago":
+		return "Tomago Site - NSW"
+	case "chinderah":
+		return "Chinderah - NSW / QLD"
+	}
+	return theSite
+}
+
+func stops(context *router.Context) {
+
+	go func() {
+
+		theSite := context.Params["site"]
+
+		events := []shared.Event{}
+		rpcClient.Call("EventRPC.ListSite", shared.EventRPCData{
+			Channel: Session.Channel,
+			Site:    theSite,
+		}, &events)
+
+		// print("events =", events)
+
+		form := formulate.ListForm{}
+		form.New("fa-pause-circle-o", fmt.Sprintf("Current Stoppages - %s", getSiteName(theSite)))
+
+		// Define the layout
+		form.Column("ID/User", "GetUserNameID")
+		form.Column("Date", "GetStartDate")
+
+		// if Session.UserRole == "Admin" {
+		// 	form.Column("Completed", "GetCompleted")
+		// }
+
+		form.ColumnFormat("Site", "SiteName", "GetSiteClass")
+		// form.Column("Machine", "MachineName")
+		// form.Column("Component", "ToolType")
+		form.Column("Component", "GetComponent")
+		form.MultiImgColumn("Photo", "Photos", "Thumb")
+		form.Column("Notes", "Notes")
+
+		switch Session.UserRole {
+		case "Admin", "Site Manager":
+			form.Column("Status", "GetStatus")
+		}
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate("/")
+		})
+
+		form.RowEvent(func(key string) {
+			Session.Navigate("/stoppage/" + key)
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
+		form.Render("stoppage-list", "main", events)
+
+	}()
+
+}
+
 func stoppageEdit(context *router.Context) {
 	id, err := strconv.Atoi(context.Params["id"])
 	if err != nil {

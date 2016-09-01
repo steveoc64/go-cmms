@@ -9,6 +9,7 @@ func getRoutes(uid int, role string) []shared.UserRoute {
 		return []shared.UserRoute{
 			{Route: "/", Func: "sitemap"},
 			{Route: "/sitemachines/{site}", Func: "sitemachines"},
+			{Route: "/stops/{site}", Func: "stops"},
 			{Route: "/sites", Func: "site-list"},
 			{Route: "/site/add", Func: "site-add"},
 			{Route: "/site/{id}", Func: "site-edit"},
@@ -66,6 +67,7 @@ func getRoutes(uid int, role string) []shared.UserRoute {
 		return []shared.UserRoute{
 			{Route: "/", Func: "sitemap"},
 			{Route: "/sitemachines/{site}", Func: "sitemachines"},
+			{Route: "/stops/{site}", Func: "stops"},
 			{Route: "/sites", Func: "site-list"},
 			{Route: "/site/{id}", Func: "site-edit"},
 			{Route: "/site/machine/{id}", Func: "site-machine-list"},
@@ -97,6 +99,7 @@ func getRoutes(uid int, role string) []shared.UserRoute {
 		return []shared.UserRoute{
 			{Route: "/", Func: "sitemap"},
 			{Route: "/sitemachines/{site}", Func: "sitemachines"},
+			{Route: "/stops/{site}", Func: "stops"},
 			{Route: "/sites", Func: "sites"},
 			{Route: "/tasks", Func: "task-list"},
 			{Route: "/task/{id}", Func: "task-edit"},

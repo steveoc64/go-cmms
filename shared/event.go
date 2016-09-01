@@ -69,6 +69,7 @@ type EventRPCData struct {
 	Channel int
 	ID      int
 	Event   *Event
+	Site    string
 }
 
 const (

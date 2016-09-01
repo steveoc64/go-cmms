@@ -252,6 +252,85 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 	return nil
 }
 
+func getSiteIDs(site string) []int {
+
+	retval := []int{}
+
+	switch site {
+	case "edinburgh":
+		DB.SQL(`select id from site where name like 'Edinburgh%'`).QuerySlice(&retval)
+	case "minto":
+		DB.SQL(`select id from site where name like 'Minto%'`).QuerySlice(&retval)
+	case "tomago":
+		DB.SQL(`select id from site where name like 'Tomago%'`).QuerySlice(&retval)
+	case "chinderah":
+		DB.SQL(`select id from site where name like 'Chinderah%'`).QuerySlice(&retval)
+	default:
+		print("dont know about site", site)
+	}
+	return retval
+}
+
+// List active stoppages for a the given site, as expressed as a descriptive name
+func (e *EventRPC) ListSite(data shared.EventRPCData, events *[]shared.Event) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	err := DB.SQL(`select 
+		e.*,m.name as machine_name,s.name as site_name,u.username as username,x.highlight as site_highlight
+		from event e
+			left join machine m on m.id=e.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=e.created_by	
+			left join user_site x on x.user_id=$1 and x.site_id=e.site_id
+		where e.completed is null	
+		and e.site_id in $2
+		order by e.completed desc,e.startdate desc`, conn.UserID, getSiteIDs(data.Site)).
+		QueryStructs(events)
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	// fetch all assignments
+	for i, v := range *events {
+		DB.SQL(`select u.username
+			from task t
+			left join users u on u.id=t.assigned_to
+			where t.event_id=$1`, v.ID).
+			QueryStructs(&v.AssignedTo)
+
+		// log.Println("assignments for event", v.ID, "=", v.AssignedTo)
+		(*events)[i].AssignedTo = v.AssignedTo
+
+		// truncate long notes
+		if len(v.Notes) > 80 {
+			(*events)[i].Notes = fmt.Sprintf("%s ...", v.Notes[:80])
+		}
+
+		// Get any thumbnails if present
+		photos := []shared.Photo{}
+
+		DB.SQL(`select
+			id,thumb
+			from photo
+			where entity='event' and entity_id=$1
+			order by type,id desc`, v.ID).
+			QueryStructs(&photos)
+		(*events)[i].Photos = photos
+
+	}
+
+	logger(start, "Event.ListSite",
+		fmt.Sprintf("Channel %d, Site %s, User %d %s %s",
+			data.Channel, data.Site, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d Events", len(*events)),
+		data.Channel, conn.UserID, "event", 0, false)
+
+	return nil
+}
+
 func (e *EventRPC) ListCompleted(channel int, events *[]shared.Event) error {
 	start := time.Now()
 
