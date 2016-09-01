@@ -267,8 +267,29 @@ func (u *UtilRPC) Thumbnails(channel int, result *string) error {
 
 		for _, v := range photos {
 
-			r += fmt.Sprintf("Photo %d filename %s type %s datatype %s len %d\n",
+			r += fmt.Sprintf("Photo %d, filename %s, type %s, datatype %s, len %d\n",
 				v.ID, v.Filename, v.Type, v.Datatype, len(v.Data))
+
+			switch v.Type {
+			case "photo":
+				r += " Convert old style photo to new style image\n"
+			case "Image":
+				r += " Regenerate Preview and Thumbnail\n"
+			case "PDF":
+				r += " Use new PDF Preview and Thumbnail\n"
+			case "Data":
+				r += " Use new GenericData Preview and Thumbnail\n"
+			default:
+				r += "  ERROR: Unknown type\n"
+			}
+
+			decodePhoto(&v)
+			DB.SQL(`update photo
+				 set type='Image',
+				 datatype='data:image/jpeg;base64',
+				 preview=$2,
+				 thumb=$3
+				 where id=$1`, v.ID, v.Preview, v.Thumb).Exec()
 
 		}
 		*result = r
