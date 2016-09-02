@@ -52,14 +52,17 @@ func (c *CachedImages) SetImage(data string) {
 	c.isPDF = false
 }
 
+// The act of getting the data always eats the existing data
 func (c *CachedImages) GetImage() string {
+	retval := c.ImageData
 	if c.isPDF {
-		return c.PDFData
+		retval = c.PDFData
 	}
 	if c.isRawData {
-		return c.RawData
+		retval = c.RawData
 	}
-	return c.ImageData
+	c.Clear()
+	return retval
 }
 
 var ImageCache CachedImages
@@ -109,6 +112,7 @@ func setPhotoUploadField(f string, allowPDF bool) {
 				flds := strings.Split(imgData, ";")
 				// print("attachment type", flds[0])
 				imgEl := doc.QuerySelector(fmt.Sprintf("[name=%sPreview]", f)).(*dom.HTMLImageElement)
+				imgElh := doc.QuerySelector(fmt.Sprintf("[name=%sPreviewHint]", f))
 
 				ImageCache.Clear()
 				switch flds[0] {
@@ -118,6 +122,9 @@ func setPhotoUploadField(f string, allowPDF bool) {
 
 						imgEl.Src = ImageCache.PDFImage
 						imgEl.Class().Remove("hidden")
+						if imgElh != nil {
+							imgElh.Class().Remove("hidden")
+						}
 						ImageCache.SetPDF(imgData)
 						// print("photo changed and looks like a PDF")
 					} else {
@@ -128,11 +135,17 @@ func setPhotoUploadField(f string, allowPDF bool) {
 					imgEl.Src = imgData
 					ImageCache.SetImage(imgData)
 					imgEl.Class().Remove("hidden")
+					if imgElh != nil {
+						imgElh.Class().Remove("hidden")
+					}
 				default:
 					// print("Adding data of unknown type", flds[0])
 					if allowPDF {
 						imgEl.Src = ImageCache.RawDataImage
 						imgEl.Class().Remove("hidden")
+						if imgElh != nil {
+							imgElh.Class().Remove("hidden")
+						}
 						ImageCache.SetRawData(imgData)
 					} else {
 						w.Alert("ERROR: This screen only allows photos, please try again")

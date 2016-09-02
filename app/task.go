@@ -391,23 +391,6 @@ func _taskEdit(action string, id int) {
 		dom.GetWindow().Print()
 	})
 
-	if useRole == "Admin" {
-		form.DeleteEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			task.ID = id
-			go func() {
-				done := false
-				rpcClient.Call("TaskRPC.Delete", shared.TaskRPCData{
-					Channel: Session.Channel,
-					Task:    &task,
-				}, &done)
-				w := dom.GetWindow()
-				w.Alert(fmt.Sprintf("Task %06d Deleted", task.ID))
-				Session.Navigate(BackURL)
-			}()
-		})
-	}
-
 	print("useRole =", useRole)
 	if useRole == "Admin" ||
 		(Session.UserRole == "Technician" && task.CompletedDate == nil) {
@@ -432,19 +415,33 @@ func _taskEdit(action string, id int) {
 				hideProgress()
 			}()
 		})
-
 	}
 
+	if useRole == "Admin" {
+		form.DeleteEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			task.ID = id
+			go func() {
+				done := false
+				rpcClient.Call("TaskRPC.Delete", shared.TaskRPCData{
+					Channel: Session.Channel,
+					Task:    &task,
+				}, &done)
+				w := dom.GetWindow()
+				w.Alert(fmt.Sprintf("Task %06d Deleted", task.ID))
+				Session.Navigate(BackURL)
+			}()
+		})
+	}
 	// All done, so render the form
 	form.Render("edit-form", "main", &task)
 	setPhotoField("NewPhoto")
 	showPartsButtons(id)
 	showTaskPhotos(task)
+	print("rendering the checklist here ...")
 
 	w := dom.GetWindow()
 	doc := w.Document()
-
-	print("rendering the checklist here ...")
 	renderMarkup(doc.QuerySelector("[name=CheckList]").(*dom.HTMLDivElement), expandHashtags(task.Descr))
 	setCheckboxes(task)
 
@@ -539,8 +536,6 @@ func _taskEdit(action string, id int) {
 			}
 		})
 	}
-
-	print("show parts tree here")
 
 	t := doc.QuerySelector(`[name="parts-tree-div"]`)
 	t.SetInnerHTML("") // Init the tree panel

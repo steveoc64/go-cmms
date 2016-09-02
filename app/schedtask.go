@@ -445,6 +445,9 @@ func schedEdit(context *router.Context) {
 
 			// If the uploaded data is a PDF, then use that data instead of the preview
 			task.NewPhoto.Data = ImageCache.GetImage()
+			if task.NewPhoto.Data != "" {
+				showProgress("Updating Sched Task ...")
+			}
 
 			go func() {
 				done := false
@@ -453,6 +456,7 @@ func schedEdit(context *router.Context) {
 					SchedTask: &task,
 				}, &done)
 				// Session.Navigate(BackURL)
+				hideProgress()
 				Session.Reload(context)
 			}()
 		})
