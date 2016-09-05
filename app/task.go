@@ -162,7 +162,7 @@ func _taskEdit(action string, id int) {
 						print(result)
 						js.Global.Call("alert", result)
 					}()
-				} else {
+				} else if strings.HasPrefix(url, "/task/complete") {
 					go func() {
 						done := false
 						rpcClient.Call("TaskRPC.Complete", shared.TaskRPCData{
@@ -171,6 +171,8 @@ func _taskEdit(action string, id int) {
 						}, &done)
 						Session.Navigate(BackURL)
 					}()
+				} else {
+					Session.Navigate(url)
 				}
 			})
 		case "Technician":
@@ -1168,4 +1170,9 @@ func addTaskPartsTree(tree []shared.Category, ul *dom.HTMLUListElement, depth in
 			}
 		}
 	}
+}
+
+func taskInvoices(context *router.Context) {
+	print("TODO - task invoices")
+
 }
