@@ -13,6 +13,7 @@ import (
 	"github.com/steveoc64/godev/config"
 	"github.com/steveoc64/godev/db"
 	"github.com/steveoc64/godev/echocors"
+	// _ "github.com/steveoc64/godev/sms"
 	"github.com/steveoc64/godev/smt"
 	runner "gopkg.in/mgutz/dat.v1/sqlx-runner"
 
@@ -29,14 +30,30 @@ func main() {
 
 	Config = config.LoadConfig()
 	cpus := smt.Init()
-	fmt.Printf("Go-CMMS running on %d CPU cores\n", cpus)
+	fmt.Printf("Go-CMMS running on %d CPU cores\nSMS-On = %v\n", cpus, Config.SMSOn)
+
+	if Config.SMSOn {
+		println(".. Will Send SMS Messages as needed")
+	} else {
+		println(".. Will NOT send any SMS messages with current settings")
+	}
 
 	// Make sure the SMS stuff is all working before we go too far
-	smsbal, smserr := GetSMSBalance()
-	if smserr != nil {
-		log.Fatal("Cannot retrieve SMS account info", smserr.Error())
-	}
-	log.Println("... Remaining SMS Balance =", smsbal)
+	go func() {
+		smsbal, smserr := GetSMSBalance()
+		if smserr != nil {
+			log.Fatal("Cannot retrieve SMS account info", smserr.Error())
+		}
+		log.Println("... Remaining SMS Balance =", smsbal)
+	}()
+
+	go func() {
+		smsbal, smserr := GetIntlBalance()
+		if smserr != nil {
+			log.Fatal("Cannot retrieve International SMS account info", smserr.Error())
+		}
+		log.Println("... Remaining International SMS Balance =", smsbal)
+	}()
 
 	// Start up the basic web server
 	e = echo.New()

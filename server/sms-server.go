@@ -16,7 +16,12 @@ import (
 
 func GetSMSBalance() (int, error) {
 
-	if !Config.SMSOn {
+	// if !Config.SMSOn {
+	// 	return 0, nil
+	// }
+
+	if Config.SMSServer == "" {
+		println("No Local SMS Server Defined")
 		return 0, nil
 	}
 
@@ -64,6 +69,49 @@ func GetSMSBalance() (int, error) {
 	s := string(body[3:])
 
 	return strconv.Atoi(s)
+}
+
+func GetIntlBalance() (int, error) {
+
+	// if !Config.SMSOn {
+	// 	return 0, nil
+	// }
+
+	if Config.SMSIntlServer == "" {
+		println("No Intl SMS Server Defined")
+		return 0, nil
+	}
+
+	// getbalURL := fmt.Sprintf("%s/user/get_credits/1/1.1?username=%s&password=%s",
+	// 	Config.SMSIntlServer,
+	// 	Config.SMSIntlUser,
+	// 	Config.SMSIntlPasswd)
+	// println("getbalURL = ", getbalURL)
+
+	resp, err := http.Get(fmt.Sprintf("%s/user/get_credits/1/1.1?username=%s&password=%s",
+		Config.SMSIntlServer,
+		Config.SMSIntlUser,
+		Config.SMSIntlPasswd))
+
+	if err != nil {
+		log.Println("HTTP Get Error", err.Error())
+		return 0, err
+	}
+
+	// read the response
+	body, err := ioutil.ReadAll(resp.Body)
+	resp.Body.Close()
+
+	if err != nil {
+		log.Println(err.Error())
+		return 0, err
+	}
+	b := strings.TrimSpace(string(body))
+	f := strings.Split(b, "|")
+	// println("got response of", b, f[1])
+	v, err := strconv.ParseFloat(f[1], 64)
+	// println("converts to", v)
+	return int(v), err
 }
 
 func SendSMS(number string, message string, ref string, user_id int) error {
