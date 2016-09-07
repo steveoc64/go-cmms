@@ -222,6 +222,7 @@ func schedEdit(context *router.Context) {
 			Channel: Session.Channel,
 			ID:      id,
 		}, &task)
+		print("got task and component =", task.Component)
 
 		rpcClient.Call("MachineRPC.Get", shared.MachineRPCData{
 			Channel: Session.Channel,
@@ -319,7 +320,8 @@ func schedEdit(context *router.Context) {
 		case "C":
 			for i, c := range compOther {
 				if c.Name == task.Component {
-					currentComp = i + 100
+					print("c.Name matches the task comp", i)
+					currentComp = i + 100 + 1
 				}
 			}
 		}
