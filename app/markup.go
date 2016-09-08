@@ -171,13 +171,13 @@ func parsePara(para string, addbr bool) string {
 				x2 += x + 1
 				// println("x2 = ", x2)
 				embolden := ""
-				if addbr {
-					embolden = fmt.Sprintf("%s\n<br><input type=checkbox id=taskchek-%d key=%d><label class=label-inline>%s</label>\n<br>%s\n",
-						line[:x], currentChekbox, currentChekbox, line[x+1:x2], line[x2+1:])
-				} else {
-					embolden = fmt.Sprintf("%s <input type=checkbox id=taskchek-%d key=%d><label class=label-inline>%s</label> %s\n",
-						line[:x], currentChekbox, currentChekbox, line[x+1:x2], line[x2+1:])
-				}
+				// if addbr {
+				// 	embolden = fmt.Sprintf("%s\n<br><input type=checkbox id=taskchek-%d key=%d><label class=label-inline>%s</label>\n<br>%s\n",
+				// 		line[:x], currentChekbox, currentChekbox, line[x+1:x2], line[x2+1:])
+				// } else {
+				embolden = fmt.Sprintf("%s <input type=checkbox id=taskchek-%d key=%d><label class=label-inline>%s</label> %s\n",
+					line[:x], currentChekbox, currentChekbox, line[x+1:x2], line[x2+1:])
+				// }
 				retval += parsePara(embolden, addbr)
 				continue
 			}
