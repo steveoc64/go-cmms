@@ -192,6 +192,7 @@ func _taskEdit(action string, id int) {
 
 	// Layout the fields
 	partsTitle := "Parts Used - record qty for each part used"
+	partsTitle = ""
 
 	useRole := Session.UserRole
 	if Session.CanAllocate {
@@ -494,6 +495,12 @@ func _taskEdit(action string, id int) {
 				partID, _ := strconv.Atoi(btn.GetAttribute("part-id"))
 				// print("clicked on a btn", btn, partID)
 
+				// enusre that the parts tree is in fact visible
+				ulc := doc.QuerySelector("[name=parts-ul]").Class()
+				if ulc != nil {
+					ulc.Remove("hidden")
+				}
+
 				// Now expand the tree to show the selected item
 				li := doc.QuerySelector(fmt.Sprintf("#part-%d", partID))
 				// print("got LI", li)
@@ -540,11 +547,14 @@ func _taskEdit(action string, id int) {
 	}
 
 	t := doc.QuerySelector(`[name="parts-tree-div"]`)
-	t.SetInnerHTML("") // Init the tree panel
+	// t.SetInnerHTML("") // Init the tree panel
 
 	// Create the Tree's UL element
 	ul := doc.CreateElement("ul").(*dom.HTMLUListElement)
-	ul.SetClass("treeview")
+	ulc := ul.Class()
+	ulc.Add("treeview")
+	ulc.Add("hidden")
+	ul.SetAttribute("name", "parts-ul")
 
 	// Fetch the complete parts tree from the backend
 	go func() {
@@ -699,7 +709,17 @@ func _taskEdit(action string, id int) {
 	// click on the parts button, expand the div to show a tree
 	if el := doc.QuerySelector("[name=parts-button]"); el != nil {
 		el.AddEventListener("click", false, func(evt dom.Event) {
+			print("clicksed on the parts button")
 			evt.PreventDefault()
+
+			ul := doc.QuerySelector("[name=parts-ul]")
+			ulc := ul.Class()
+			if ulc.Contains("hidden") {
+				ulc.Remove("hidden")
+			} else {
+				ulc.Add("hidden")
+				swapper.Select(-1)
+			}
 			// loadPartsTree()
 
 			// }()
