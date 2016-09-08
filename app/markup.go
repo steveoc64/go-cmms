@@ -36,6 +36,7 @@ func renderMarkup(el *dom.HTMLDivElement, text string) {
 			div.SetInnerHTML(parsePara(para, true))
 			el.AppendChild(div)
 			para = ""
+			el.AppendChild(doc.CreateElement("br"))
 		} else {
 			// append this to the existing paragraph.
 			if len(para) > 0 {
