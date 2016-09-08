@@ -110,7 +110,7 @@ func machineEdit(context *router.Context) {
 		form.Row(3).
 			AddInput(1, "Name", "Name").
 			AddInput(1, "Serial #", "Serialnum").
-			Add(1, "Status", "text", "Status", "disabled")
+			AddDisplay(1, "Status", "Status")
 
 		form.Row(1).
 			AddSelect(1, "Machine Type", "MachineType",
