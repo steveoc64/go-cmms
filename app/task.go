@@ -378,11 +378,12 @@ func _taskEdit(action string, id int) {
 		AddDisplay(1, "Current Stock", "CurrentStock").
 		AddDisplay(1, "Qty Type", "QtyType")
 
-	if Session.UserRole == "Admin" {
+	switch Session.UserRole {
+	case "Admin", "Site Manager":
 		partPanel.Row(4).
 			AddDisplay(3, "Supplier Details", "SupplierInfo").
 			AddDisplay(1, "Cost", "LatestPrice")
-	} else {
+	default:
 		partPanel.Row(1).
 			AddDisplay(1, "Supplier Details", "SupplierInfo")
 	}
