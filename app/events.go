@@ -34,6 +34,7 @@ func _SMSList(action string, id int) {
 	form.Column("Number", "GetNumber")
 	form.Column("Message", "Message")
 	form.Column("Reference", "Ref")
+	form.BoolColumn("Local Carrier", "Local")
 	// form.Column("Phone", "Phone")
 	form.Column("Status", "GetStatus")
 

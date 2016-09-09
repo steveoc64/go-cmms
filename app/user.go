@@ -208,6 +208,7 @@ func userList(context *router.Context) {
 		form.Column("Email", "Email")
 		form.Column("Mobile", "SMS")
 		form.BoolColumn("Use", "UseMobile")
+		form.BoolColumn("Local", "Local")
 		form.Column("Role", "Role")
 		form.BoolColumn("Tech ?", "IsTech")
 
@@ -287,10 +288,11 @@ func userEdit(context *router.Context) {
 			Add(1, "Username", "text", "Username", `id="focusme"`).
 			Add(1, "Password", "text", "Passwd", "")
 
-		form.Row(10).
+		form.Row(11).
 			Add(3, "Name", "text", "Name", "").
 			Add(3, "Email", "text", "Email", "").
 			Add(3, "Mobile", "text", "SMS", "").
+			AddCheck(1, "Local Carrier", "Local").
 			AddCheck(1, "Send Msgs", "UseMobile")
 
 		if Session.UserRole == "Admin" {

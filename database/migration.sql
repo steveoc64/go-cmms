@@ -398,3 +398,12 @@ create table task_item (
 create index task_item_task_idx on task_item (task_id, date);
 
 insert into migration (name) values ('Add task_item table');
+
+
+-- 2016 09 09
+-- Add extras for handling non-local SMS carrier
+
+alter table users add local bool default true;
+alter table sms_trans add local bool default true;
+ 
+insert into migration (name) values ('Extend tables for non-local SMS carrier');	

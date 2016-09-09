@@ -15,6 +15,7 @@ type SMSTrans struct {
 	Ref        string    `db:"ref"`
 	Status     string    `db:"status"`
 	Error      string    `db:"error"`
+	Local      bool      `db:"local"`
 }
 
 func (s *SMSTrans) GetNumber() string {
