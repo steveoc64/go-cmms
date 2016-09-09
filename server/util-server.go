@@ -532,7 +532,7 @@ func (u *UtilRPC) TaskFigs(channel int, result *string) error {
 			if tmcPtr != nil {
 				r += fmt.Sprintf("Task %06d  %.2f hrs $%.2f Original Mat Cost %.2f --> %.2f\n",
 					v.ID, v.LabourHrs, v.LabourCost, v.MaterialCost, *tmcPtr)
-				DB.SQL(`update task set material_cost=$2 where id=$1`, v.ID, totalMaterialCost).Exec()
+				DB.SQL(`update task set material_cost=$2 where id=$1`, v.ID, *tmcPtr).Exec()
 			}
 
 		}
