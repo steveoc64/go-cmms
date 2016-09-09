@@ -401,31 +401,31 @@ func _taskEdit(action string, id int) {
 		dom.GetWindow().Print()
 	})
 
-	print("useRole =", useRole)
-	if useRole == "Admin" ||
-		(Session.UserRole == "Technician" && task.CompletedDate == nil) {
+	// print("useRole =", useRole)
+	// if useRole == "Admin" ||
+	// 	(Session.UserRole == "Technician" && task.CompletedDate == nil) {
 
-		form.SaveEvent(func(evt dom.Event) {
-			evt.PreventDefault()
-			form.Bind(&task)
+	// 	form.SaveEvent(func(evt dom.Event) {
+	// 		evt.PreventDefault()
+	// 		form.Bind(&task)
 
-			if task.NewPhoto.Data != "" {
-				showProgress("Updating Task ...")
+	// 		if task.NewPhoto.Data != "" {
+	// 			showProgress("Updating Task ...")
 
-				// If the uploaded data is a PDF, then use that data instead of the preview
-				task.NewPhoto.Data = ImageCache.GetImage()
-			}
-			go func() {
-				updatedTask := shared.Task{}
-				rpcClient.Call("TaskRPC.Update", shared.TaskRPCData{
-					Channel: Session.Channel,
-					Task:    &task,
-				}, &updatedTask)
-				Session.Navigate(RefreshURL)
-				hideProgress()
-			}()
-		})
-	}
+	// 			// If the uploaded data is a PDF, then use that data instead of the preview
+	// 			task.NewPhoto.Data = ImageCache.GetImage()
+	// 		}
+	// 		go func() {
+	// 			updatedTask := shared.Task{}
+	// 			rpcClient.Call("TaskRPC.Update", shared.TaskRPCData{
+	// 				Channel: Session.Channel,
+	// 				Task:    &task,
+	// 			}, &updatedTask)
+	// 			Session.Navigate(RefreshURL)
+	// 			hideProgress()
+	// 		}()
+	// 	})
+	// }
 
 	if useRole == "Admin" {
 		form.DeleteEvent(func(evt dom.Event) {
@@ -443,9 +443,28 @@ func _taskEdit(action string, id int) {
 			}()
 		})
 	}
+
 	// All done, so render the form
 	form.Render("edit-form", "main", &task)
-	setPhotoField("NewPhoto")
+	setPhotoUploadField("NewPhoto", true, func() {
+		print("Attach Callback")
+		form.Bind(&task)
+		print("post bind", task)
+
+		if task.NewPhoto.Data != "" {
+			showProgress("Updating Task ...")
+
+			// If the uploaded data is a PDF, then use that data instead of the preview
+			task.NewPhoto.Data = ImageCache.GetImage()
+		}
+		done := false
+		rpcClient.Call("TaskRPC.AddAttach", shared.TaskRPCData{
+			Channel: Session.Channel,
+			Task:    &task,
+		}, &done)
+		Session.Navigate(RefreshURL)
+		hideProgress()
+	})
 	showPartsButtons(id)
 	showTaskPhotos(task)
 	print("rendering the checklist here ...")
@@ -454,6 +473,31 @@ func _taskEdit(action string, id int) {
 	doc := w.Document()
 	renderMarkup(doc.QuerySelector("[name=CheckList]").(*dom.HTMLDivElement), expandHashtags(task.Descr))
 	setCheckboxes(task)
+
+	doc.QuerySelector("[name=AssignedTo").AddEventListener("change", false, func(evt dom.Event) {
+		print("assigned to has changed")
+		form.Bind(&task)
+		go func() {
+			updatedTask := shared.Task{}
+			rpcClient.Call("TaskRPC.UpdateHours", shared.TaskRPCData{
+				Channel: Session.Channel,
+				Task:    &task,
+			}, &updatedTask)
+			doc.QuerySelector("[name=LabourCost]").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", updatedTask.LabourCost)
+		}()
+	})
+
+	doc.QuerySelector("[name=Log").AddEventListener("change", false, func(evt dom.Event) {
+		print("notes have changed")
+		form.Bind(&task)
+		go func() {
+			updatedTask := shared.Task{}
+			rpcClient.Call("TaskRPC.UpdateNotes", shared.TaskRPCData{
+				Channel: Session.Channel,
+				Task:    &task,
+			}, &updatedTask)
+		}()
+	})
 
 	// loadTemplate("task-check-list", "[name=CheckList]", task)
 	loadTemplate("task-parts-tree", "[name=PartList]", task)
@@ -468,7 +512,7 @@ func _taskEdit(action string, id int) {
 			form.Bind(&task)
 			go func() {
 				updatedTask := shared.Task{}
-				rpcClient.Call("TaskRPC.Update", shared.TaskRPCData{
+				rpcClient.Call("TaskRPC.UpdateHours", shared.TaskRPCData{
 					Channel: Session.Channel,
 					Task:    &task,
 				}, &updatedTask)

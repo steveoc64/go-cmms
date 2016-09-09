@@ -114,6 +114,102 @@ func (t *TaskRPC) Update(data shared.TaskRPCData, updatedTask *shared.Task) erro
 	return nil
 }
 
+// Add an attachment to a Task
+func (t *TaskRPC) AddAttach(data shared.TaskRPCData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	// If there is a new photo to be added to the task, then add it
+	if data.Task.NewPhoto.Data != "" {
+		println("Adding new photo", data.Task.NewPhoto.Data[:22])
+		photo := shared.Photo{
+			Data:     data.Task.NewPhoto.Data,
+			Filename: data.Task.NewPhoto.Filename,
+			Entity:   "task",
+			EntityID: data.Task.ID,
+		}
+
+		// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
+		decodePhoto(&photo)
+		DB.InsertInto("photo").
+			Columns("entity", "entity_id", "photo", "thumb", "preview", "type", "datatype", "filename").
+			Record(photo).
+			Exec()
+	} else {
+		println("attachment is empty !!!")
+	}
+
+	logger(start, "Task.AddAttach",
+		fmt.Sprintf("Channel %d, Task %d, User %d %s %s",
+			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
+		data.Task.NewPhoto.Filename,
+		data.Channel, conn.UserID, "task", data.Task.ID, true)
+
+	conn.Broadcast("task", "update", data.Task.ID)
+	*done = true
+	return nil
+}
+
+// Update a Task - just the hours
+func (t *TaskRPC) UpdateHours(data shared.TaskRPCData, updatedTask *shared.Task) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+	DB.Update("task").
+		SetWhitelist(data.Task, "assigned_to", "labour_hrs").
+		Where("id = $1", data.Task.ID).
+		Exec()
+
+	if data.Task.AssignedTo != nil {
+		user := shared.User{}
+		DB.SQL(`select hourly_rate
+				from users
+				where id=$1`, *data.Task.AssignedTo).
+			QueryStruct(&user)
+
+		data.Task.LabourCost = user.HourlyRate * data.Task.LabourHrs
+		DB.SQL(`update task 
+				set labour_cost=$2 
+				where id=$1`, data.Task.ID, data.Task.LabourCost).
+			Exec()
+	}
+
+	logger(start, "Task.UpdateHours",
+		fmt.Sprintf("Channel %d, Task %d, User %d %s %s",
+			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%f %f %f %s",
+			data.Task.LabourCost, data.Task.LabourHrs),
+		data.Channel, conn.UserID, "task", data.Task.ID, true)
+
+	DB.SQL(`select * from task where id=$1`, data.Task.ID).QueryStruct(updatedTask)
+
+	conn.Broadcast("task", "update", data.Task.ID)
+	return nil
+}
+
+// Update a Task - just the notes
+func (t *TaskRPC) UpdateNotes(data shared.TaskRPCData, updatedTask *shared.Task) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+	DB.SQL(`update task 
+				set log=$2 
+				where id=$1`, data.Task.ID, data.Task.Log).
+		Exec()
+
+	logger(start, "Task.UpdateNotes",
+		fmt.Sprintf("Channel %d, Task %d, User %d %s %s",
+			data.Channel, data.Task.ID, conn.UserID, conn.Username, conn.UserRole),
+		data.Task.Log,
+		data.Channel, conn.UserID, "task", data.Task.ID, true)
+
+	DB.SQL(`select * from task where id=$1`, data.Task.ID).QueryStruct(updatedTask)
+
+	conn.Broadcast("task", "update", data.Task.ID)
+	return nil
+}
+
 func (t *TaskRPC) Delete(data shared.TaskRPCData, done *bool) error {
 	start := time.Now()
 

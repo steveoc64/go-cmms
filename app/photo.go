@@ -65,6 +65,11 @@ func (c *CachedImages) GetImage() string {
 	return retval
 }
 
+func (c *CachedImages) String() string {
+
+	return fmt.Sprintf("%s %v %v\n", c.ImageData[:22], c.isPDF, c.isRawData)
+}
+
 var ImageCache CachedImages
 
 func GetPDFImage() {
@@ -78,24 +83,24 @@ func GetPDFImage() {
 }
 
 func setPhotoOnlyField(f string) {
-	setPhotoUploadField(f, false)
+	setPhotoUploadField(f, false, nil)
 }
 
 func setPhotoField(f string) {
-	setPhotoUploadField(f, true)
+	setPhotoUploadField(f, true, nil)
 }
 
-func setPhotoUploadField(f string, allowPDF bool) {
+func setPhotoUploadField(f string, allowPDF bool, c func()) {
 
 	w := dom.GetWindow()
 	doc := w.Document()
 
 	// add a handler on the photo field
-	if el := doc.QuerySelector(fmt.Sprintf("[name=%s", f)).(*dom.HTMLInputElement); el != nil {
+	if el := doc.QuerySelector(fmt.Sprintf("[name=%s]", f)).(*dom.HTMLInputElement); el != nil {
 
 		// Set the attribute to say what types of data the field can accept
 		el.AddEventListener("change", false, func(evt dom.Event) {
-			// print("filename may =", el.Value)
+			print("filename may =", el.Value)
 			lastSlash := strings.LastIndex(el.Value, `\`)
 			fileName := el.Value
 			if lastSlash > -1 {
@@ -150,6 +155,10 @@ func setPhotoUploadField(f string, allowPDF bool) {
 					} else {
 						w.Alert("ERROR: This screen only allows photos, please try again")
 					}
+				}
+				print("now we have processed the photo", ImageCache.String())
+				if c != nil {
+					go c()
 				}
 			})
 			fileReader.Set("onerror", func(e *js.Object) {
