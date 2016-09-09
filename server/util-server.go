@@ -503,3 +503,48 @@ func (u *UtilRPC) Cats(channel int, result *string) error {
 
 	return nil
 }
+
+// Generate all the derived accumulated dollars correctly on all tasks
+func (u *UtilRPC) TaskFigs(channel int, result *string) error {
+	start := time.Now()
+
+	conn := Connections.Get(channel)
+
+	if conn.UserRole == "Admin" && conn.Username == "steve" {
+		// For each part, get the 1st component that its associated
+		// with (under the old scheme), and from there get the machine.
+		//
+		// The machine then tells us which partclass to use
+		r := "Processing Tasks\n"
+
+		tasks := []shared.Task{}
+		DB.SQL(`select * from task order by id`).QueryStructs(&tasks)
+
+		for _, v := range tasks {
+
+			totalMaterialCost := 0.0
+			tmcPtr := &totalMaterialCost
+			DB.SQL(`select 
+				sum(t.qty_used * p.latest_price) as totalm 
+				from task_part t 
+				left join part p on p.id=t.part_id 
+				where t.task_id=$1`, v.ID).QueryScalar(&tmcPtr)
+			if tmcPtr != nil {
+				r += fmt.Sprintf("Task %06d  %.2f hrs $%.2f Original Mat Cost %.2f --> %.2f\n",
+					v.ID, v.LabourHrs, v.LabourCost, v.MaterialCost, *tmcPtr)
+				DB.SQL(`update task set material_cost=$2 where id=$1`, v.ID, totalMaterialCost).Exec()
+			}
+
+		}
+
+		*result = r
+	}
+
+	logger(start, "Util.TaskFigs",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			channel, conn.UserID, conn.Username, conn.UserRole),
+		*result,
+		channel, conn.UserID, "task", 0, true)
+
+	return nil
+}

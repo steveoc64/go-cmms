@@ -254,6 +254,10 @@ func adminUtils(context *router.Context) {
 				return
 			case "editor":
 				Session.Navigate("/testeditor")
+			case "taskfigs":
+				if w.Confirm("Generate Accumulators on all Tasks ?") {
+					rpcClient.Call("UtilRPC.TaskFigs", Session.Channel, &retval)
+				}
 			case "phototest":
 				Session.Navigate("/phototest")
 			case "thumbnails":
