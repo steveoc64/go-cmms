@@ -30,7 +30,11 @@ func getWSBaseURL() string {
 	if location.Protocol == "https:" {
 		wsProtocol = "wss"
 	}
-	return fmt.Sprintf("%s://%s:%s/ws", wsProtocol, location.Hostname, location.Port)
+	if location.Port == "" {
+		return fmt.Sprintf("%s://%s/ws", wsProtocol, location.Hostname)
+	} else {
+		return fmt.Sprintf("%s://%s:%s/ws", wsProtocol, location.Hostname, location.Port)
+	}
 }
 
 var rxOn bool
