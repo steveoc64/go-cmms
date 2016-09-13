@@ -214,8 +214,19 @@ func stops(context *router.Context) {
 		mform.RowEvent(func(key string) {
 			Session.Navigate("/machine/" + key)
 		})
+		// force a page break for printing
+				w := dom.GetWindow()
+		doc := w.Document()
 
-		mform.Render("site-machine-list", "main", machines)
+		div := doc.CreateElement("div")
+		div.Class().Add("page-break")
+		doc.QuerySelector("main").AppendChild(div)
+
+		div = doc.CreateElement("div").(*dom.HTMLDivElement)
+		div.SetID("mlist")
+		doc.QuerySelector("main").AppendChild(div)
+
+		mform.Render("site-machine-list", "#mlist", machines)
 		// form.Render("site-machine-list", "main", data)
 
 	}()
