@@ -19,6 +19,7 @@ import (
 // and session data once the user logs in on this connection
 type Connection struct {
 	ID       int
+	Active   bool
 	Socket   *websocket.Conn
 	Mutex    *sync.Mutex
 	Username string
@@ -71,7 +72,7 @@ func (c *Connection) KeepAlive(sec time.Duration) {
 	c.Send("Ping", data)
 	c.ticker = time.NewTicker(time.Second * sec)
 	for range c.ticker.C {
-		// log.Println("sending ping to client", c.ID)
+		log.Println("sending ping to client", c.ID)
 		err := c.Send("Ping", data)
 		if err != nil {
 			log.Println("Send error on", c.ID, err.Error())
@@ -87,7 +88,7 @@ func (c *Connection) Broadcast(name string, action string, id int) {
 		ID:     id,
 	}
 
-	for _, v := range Connections.conns {
+	for _, v := range Connections.cmap {
 		if v != c && v.UserID != 0 {
 			log.Println("broadcast", name, action, id, "»", v.ID)
 			go v.Send(name, data)
@@ -97,8 +98,10 @@ func (c *Connection) Broadcast(name string, action string, id int) {
 
 // A collection of Connections
 type ConnectionsList struct {
-	conns  []*Connection
-	cmap   map[int]*Connection
+	// conns  []*Connection
+	cmap map[int]*Connection
+	keys []int
+
 	nextID int
 }
 
@@ -110,7 +113,7 @@ func (c *ConnectionsList) BroadcastAll(name string, action string, id int) {
 		ID:     id,
 	}
 
-	for _, v := range c.conns {
+	for _, v := range c.cmap {
 		if v.UserID != 0 {
 			log.Println("BroadcastAll", name, action, id, "»", v.ID)
 			go v.Send(name, data)
@@ -122,7 +125,7 @@ var Connections *ConnectionsList
 
 // Find the connection that owns the socket, return nil if not found
 func (c *ConnectionsList) Find(ws *websocket.Conn) *Connection {
-	for _, conn := range c.conns {
+	for _, conn := range c.cmap {
 		if conn.Socket == ws {
 			return conn
 		}
@@ -143,12 +146,13 @@ func (c *ConnectionsList) Add(ws *websocket.Conn) *Connection {
 		Mutex:  new(sync.Mutex),
 		enc:    gob.NewEncoder(ws),
 	}
-	c.conns = append(c.conns, conn)
+	// c.conns = append(c.conns, conn)
 	c.nextID++
 	if c.cmap == nil {
 		c.cmap = make(map[int]*Connection)
 	}
 	c.cmap[c.nextID] = conn
+	c.keys = append(c.keys, c.nextID)
 
 	// Now create a keepalive pinger for this connection
 	go conn.KeepAlive(55)
@@ -156,9 +160,20 @@ func (c *ConnectionsList) Add(ws *websocket.Conn) *Connection {
 	return conn
 }
 
-// Remove the websocket from the list
-func (c *ConnectionsList) Drop(ws *websocket.Conn) *ConnectionsList {
-	fmt.Println("TODO - drop connetion")
+// Remove the websocket from the list by ID
+func (c *ConnectionsList) Drop(conn *Connection) *ConnectionsList {
+	fmt.Println("Remove connection ", conn.ID)
+
+	// theConn := c.cmap[conn.ID]
+	// println("theConn = ", theConn)
+	delete(c.cmap, conn.ID)
+
+	// must remove the offending key from the keys array now
+	for i := 0; i < len(c.keys); i++ {
+		if c.keys[i] == conn.ID {
+			c.keys = append(c.keys[:i], c.keys[i+1:]...) // NOTE - variadic tail, append takes varargs of type, not an array
+		}
+	}
 	return c
 }
 
@@ -166,15 +181,20 @@ func (c *ConnectionsList) Drop(ws *websocket.Conn) *ConnectionsList {
 func (c *ConnectionsList) Show(header string) *ConnectionsList {
 	fmt.Println("==================================")
 	fmt.Println(header)
-	for i, conn := range c.conns {
-		fmt.Printf("  %d:", i+1)
+	for _, key := range c.keys {
+		conn := c.cmap[key]
+		req := conn.Socket.Request()
+		theIP := ""
+		if theIP = req.Header.Get("X-Real-Ip"); theIP == "" {
+			theIP = req.RemoteAddr
+		}
+		fmt.Printf("  %d:%s\t\t%s\n", conn.ID, theIP, req.Header["User-Agent"])
+
 		if conn.UserID != 0 {
-			fmt.Println(conn.ID, conn.Socket.Request().RemoteAddr,
+			fmt.Println("\t\t\t",
 				"User:", conn.Username, conn.UserID,
 				"Route:", conn.Route,
 				"Time:", time.Since(conn.Time))
-		} else {
-			fmt.Println(conn.ID, conn.Socket.Request().RemoteAddr)
 		}
 	}
 	fmt.Println("==================================")
@@ -215,6 +235,10 @@ type myServerCodec struct {
 // On receiving a new header, lock the connection until the whole RPC call has finished
 func (c *myServerCodec) ReadRequestHeader(r *rpc.Request) error {
 	err := c.dec.Decode(r)
+	if err != nil {
+		log.Println("Dropped Connection:", err.Error(), ", connection:", c.conn.ID)
+		Connections.Drop(c.conn)
+	}
 	c.conn.Mutex.Lock()
 	return err
 }
