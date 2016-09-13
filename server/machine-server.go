@@ -425,6 +425,34 @@ func (m *MachineRPC) UpdateMachineTypeTool(data shared.MachineTypeToolRPCData, d
 	return nil
 }
 
+// For the given machine, toggle the active status if allowed, and return the newly toggled status
+func (m *MachineRPC) StartStop(data shared.MachineRPCData, newStatus *string) error {
+	start := time.Now()
+
+	// log.Println("here", data.MachineType)
+	conn := Connections.Get(data.Channel)
+
+	machine := shared.Machine{}
+	DB.SQL(`select * from machine where id=$1`, data.ID).QueryStruct(&machine)
+
+	switch machine.Status {
+	case "Running":
+		*newStatus = "Stopped"
+	default:
+		*newStatus = "Running"
+	}
+
+	DB.SQL(`update machine set status=$2 where id=$1`, data.ID, *newStatus).Exec()
+
+	logger(start, "Machine.StartStop",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d %s -> %s", data.ID, machine.Status, *newStatus),
+		data.Channel, conn.UserID, "machine_tool", data.ID, true)
+
+	return nil
+}
+
 func (m *MachineRPC) InsertMachineTypeTool(data shared.MachineTypeToolRPCData, id *int) error {
 	start := time.Now()
 	*id = 0

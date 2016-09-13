@@ -63,7 +63,7 @@ func (c *Connection) Login(username string, id int, role string) {
 
 // Constantly Ping the Backend
 func (c *Connection) KeepAlive(sec time.Duration) {
-	log.Println("sending ping to ", c.ID)
+	// log.Println("sending ping to ", c.ID)
 
 	data := shared.AsyncMessage{
 		Action: "Ping",
@@ -72,7 +72,7 @@ func (c *Connection) KeepAlive(sec time.Duration) {
 	c.Send("Ping", data)
 	c.ticker = time.NewTicker(time.Second * sec)
 	for range c.ticker.C {
-		log.Println("sending ping to client", c.ID)
+		// log.Println("sending ping to client", c.ID)
 		err := c.Send("Ping", data)
 		if err != nil {
 			log.Println("Send error on", c.ID, err.Error())

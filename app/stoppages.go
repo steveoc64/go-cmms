@@ -196,6 +196,28 @@ func stops(context *router.Context) {
 
 		form.Render("stoppage-list", "main", events)
 
+		machines := []shared.Machine{}
+
+		rpcClient.Call("SiteRPC.MachineListAll", shared.EventRPCData{
+			Channel: Session.Channel,
+			Site:    theSite,
+		}, &machines)
+
+		mform := formulate.ListForm{}
+		mform.New("fa-cogs", "Machine List for - "+theSite)
+
+		// Define the layout
+		mform.Column("Name", "Name")
+		mform.Column("Description", "Descr")
+		mform.Column("Status", "Status")
+
+		mform.RowEvent(func(key string) {
+			Session.Navigate("/machine/" + key)
+		})
+
+		mform.Render("site-machine-list", "main", machines)
+		// form.Render("site-machine-list", "main", data)
+
 	}()
 
 }

@@ -264,6 +264,46 @@ func (s *SiteRPC) MachineList(data shared.SiteRPCData, machines *[]shared.Machin
 	return nil
 }
 
+// Get all machines for the given site, where the site name is given as the general area which covers multiple
+// factories
+
+func (s *SiteRPC) MachineListAll(data shared.SiteRPCData, machines *[]shared.Machine) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	// Read the machines for the given site
+	err := DB.SQL(MachinesBySite, data.ID).QueryStructs(machines)
+
+	if err != nil {
+		log.Println(err.Error())
+	}
+
+	// For each machine, fetch all components
+	for k, m := range *machines {
+		err = DB.Select("*").
+			From("component").
+			Where("machine_id = $1", m.ID).
+			OrderBy("position,zindex,lower(name)").
+			QueryStructs(&(*machines)[k].Components)
+
+		// and the machine type info as well
+		DB.Select(`name,photo_thumbnail,electrical,hydraulic,pnuematic,lube,printer,console,uncoiler,rollbed,conveyor,encoder,strip_guide`).
+			From(`machine_type`).
+			Where(`id=$1`, m.MachineType).
+			QueryStruct(&(*machines)[k].MachineTypeData)
+
+	}
+
+	logger(start, "Site.MachineList",
+		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
+			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d machines", len(*machines)),
+		data.Channel, conn.UserID, "machine", 0, false)
+
+	return nil
+}
+
 // Get all machines for the home site
 func (s *SiteRPC) HomeMachineList(channel int, machines *[]shared.Machine) error {
 	start := time.Now()

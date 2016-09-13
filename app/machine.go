@@ -107,10 +107,11 @@ func machineEdit(context *router.Context) {
 
 		// Layout the fields
 
-		form.Row(3).
-			AddInput(1, "Name", "Name").
-			AddInput(1, "Serial #", "Serialnum").
-			AddDisplay(1, "Status", "Status")
+		form.Row(9).
+			AddInput(3, "Name", "Name").
+			AddInput(3, "Serial #", "Serialnum").
+			AddDisplay(2, "Status", "Status").
+			AddCustom(1, "Actions", "StartStop", "start-stop")
 
 		form.Row(1).
 			AddSelect(1, "Machine Type", "MachineType",
@@ -196,6 +197,37 @@ func machineEdit(context *router.Context) {
 		form.ActionGrid("machine-actions", "#action-grid", machine.ID, func(url string) {
 			Session.Navigate(url)
 		})
+
+		// Fill in the start stop buttons
+		ss := doc.QuerySelector("[name=StartStop]")
+		if ss != nil {
+			print("sort out the start-stop thing")
+
+			showBtn := func(ss dom.Element) {
+				ssc := ss.Class()
+				switch machine.Status {
+				case "Running":
+					ssc.Remove("start-btn")
+					ssc.Add("stop-btn")
+				default:
+					ssc.Remove("stop-btn")
+					ssc.Add("start-btn")
+				}
+			}
+
+			showBtn(ss)
+
+			ss.AddEventListener("click", false, func(evt dom.Event) {
+				// toggle the state of the machine
+				go func() {
+					rpcClient.Call("MachineRPC.StartStop", shared.MachineRPCData{
+						Channel: Session.Channel,
+						ID:      machine.ID,
+					}, &machine.Status)
+					showBtn(evt.Target())
+				}()
+			})
+		}
 
 	}()
 
