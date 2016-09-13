@@ -437,7 +437,7 @@ func (m *MachineRPC) StartStop(data shared.MachineRPCData, newStatus *string) er
 
 	switch machine.Status {
 	case "Running":
-		*newStatus = "Stopped"
+		*newStatus = ""
 	default:
 		*newStatus = "Running"
 	}
@@ -513,7 +513,7 @@ func rehashTools(mt int, mtt int, mode string, data *shared.MachineTypeTool) {
 	// model      | text    | not null default ''::text
 	// serialnum  | text    | not null default ''::text
 	// notes      | text    | not null default ''::text
-	// qty        | integer | not null default 1
+	// qty        | integer | not null default 0
 	// stock_code | text    | not null default ''::text
 	// position   | integer | not null default 1
 	// status     | text    | not null default 'Running'::text

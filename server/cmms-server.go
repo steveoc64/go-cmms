@@ -42,7 +42,7 @@ func main() {
 	go func() {
 		smsbal, smserr := GetSMSBalance()
 		if smserr != nil {
-			log.Fatal("Cannot retrieve SMS account info", smserr.Error())
+			log.Fatal("Cannot retrieve SMS account info\n", smserr.Error())
 		}
 		log.Println("... Remaining SMS Balance =", smsbal)
 	}()
