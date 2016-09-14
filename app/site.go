@@ -65,51 +65,51 @@ func _siteMap(action string, id int) {
 		// Add listeners for the yellow buttons
 		doc.QuerySelector("#edin-btn").AddEventListener("click", false, func(evt dom.Event) {
 			print("clicked on edin btn", data.Status)
-			if data.Status.Edinburgh == "Running" {
-				w.Alert("Edinburgh sites - all running")
-			} else {
-				Session.Navigate("/stops/edinburgh")
-			}
+			// if data.Status.Edinburgh == "Running" {
+			// w.Alert("Edinburgh sites - all running")
+			// } else {
+			Session.Navigate("/stops/edinburgh")
+			// }
 
 		})
 
 		doc.QuerySelector("#chind-btn").AddEventListener("click", false, func(evt dom.Event) {
-			print("clicked on chind btn")
-			if data.Status.Chinderah == "Running" {
-				w.Alert("Chinderah site - all running")
-			} else {
-				Session.Navigate("/stops/chinderah")
-			}
+			// print("clicked on chind btn")
+			// if data.Status.Chinderah == "Running" {
+			// w.Alert("Chinderah site - all running")
+			// } else {
+			Session.Navigate("/stops/chinderah")
+			// }
 
 		})
 
 		doc.QuerySelector("#tom-btn").AddEventListener("click", false, func(evt dom.Event) {
-			print("clicked on tom btn")
-			if data.Status.Tomago == "Running" {
-				w.Alert("Tomago site - all running")
-			} else {
-				Session.Navigate("/stops/tomago")
-			}
+			// print("clicked on tom btn")
+			// if data.Status.Tomago == "Running" {
+			// w.Alert("Tomago site - all running")
+			// } else {
+			Session.Navigate("/stops/tomago")
+			// }
 
 		})
 
 		doc.QuerySelector("#mint-btn").AddEventListener("click", false, func(evt dom.Event) {
-			print("clicked on mint btn")
-			if data.Status.Minto == "Running" {
-				w.Alert("Minto site - all running")
-			} else {
-				Session.Navigate("/stops/minto")
-			}
+			// print("clicked on mint btn")
+			// if data.Status.Minto == "Running" {
+			// w.Alert("Minto site - all running")
+			// } else {
+			Session.Navigate("/stops/minto")
+			// }
 
 		})
 
 		doc.QuerySelector("#usa-btn").AddEventListener("click", false, func(evt dom.Event) {
-			print("clicked on usa btn")
-			if data.Status.USA == "Running" {
-				w.Alert("USA sites - all running")
-			} else {
-				Session.Navigate("/stops/usa")
-			}
+			// print("clicked on usa btn")
+			// if data.Status.USA == "Running" {
+			// w.Alert("USA sites - all running")
+			// } else {
+			Session.Navigate("/stops/usa")
+			// }
 
 		})
 

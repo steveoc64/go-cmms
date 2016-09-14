@@ -139,6 +139,8 @@ func getSiteName(theSite string) string {
 		return "Tomago Site - NSW"
 	case "chinderah":
 		return "Chinderah - NSW / QLD"
+	case "usa":
+		return "Connecticut - USA"
 	}
 	return theSite
 }
@@ -198,16 +200,22 @@ func stops(context *router.Context) {
 
 		machines := []shared.Machine{}
 
-		rpcClient.Call("SiteRPC.MachineListAll", shared.EventRPCData{
+		rerr := rpcClient.Call("SiteRPC.MachineListAll", shared.EventRPCData{
 			Channel: Session.Channel,
 			Site:    theSite,
 		}, &machines)
+		if rerr != nil {
+			print("err", rerr.Error())
+		}
+
+		print("MLA returns", machines)
 
 		mform := formulate.ListForm{}
-		mform.New("fa-cogs", "Machine List for - "+theSite)
+		mform.New("fa-cogs", "Machine List for - "+getSiteName(theSite))
 
 		// Define the layout
 		mform.Column("Name", "Name")
+		mform.Column("Site", "SiteName")
 		mform.Column("Description", "Descr")
 		mform.Column("Status", "Status")
 
@@ -215,7 +223,7 @@ func stops(context *router.Context) {
 			Session.Navigate("/machine/" + key)
 		})
 		// force a page break for printing
-				w := dom.GetWindow()
+		w := dom.GetWindow()
 		doc := w.Document()
 
 		div := doc.CreateElement("div")

@@ -41,6 +41,14 @@ m.*,s.name as site_name,x.span as span
 where m.site_id = $1
 order by x.seq,lower(m.name)`
 
+const MachinesBySiteArea = `select 
+m.*,s.name as site_name,x.span as span
+		from machine m
+		left join site s on (s.id=m.site_id)
+		left join site_layout x on (x.site_id=m.site_id and x.machine_id=m.id)
+where m.site_id in $1
+order by x.seq,lower(m.name)`
+
 // How many sites does this user have ?
 func (s *SiteRPC) SiteCount(channel int, count *int) error {
 	start := time.Now()
@@ -264,16 +272,40 @@ func (s *SiteRPC) MachineList(data shared.SiteRPCData, machines *[]shared.Machin
 	return nil
 }
 
+// For the given site name, return a slice of IDs for sites in that area
+func getSites(theSite string) []int {
+
+	println("getSites", theSite)
+
+	retval := []int{}
+
+	switch theSite {
+	case "edinburgh", "sa":
+		DB.SQL(`select id from site where name like 'Edinburgh%'`).QuerySlice(&retval)
+	case "minto":
+		DB.SQL(`select id from site where name like 'Minto%'`).QuerySlice(&retval)
+	case "tomago":
+		DB.SQL(`select id from site where name like 'Tomago%'`).QuerySlice(&retval)
+	case "chinderah":
+		DB.SQL(`select id from site where name like 'Chinderah%'`).QuerySlice(&retval)
+	case "usa":
+		DB.SQL(`select id from site where name like 'Connecticut%'`).QuerySlice(&retval)
+	}
+
+	return retval
+
+}
+
 // Get all machines for the given site, where the site name is given as the general area which covers multiple
 // factories
 
-func (s *SiteRPC) MachineListAll(data shared.SiteRPCData, machines *[]shared.Machine) error {
+func (s *SiteRPC) MachineListAll(data shared.EventRPCData, machines *[]shared.Machine) error {
 	start := time.Now()
 
 	conn := Connections.Get(data.Channel)
 
 	// Read the machines for the given site
-	err := DB.SQL(MachinesBySite, data.ID).QueryStructs(machines)
+	err := DB.SQL(MachinesBySiteArea, getSites(data.Site)).QueryStructs(machines)
 
 	if err != nil {
 		log.Println(err.Error())
@@ -295,7 +327,7 @@ func (s *SiteRPC) MachineListAll(data shared.SiteRPCData, machines *[]shared.Mac
 
 	}
 
-	logger(start, "Site.MachineList",
+	logger(start, "Site.MachineListAll",
 		fmt.Sprintf("Channel %d, Site %d, User %d %s %s",
 			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
 		fmt.Sprintf("%d machines", len(*machines)),
