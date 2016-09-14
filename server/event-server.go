@@ -265,8 +265,10 @@ func getSiteIDs(site string) []int {
 		DB.SQL(`select id from site where name like 'Tomago%'`).QuerySlice(&retval)
 	case "chinderah":
 		DB.SQL(`select id from site where name like 'Chinderah%'`).QuerySlice(&retval)
+	case "usa":
+		DB.SQL(`select id from site where name like 'Connecticut%'`).QuerySlice(&retval)
 	default:
-		print("dont know about site", site)
+		println("dont know about site", site)
 	}
 	return retval
 }

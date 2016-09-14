@@ -103,6 +103,16 @@ func _siteMap(action string, id int) {
 
 		})
 
+		doc.QuerySelector("#usa-btn").AddEventListener("click", false, func(evt dom.Event) {
+			print("clicked on usa btn")
+			if data.Status.USA == "Running" {
+				w.Alert("USA sites - all running")
+			} else {
+				Session.Navigate("/stops/usa")
+			}
+
+		})
+
 		// Add an Action Grid depending on which role the user is logged in as
 		// print("user role =", Session.UserRole)
 		switch Session.UserRole {

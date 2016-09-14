@@ -40,11 +40,12 @@ type SiteStatusReport struct {
 	Minto     string
 	Tomago    string
 	Chinderah string
+	USA       string
 }
 
 func ButtonColor(status string) string {
 	switch status {
-	case "Running":
+	case "Running", "":
 		return "GreenBtn"
 	case "Needs Attention":
 		return "YellowBtn"
@@ -66,4 +67,7 @@ func (s SiteStatusReport) TButton() string {
 }
 func (s SiteStatusReport) CButton() string {
 	return ButtonColor(s.Chinderah)
+}
+func (s SiteStatusReport) UButton() string {
+	return ButtonColor(s.USA)
 }

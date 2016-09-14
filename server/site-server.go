@@ -349,6 +349,7 @@ func (s *SiteRPC) StatusReport(channel int, retval *shared.SiteStatusReport) err
 	retval.Minto = "Running"
 	retval.Tomago = "Running"
 	retval.Chinderah = "Running"
+	retval.USA = "Running"
 
 	i := 0
 
@@ -431,14 +432,34 @@ func (s *SiteRPC) StatusReport(channel int, retval *shared.SiteStatusReport) err
 		}
 	}
 
+	// Get the overall status for USA
+	i = 0
+	DB.SQL(`select count(m.*) 
+		from machine m
+		left join site s on (s.id = m.site_id)
+		where m.status = 'Stopped' 
+		and s.name like 'Connecticut%'`).QueryScalar(&i)
+	if i > 0 {
+		retval.USA = "Stopped"
+	} else {
+		DB.SQL(`select count(m.*) 
+			from machine m
+			left join site s on (s.id = m.site_id)
+			where m.status = 'Needs Attention' 
+			and s.name like 'Connecticut%'`).QueryScalar(&i)
+		if i > 0 {
+			retval.USA = "Needs Attention"
+		}
+	}
 	logger(start, "Site.StatusReport",
 		fmt.Sprintf("Channel %d, User %d %s %s",
 			channel, conn.UserID, conn.Username, conn.UserRole),
-		fmt.Sprintf("E: %s M: %s T: %s C: %s",
+		fmt.Sprintf("E: %s M: %s T: %s C: %s U: %s",
 			retval.Edinburgh,
 			retval.Minto,
 			retval.Tomago,
-			retval.Chinderah),
+			retval.Chinderah,
+			retval.USA),
 		channel, conn.UserID, "site", 0, false)
 
 	return nil
