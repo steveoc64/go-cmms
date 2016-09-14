@@ -4,6 +4,7 @@ all: sassgen templegen app-assets appjs sv run
 build: sassgen templegen app-assets appjs sv 
 
 get: 
+	go get -u honnef.co/go/simple/cmd/gosimple
 	go get -u github.com/gopherjs/gopherjs
 	go get -u github.com/gopherjs/websocket
 	go get -u github.com/go-humble/temple
@@ -95,9 +96,9 @@ dist/cmms-server: server/*.go shared/*.go
 	@ls -l dist/cmms-server
 
 run: 
-	#./terminate
-	#@mplayer -quiet audio/running.oga 2> /dev/null > /dev/null &
-	#@cd dist && ./cmms-server
+	./terminate
+	@mplayer -quiet audio/running.oga 2> /dev/null > /dev/null &
+	@cd dist && ./cmms-server
 
 testsvr: sv
 	./terminate-test
