@@ -438,6 +438,17 @@ func (m *MachineRPC) StartStop(data shared.MachineRPCData, newStatus *string) er
 	switch machine.Status {
 	case "Running":
 		*newStatus = ""
+	case "Needs Attention":
+		// Check first to see if there are any unresolved stoppages on this machine
+		// before allowing it to be running again
+		c := 0
+		DB.SQL(`select count(*) as cnt from event where completed is null and machine_id=$1`, data.ID).QueryScalar(&c)
+		if c > 0 {
+			fmt.Printf("Machine %d has %d unresolved stoppages - cannot change status until they are fixed\n", data.ID, c)
+			*newStatus = machine.Status
+			return nil
+		}
+
 	default:
 		*newStatus = "Running"
 	}
