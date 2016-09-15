@@ -909,3 +909,66 @@ func machineTypeMachines(context *router.Context) {
 
 	}()
 }
+
+func machineTypeStoppages(context *router.Context) {
+	Session.Subscribe("event", _stoppageList)
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print("Error:", err.Error())
+	}
+	go _machineTypeStoppages("list", id)
+}
+
+func _machineTypeStoppages(action string, id int) {
+
+	events := []shared.Event{}
+	rpcClient.Call("EventRPC.ListByMachineType", shared.EventRPCData {
+		Channel: Session.Channel,
+		ID: id,
+		}, &events)
+
+	mt := shared.MachineType{}
+	rpcClient.Call("MachineRPC.GetMachineType", shared.MachineTypeRPCData{
+		Channel: Session.Channel,
+		ID: id,
+	}, &mt)
+	form := formulate.ListForm{}
+	form.New("fa-pause-circle-o", fmt.Sprintf("All Stoppages for - %s", mt.Name))
+
+	// Define the layout
+	form.Column("ID/User", "GetUserNameID")
+	form.Column("Date", "GetStartDate")
+
+	// if Session.UserRole == "Admin" {
+	// 	form.Column("Completed", "GetCompleted")
+	// }
+
+	form.ColumnFormat("Site", "SiteName", "GetSiteClass")
+	// form.Column("Machine", "MachineName")
+	// form.Column("Component", "ToolType")
+	form.Column("Component", "GetComponent")
+	form.MultiImgColumn("Photo", "Photos", "Thumb")
+	form.Column("Notes", "Notes")
+
+	switch Session.UserRole {
+	case "Admin", "Site Manager":
+		form.Column("Status", "GetStatus")
+	}
+
+	// Add event handlers
+	form.CancelEvent(func(evt dom.Event) {
+		evt.PreventDefault()
+		Session.Navigate(fmt.Sprintf("/machinetype/%d", id))
+	})
+
+	form.RowEvent(func(key string) {
+		Session.Navigate("/stoppage/" + key)
+	})
+
+	form.PrintEvent(func(evt dom.Event) {
+		dom.GetWindow().Print()
+	})
+
+	form.Render("stoppage-list", "main", events)
+
+}

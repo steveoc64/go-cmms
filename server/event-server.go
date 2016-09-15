@@ -273,6 +273,91 @@ func getSiteIDs(site string) []int {
 	return retval
 }
 
+
+func (e *EventRPC) ListByMachineType(data shared.EventRPCData, events *[]shared.Event) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	switch conn.UserRole {
+	case "Site Manager":
+		// Limit the tasks to just the sites that we are in control of
+		sites := []int{}
+
+		DB.SQL(`select site_id from user_site where user_id=$1`, conn.UserID).QuerySlice(&sites)
+
+		err := DB.SQL(`select 
+		e.*,m.name as machine_name,s.name as site_name,u.username as username,x.highlight as site_highlight
+		from event e
+			left join machine m on m.id=e.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=e.created_by
+			left join user_site x on x.user_id=$2 and x.site_id=e.site_id
+			left join machine_type mtt on mtt.id=m.machine_type
+		where m.site_id in $1
+			and mtt.id=$3
+		order by e.startdate desc`, sites, conn.UserID, data.ID).
+			QueryStructs(events)
+
+		if err != nil {
+			log.Println(err.Error())
+		}
+	case "Admin":
+		err := DB.SQL(`select 
+		e.*,m.name as machine_name,s.name as site_name,u.username as username,x.highlight as site_highlight
+		from event e
+			left join machine m on m.id=e.machine_id
+			left join site s on s.id=m.site_id
+			left join users u on u.id=e.created_by	
+			left join user_site x on x.user_id=$1 and x.site_id=e.site_id
+			left join machine_type mtt on mtt.id=m.machine_type
+		where mtt.id=$2
+		order by e.completed desc,e.startdate desc`, conn.UserID, data.ID).
+			QueryStructs(events)
+
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+
+	// fetch all assignments
+	for i, v := range *events {
+		DB.SQL(`select u.username
+			from task t
+			left join users u on u.id=t.assigned_to
+			where t.event_id=$1`, v.ID).
+			QueryStructs(&v.AssignedTo)
+
+		// log.Println("assignments for event", v.ID, "=", v.AssignedTo)
+		(*events)[i].AssignedTo = v.AssignedTo
+
+		// truncate long notes
+		if len(v.Notes) > 80 {
+			(*events)[i].Notes = fmt.Sprintf("%s ...", v.Notes[:80])
+		}
+
+		// Get any thumbnails if present
+		photos := []shared.Photo{}
+
+		DB.SQL(`select
+			id,thumb
+			from photo
+			where entity='event' and entity_id=$1
+			order by type,id desc`, v.ID).
+			QueryStructs(&photos)
+		(*events)[i].Photos = photos
+
+	}
+
+	logger(start, "Event.ListByMachineType",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			data.Channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d Events", len(*events)),
+		data.Channel, conn.UserID, "event", 0, false)
+
+	return nil
+}
+
 // List active stoppages for a the given site, as expressed as a descriptive name
 func (e *EventRPC) ListSite(data shared.EventRPCData, events *[]shared.Event) error {
 	start := time.Now()
