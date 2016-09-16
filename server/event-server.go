@@ -145,17 +145,27 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 		issue.Channel, conn.UserID, "event", *id, true)
 
 	siteName := ""
-	DB.SQL(`select name from site where id=$1`, issue.Machine.SiteID).QueryScalar(&siteName)
+	phone := ""
+	DB.SQL(`select
+	 s.name,u.sms
+	 from site s
+	 	left join users u on u.id=s.manager
+	 where id=$1
+	 	and u.use_mobile=true`, issue.Machine.SiteID).QueryScalar(&siteName, &phone)
 
 	if Config.SMSOn {
-		//		SendSMS("get the number from the db for the correct person",
-		SendSMS("0417824950", // shane
-			fmt.Sprintf("Alert at Site %s on Machine %s on %s: %s",
-				siteName,
-				issue.Machine.Name,
-				ToolName,
-				issue.Descr),
-			fmt.Sprintf("%d", evt.ID), 8)
+		if phone != "" {
+			SendSMS(phone,
+				fmt.Sprintf("Alert at Site %s on Machine %s on %s: %s",
+					siteName,
+					issue.Machine.Name,
+					ToolName,
+					issue.Descr),
+				fmt.Sprintf("%d", evt.ID), 8)
+
+		} else {
+			println("No alert phone associated with this site")
+		}
 	} else {
 		willSend := fmt.Sprintf("Alert at Site %s on Machine %s on %s: %s",
 			siteName,
@@ -272,7 +282,6 @@ func getSiteIDs(site string) []int {
 	}
 	return retval
 }
-
 
 func (e *EventRPC) ListByMachineType(data shared.EventRPCData, events *[]shared.Event) error {
 	start := time.Now()

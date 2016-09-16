@@ -97,6 +97,22 @@ func (c *Connection) Broadcast(name string, action string, id int) {
 	}
 }
 
+// Send an async message to everyone but this connection, if they are admin
+func (c *Connection) BroadcastAdmin(name string, action string, id int) {
+
+	data := shared.AsyncMessage{
+		Action: action,
+		ID:     id,
+	}
+
+	for _, v := range Connections.cmap {
+		if v != c && v.UserID != 0 && v.UserRole == "Admin" {
+			log.Println("broadcastAdmin", name, action, id, "»", v.ID)
+			go v.Send(name, data)
+		}
+	}
+}
+
 // A collection of Connections
 type ConnectionsList struct {
 	// conns  []*Connection
@@ -104,6 +120,14 @@ type ConnectionsList struct {
 	keys []int
 
 	nextID int
+}
+
+func (c *ConnectionsList) Map() map[int]*Connection {
+	return c.cmap
+}
+
+func (c *ConnectionsList) Keys() []int {
+	return c.keys
 }
 
 // Send an async message to everyone that is connected
@@ -117,6 +141,22 @@ func (c *ConnectionsList) BroadcastAll(name string, action string, id int) {
 	for _, v := range c.cmap {
 		if v.UserID != 0 {
 			log.Println("BroadcastAll", name, action, id, "»", v.ID)
+			go v.Send(name, data)
+		}
+	}
+}
+
+// Send an async message to all admints that are connected
+func (c *ConnectionsList) BroadcastAllAdmin(name string, action string, id int) {
+
+	data := shared.AsyncMessage{
+		Action: action,
+		ID:     id,
+	}
+
+	for _, v := range c.cmap {
+		if v.UserID != 0 && v.UserRole == "Admin" {
+			log.Println("BroadcastAllAdmin", name, action, id, "»", v.ID)
 			go v.Send(name, data)
 		}
 	}
@@ -175,6 +215,8 @@ func (c *ConnectionsList) Drop(conn *Connection) *ConnectionsList {
 			c.keys = append(c.keys[:i], c.keys[i+1:]...) // NOTE - variadic tail, append takes varargs of type, not an array
 		}
 	}
+
+	c.BroadcastAll("login", "delete", conn.ID)
 	return c
 }
 

@@ -501,3 +501,51 @@ func userAdd(context *router.Context) {
 	}()
 
 }
+
+func usersOnline(context *router.Context) {
+	Session.Subscribe("login", _usersOnline)
+	Session.Subscribe("nav", _usersOnline)
+	go _usersOnline("show", 1)
+}
+
+func _usersOnline(action string, id int) {
+
+	users := []shared.UserOnline{}
+	rpcClient.Call("LoginRPC.UsersOnline", Session.Channel, &users)
+	print("got users", users)
+
+	form := formulate.ListForm{}
+	form.New("fa-user", "Users List - All Users")
+
+	// Define the layout
+
+	form.Column("Channel", "Channel")
+	form.Column("Username", "Username")
+	form.Column("Route", "Route")
+	form.Column("IP Addr", "IP")
+	form.Column("Browser", "Browser")
+	form.Column("Duration", "Duration")
+	form.Column("Name", "Name")
+	form.Column("Email", "Email")
+	form.Column("Mobile", "SMS")
+	form.Column("Role", "Role")
+	form.BoolColumn("Tech ?", "IsTech")
+	form.BoolColumn("Alloc ?", "CanAllocate")
+
+	// Add event handlers
+	form.CancelEvent(func(evt dom.Event) {
+		evt.PreventDefault()
+		Session.Navigate("/")
+	})
+
+	form.PrintEvent(func(evt dom.Event) {
+		dom.GetWindow().Print()
+	})
+
+	form.RowEvent(func(key string) {
+		Session.Navigate("/useronline/" + key)
+	})
+
+	form.Render("useronline", "main", users)
+
+}

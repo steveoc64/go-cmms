@@ -28,6 +28,7 @@ func (l *LoginRPC) Nav(data shared.Nav, r *string) error {
 	*r = conn.Route
 	println("\n----------------------------------")
 	log.Printf("%s:%s -> %s\n", conn.Username, conn.UserRole, conn.Route)
+	conn.BroadcastAdmin("nav", data.Route, data.Channel)
 	return nil
 }
 
@@ -84,6 +85,7 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 			}
 			conn.Login(lc.Username, res.ID, res.Role)
 			Connections.Show("connections after new login")
+			conn.Broadcast("login", "insert", lr.ID)
 		}
 	}
 
@@ -91,6 +93,54 @@ func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) err
 		fmt.Sprintf("%s,%s,%t,%d", lc.Username, lc.Password, lc.RememberMe, lc.Channel),
 		fmt.Sprintf("%s,%s,%s", lr.Result, lr.Role, lr.Site),
 		lc.Channel, lr.ID, "users", lr.ID, false)
+
+	return nil
+}
+
+func (l *LoginRPC) UsersOnline(channel int, u *[]shared.UserOnline) error {
+	start := time.Now()
+	conn := Connections.Get(channel)
+	if conn.UserRole == "Admin" {
+
+		for _, k := range Connections.Keys() {
+			v := Connections.Get(k)
+			println("k,v = ", k, v)
+			req := v.Socket.Request()
+			theIP := ""
+			if theIP = req.Header.Get("X-Real-Ip"); theIP == "" {
+				theIP = req.RemoteAddr
+			}
+			user := shared.UserOnline{
+				ID:          v.UserID,
+				Username:    v.Username,
+				Browser:     fmt.Sprintf("%s", req.Header["User-Agent"]),
+				IP:          theIP,
+				Name:        "lookup",
+				Email:       "lookup",
+				Role:        v.UserRole,
+				SMS:         "lookup",
+				IsTech:      false,
+				CanAllocate: false,
+				Route:       v.Route,
+				Routes:      v.Routes,
+				Duration:    time.Since(v.Time).String(),
+				Channel:     v.ID,
+			}
+
+			if user.ID == 0 {
+				user.Duration = ""
+			}
+			*u = append(*u, user)
+
+		}
+
+	}
+
+	logger(start, "Login.UsersOnline",
+		fmt.Sprintf("Channel %d, User %d %s %s",
+			channel, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%d Users Online", len(*u)),
+		channel, conn.UserID, "users", 0, false)
 
 	return nil
 }

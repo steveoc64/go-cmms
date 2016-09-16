@@ -62,3 +62,20 @@ type UserSiteSetRequest struct {
 	Role    string
 	IsSet   bool
 }
+
+type UserOnline struct {
+	ID          int      `db:"id"`
+	Username    string   `db:"username"`
+	Browser     string   `db:"browser"`
+	IP          string   `db:"ip"`
+	Name        string   `db:"name"`
+	Email       string   `db:"email"`
+	Role        string   `db:"role"`
+	SMS         string   `db:"sms"`
+	IsTech      bool     `db:"is_tech"`
+	CanAllocate bool     `db:"can_allocate"`
+	Route       string   `db:"route"`
+	Routes      []string `db:"routes"`
+	Duration    string   `db:"duration"`
+	Channel     int      `db:"channel"`
+}

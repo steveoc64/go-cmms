@@ -264,6 +264,8 @@ func adminUtils(context *router.Context) {
 				if w.Confirm("Generate New Thumbnails and Previews ?") {
 					rpcClient.Call("UtilRPC.Thumbnails", Session.Channel, &retval)
 				}
+			case "users":
+				Session.Navigate("/usersonline")
 			default:
 				print("ERROR - unknown utility", url)
 				return
