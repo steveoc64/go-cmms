@@ -150,7 +150,7 @@ func (t *EventRPC) Raise(issue shared.RaiseIssue, id *int) error {
 	 s.name,u.sms
 	 from site s
 	 	left join users u on u.id=s.manager
-	 where id=$1
+	 where s.id=$1
 	 	and u.use_mobile=true`, issue.Machine.SiteID).QueryScalar(&siteName, &phone)
 
 	if Config.SMSOn {
