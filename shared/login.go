@@ -28,3 +28,8 @@ type UserRoute struct {
 	Route string
 	Func  string
 }
+
+type Nav struct {
+	Channel int
+	Route   string
+}

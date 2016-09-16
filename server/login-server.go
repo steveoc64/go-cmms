@@ -21,6 +21,16 @@ type dbLoginResponse struct {
 	CanAllocate bool           `db:"can_allocate"`
 }
 
+func (l *LoginRPC) Nav(data shared.Nav, r *string) error {
+	conn := Connections.Get(data.Channel)
+	conn.Routes = append(conn.Routes, data.Route)
+	conn.Route = data.Route
+	*r = conn.Route
+	println("\n----------------------------------")
+	log.Printf("%s:%s -> %s\n", conn.Username, conn.UserRole, conn.Route)
+	return nil
+}
+
 func (l *LoginRPC) Login(lc *shared.LoginCredentials, lr *shared.LoginReply) error {
 	start := time.Now()
 

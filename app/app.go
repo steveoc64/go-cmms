@@ -4,7 +4,7 @@ import (
 	"github.com/go-humble/router"
 	"github.com/steveoc64/formulate"
 	// "honnef.co/go/js/dom"
-	// "itrak-cmms/shared"
+	"itrak-cmms/shared"
 )
 
 type MessageFunction func(string, int)
@@ -24,8 +24,13 @@ type GlobalSessionData struct {
 var Session GlobalSessionData
 
 func (s *GlobalSessionData) Navigate(url string) {
+	// On navigate, clear out any subscriptions on events
 	s.Subscriptions = make(map[string]MessageFunction)
 	s.Router.Navigate(url)
+	go rpcClient.Call("LoginRPC.Nav", shared.Nav{
+		Channel: s.Channel,
+		Route:   url,
+	}, &url)
 }
 
 func (s *GlobalSessionData) Subscribe(msg string, fn MessageFunction) {

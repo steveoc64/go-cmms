@@ -25,11 +25,12 @@ type Connection struct {
 	Username string
 	UserID   int
 	UserRole string
-	Route    string
 	Time     time.Time
 	ticker   *time.Ticker
 	enc      *gob.Encoder
 	r        rpc.Response
+	Route    string
+	Routes   []string
 }
 
 // Safely send unsolicited RPC response to a connection

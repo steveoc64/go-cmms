@@ -275,7 +275,7 @@ func (s *SiteRPC) MachineList(data shared.SiteRPCData, machines *[]shared.Machin
 // For the given site name, return a slice of IDs for sites in that area
 func getSites(theSite string) []int {
 
-	println("getSites", theSite)
+	// println("getSites", theSite)
 
 	retval := []int{}
 
