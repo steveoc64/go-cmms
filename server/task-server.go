@@ -324,6 +324,11 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 			order by type,id desc`, v.ID, v.EventID, v.SchedID).
 			QueryStructs(&photos)
 		(*tasks)[i].Photos = photos
+
+		// derive the total other costs as needed
+		otherCost := 0.0
+		DB.SQL(`select sum(value) from task_item where task_id=$1`, v.ID).QueryScalar(&otherCost)
+		(*tasks)[i].OtherCost = otherCost
 	}
 
 	// // Read the sites that this user has access to
@@ -989,4 +994,104 @@ func (t *TaskRPC) GetParts(data shared.TaskRPCData, parts *[]shared.TaskPart) er
 
 	return nil
 
+}
+
+func (t *TaskRPC) GetInvoices(data shared.TaskRPCData, invoices *[]shared.TaskItem) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`select *
+		from task_item 
+		where task_id=$1
+		order by date desc`, data.ID).
+		QueryStructs(invoices)
+
+	for i, v := range *invoices {
+
+		// trim the description
+		l := v.Descr
+		if len(l) > 80 {
+			(*invoices)[i].Descr = fmt.Sprintf("%s ...", l[:80])
+		}
+
+		// Get the latest thumbnails for this invoice, if present
+		photos := []shared.Photo{}
+		DB.SQL(`select id,thumb,type,datatype,filename
+			from photo 
+			where (entity='invoice' and entity_id=$1) 
+			order by type,id desc`, v.ID).
+			QueryStructs(&photos)
+		(*invoices)[i].Photos = photos
+	}
+
+	logger(start, "Task.GetInvoices",
+		fmt.Sprintf("Channel %d, Task %d User %d %s %s",
+			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("Got %d invoices", len(*invoices)),
+		data.Channel, conn.UserID, "task_item", data.ID, false)
+
+	return nil
+}
+
+func (t *TaskRPC) GetInvoice(data shared.TaskItemRPCData, inv *shared.TaskItem) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.SQL(`select * from task_item where id=$1`, data.ID).QueryStruct(inv)
+
+	// Get attachments
+	photos := []shared.Photo{}
+	DB.SQL(`select id,preview,type,datatype,filename,entity,entity_id,notes
+	 from photo
+	 where (entity='invoice' and entity_id=$1) 
+	 order by type, id desc`, data.ID).
+		QueryStructs(&photos)
+	inv.Photos = photos
+
+	logger(start, "Task.GetInvoice",
+		fmt.Sprintf("Channel %d, Task %d User %d %s %s",
+			data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%s %s %s %v", inv.Vendor, inv.Ref, inv.Descr, inv.Value),
+		data.Channel, conn.UserID, "task_item", data.ID, false)
+
+	return nil
+}
+
+func (t *TaskRPC) InsertInvoice(data shared.TaskItemRPCData, newID *int) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.InsertInto("task_item").
+		Columns("task_id", "date", "ref", "descr", "value", "vendor").
+		Record(data.Item).
+		Returning("id").
+		QueryScalar(newID)
+
+	if data.Item.NewPhoto.Data != "" {
+		println("Adding new photo", data.Item.NewPhoto.Data[:22])
+		photo := shared.Photo{
+			Data:     data.Item.NewPhoto.Data,
+			Filename: data.Item.NewPhoto.Filename,
+			Entity:   "invoice",
+			EntityID: *newID,
+		}
+
+		// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
+		decodePhoto(&photo)
+		DB.InsertInto("photo").
+			Columns("entity", "entity_id", "photo", "thumb", "preview", "type", "datatype", "filename").
+			Record(photo).
+			Exec()
+	}
+
+	logger(start, "Task.InsertInvoice",
+		fmt.Sprintf("Channel %d, Task %d User %d %s %s",
+			data.Channel, data.Item.TaskID, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%v %v %v", data.Item.Vendor, data.Item.Ref, data.Item.Descr),
+		data.Channel, conn.UserID, "task_item", *newID, true)
+
+	return nil
 }

@@ -248,7 +248,7 @@ func _taskEdit(action string, id int) {
 			AddDisplay(1, "Actual Labour $", "LabourCost").
 			// AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1")
 			AddDisplay(1, "Actual Material $", "MaterialCost").
-			AddDisplay(1, "Other Costs", "OtherCost")
+			AddDisplay(1, "Other Costs $", "OtherCost")
 
 		// form.Row(4).
 		// 	AddDisplay(2, "Labour Est $", "LabourEst").
@@ -290,7 +290,7 @@ func _taskEdit(action string, id int) {
 			AddDisplay(1, "Actual Labour $", "LabourCost").
 			// AddDecimal(1, "Actual Material $", "MaterialCost", 2, "1")
 			AddDisplay(1, "Actual Material $", "MaterialCost").
-			AddDisplay(1, "Other Costs", "OtherCost")
+			AddDisplay(1, "Other Costs $", "OtherCost")
 
 		// form.Row(4).
 		// 	AddDisplay(2, "Labour Est $", "LabourEst").
@@ -895,6 +895,79 @@ func showTaskPhotos(task shared.Task) {
 	}
 }
 
+func showInvoicePhotos(invoice shared.TaskItem) {
+	// print("populate the photos", task)
+
+	w := dom.GetWindow()
+	doc := w.Document()
+	div := doc.QuerySelector("[name=Photos]")
+	div.SetInnerHTML("")
+
+	for _, v := range invoice.Photos {
+		// print(k, ":", v)
+		// Create an image widget, and add it to the photos block
+		i := doc.CreateElement("img").(*dom.HTMLImageElement)
+		i.SetAttribute("photo-id", fmt.Sprintf("%d", v.ID))
+		i.Class().SetString("photopreview")
+		i.Src = v.Preview
+		switch v.Type {
+		case "PDF":
+			// Is a PDF, so wrap the image with a box that includes the filename
+			// and auto-break on each doc
+
+			wspan := doc.CreateElement("div")
+			wspan.AppendChild(i)
+			p := doc.CreateElement("p")
+			p.SetInnerHTML(v.Filename)
+			wspan.AppendChild(p)
+			div.AppendChild(wspan)
+		case "Data":
+			wspan := doc.CreateElement("div")
+			wspan.AppendChild(i)
+			p := doc.CreateElement("p")
+			p.SetInnerHTML(v.Filename)
+			wspan.AppendChild(p)
+			div.AppendChild(wspan)
+		case "Image":
+			div.AppendChild(i)
+		case "photo":
+			print("WARNING: This is an old format attachment of type photo")
+			print("v", v)
+			print("Please run  \"update photo set type='Image' where type='photo';\" on database ....")
+		default:
+			print("adding attachment of unknown type", v.Type, "dt", v.Datatype, "fn", v.Filename)
+			print("v", v)
+		}
+		// print("attaching click event to i", i)
+		i.AddEventListener("click", false, func(evt dom.Event) {
+			print("click on attachment preview image")
+			evt.PreventDefault()
+			theID, _ := strconv.Atoi(evt.Target().GetAttribute("photo-id"))
+
+			go func() {
+				photo := shared.Photo{}
+				rpcClient.Call("UtilRPC.GetFullPhoto", shared.PhotoRPCData{
+					Channel: Session.Channel,
+					ID:      theID,
+				}, &photo)
+				flds := strings.SplitN(photo.Data, ",", 2)
+				print("got full photo", flds[0])
+				switch flds[0] {
+				// case "data:application/pdf;base64":
+				default:
+					w.Open(photo.Data, "", "")
+				case "data:image/jpeg;base64", "data:image/png;base64", "data:image/gif;base64":
+					if el2 := doc.QuerySelector("#photo-full").(*dom.HTMLImageElement); el2 != nil {
+						doc.QuerySelector("#show-image").Class().Add("md-show")
+						el2.Src = photo.Data
+					}
+				}
+
+			}()
+		})
+	}
+}
+
 func showTaskPhotosOld(task shared.Task) {
 	// print("populate the photos", task)
 
@@ -1244,6 +1317,207 @@ func addTaskPartsTree(tree []shared.Category, ul *dom.HTMLUListElement, depth in
 }
 
 func taskInvoices(context *router.Context) {
-	print("TODO - task invoices")
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		invoices := []shared.TaskItem{}
+		rpcClient.Call("TaskRPC.GetInvoices", shared.TaskRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &invoices)
+		// print("got invoices", invoices)
+		BackURL := fmt.Sprintf("/task/%d", id)
+
+		form := formulate.ListForm{}
+		form.New("fa-money", fmt.Sprintf("Invoices for Task - %06d", id))
+
+		form.Column("Date", "GetDate")
+		form.Column("Vendor", "Vendor")
+		form.Column("Reference", "Ref")
+		form.Column("Descr", "Descr")
+		form.MultiImgColumn("Photos", "Photos", "Thumb")
+		form.Column("Value", "Value")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		form.RowEvent(func(key string) {
+			Session.Navigate("/task/invoice/" + key)
+		})
+
+		form.NewRowEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(fmt.Sprintf("/task/invoice/add/%d", id))
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
+		form.Render("task-invoice-list", "main", invoices)
+
+	}()
+
+}
+
+func taskInvoice(context *router.Context) {
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		print("id is", id)
+		invoice := shared.TaskItem{}
+		rpcClient.Call("TaskRPC.GetInvoice", shared.TaskItemRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &invoice)
+		print("got invoice", invoice)
+
+		BackURL := fmt.Sprintf("/task/invoices/%d", invoice.TaskID)
+		title := fmt.Sprintf("Invoice / Other Cost for Task %06d", invoice.TaskID)
+		form := formulate.EditForm{}
+		form.New("fa-money", title)
+
+		// Layout the fields
+
+		form.Row(3).
+			AddDate(1, "Date", "Date").
+			AddInput(1, "Vendor", "Vendor").
+			AddInput(1, "Reference", "Ref")
+
+		form.Row(3).
+			AddInput(2, "Description", "Descr").
+			AddDecimal(1, "Value", "Value", 2, "")
+
+		form.Row(5).
+			AddPhoto(1, "Add Photo", "NewPhoto").
+			AddCustom(4, "Attachments", "Photos", "")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		form.DeleteEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			invoice.ID = id
+			go func() {
+				done := false
+				rpcClient.Call("TaskRPC.Delete", shared.TaskItemRPCData{
+					Channel: Session.Channel,
+					ID:      id,
+				}, &done)
+				Session.Navigate(BackURL)
+			}()
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&invoice)
+			go func() {
+				done := false
+				rpcClient.Call("TaskRPC.UpdateInvoice", shared.TaskItemRPCData{
+					Channel: Session.Channel,
+					ID:      id,
+					Item:    &invoice,
+				}, &done)
+				// Session.Navigate(BackURL)
+				Session.Reload(context)
+			}()
+		})
+
+		form.PrintEvent(func(evt dom.Event) {
+			dom.GetWindow().Print()
+		})
+
+		// All done, so render the form
+		form.Render("edit-form", "main", &invoice)
+		setPhotoField("NewPhoto")
+		showInvoicePhotos(invoice)
+
+	}()
+
+}
+
+func taskInvoiceAdd(context *router.Context) {
+	id, err := strconv.Atoi(context.Params["id"])
+	if err != nil {
+		print(err.Error())
+		return
+	}
+
+	go func() {
+		task := shared.Task{}
+		invoice := shared.TaskItem{}
+		rpcClient.Call("TaskRPC.Get", shared.TaskRPCData{
+			Channel: Session.Channel,
+			ID:      id,
+		}, &task)
+		print("got task", task)
+
+		invoice.TaskID = task.ID
+		today := time.Now()
+		invoice.Date = &today
+
+		BackURL := fmt.Sprintf("/task/invoices/%d", task.ID)
+		title := fmt.Sprintf("Add Invoice for Task %06d", task.ID)
+		form := formulate.EditForm{}
+
+		form.New("fa-money", title)
+
+		// Layout the fields
+
+		form.Row(3).
+			AddDate(1, "Date", "Date").
+			AddInput(1, "Vendor", "Vendor").
+			AddInput(1, "Reference", "Ref")
+
+		form.Row(3).
+			AddInput(2, "Description", "Descr").
+			AddDecimal(1, "Value", "Value", 2, "")
+
+		form.Row(1).
+			AddPhoto(1, "Attachment", "NewPhoto")
+
+		// Add event handlers
+		form.CancelEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			Session.Navigate(BackURL)
+		})
+
+		form.SaveEvent(func(evt dom.Event) {
+			evt.PreventDefault()
+			form.Bind(&invoice)
+			print("bind to ", invoice)
+			invoice.TaskID = id
+			go func() {
+				if invoice.NewPhoto.Data != "" {
+					showProgress("Uploading Invoice ...")
+				}
+				newID := 0
+				rpcClient.Call("TaskRPC.InsertInvoice", shared.TaskItemRPCData{
+					Channel: Session.Channel,
+					Item:    &invoice,
+				}, &newID)
+				print("added invoice ID", newID)
+				Session.Navigate(BackURL)
+				hideProgress()
+			}()
+		})
+		form.Render("edit-form", "main", &invoice)
+		setPhotoField("NewPhoto")
+
+	}()
 
 }

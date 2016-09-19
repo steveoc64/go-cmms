@@ -146,13 +146,28 @@ type PartReqEdit struct {
 }
 
 type TaskItem struct {
-	ID     int        `db:"id"`
-	TaskID int        `db:"id"`
-	Date   *time.Time `db:"date"`
-	Ref    string     `db:"ref"`
-	Descr  string     `db:"descr"`
-	Vendor string     `db:"vendor"`
-	Value  float64    `db:"value"`
+	ID       int                 `db:"id"`
+	TaskID   int                 `db:"task_id"`
+	Date     *time.Time          `db:"date"`
+	Ref      string              `db:"ref"`
+	Descr    string              `db:"descr"`
+	Vendor   string              `db:"vendor"`
+	Value    float64             `db:"value"`
+	NewPhoto formulate.FileField `db:"new_photo"`
+	Photos   []Photo             `db:"photos"`
+}
+
+type TaskItemRPCData struct {
+	Channel int
+	ID      int
+	Item    *TaskItem
+}
+
+func (t *TaskItem) GetDate() string {
+	if t.Date == nil {
+		return ""
+	}
+	return t.Date.Format(dateDisplayFormat)
 }
 
 type Task struct {
