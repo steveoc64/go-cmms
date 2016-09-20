@@ -474,18 +474,21 @@ func _taskEdit(action string, id int) {
 	renderMarkup(doc.QuerySelector("[name=CheckList]").(*dom.HTMLDivElement), expandHashtags(task.Descr))
 	setCheckboxes(task)
 
-	doc.QuerySelector("[name=AssignedTo").AddEventListener("change", false, func(evt dom.Event) {
-		print("assigned to has changed")
-		form.Bind(&task)
-		go func() {
-			updatedTask := shared.Task{}
-			rpcClient.Call("TaskRPC.UpdateHours", shared.TaskRPCData{
-				Channel: Session.Channel,
-				Task:    &task,
-			}, &updatedTask)
-			doc.QuerySelector("[name=LabourCost]").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", updatedTask.LabourCost)
-		}()
-	})
+	assignedTo := doc.QuerySelector("[name=AssignedTo")
+	if assignedTo != nil {
+		assignedTo.AddEventListener("change", false, func(evt dom.Event) {
+			print("assigned to has changed")
+			form.Bind(&task)
+			go func() {
+				updatedTask := shared.Task{}
+				rpcClient.Call("TaskRPC.UpdateHours", shared.TaskRPCData{
+					Channel: Session.Channel,
+					Task:    &task,
+				}, &updatedTask)
+				doc.QuerySelector("[name=LabourCost]").(*dom.HTMLInputElement).Value = fmt.Sprintf("%.2f", updatedTask.LabourCost)
+			}()
+		})
+	}
 
 	doc.QuerySelector("[name=Log").AddEventListener("change", false, func(evt dom.Event) {
 		print("notes have changed")
@@ -1504,6 +1507,7 @@ func taskInvoiceAdd(context *router.Context) {
 			go func() {
 				if invoice.NewPhoto.Data != "" {
 					showProgress("Uploading Invoice ...")
+					invoice.NewPhoto.Data = ImageCache.GetImage()
 				}
 				newID := 0
 				rpcClient.Call("TaskRPC.InsertInvoice", shared.TaskItemRPCData{
