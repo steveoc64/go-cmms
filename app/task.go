@@ -1429,6 +1429,10 @@ func taskInvoice(context *router.Context) {
 			evt.PreventDefault()
 			form.Bind(&invoice)
 			go func() {
+				if invoice.NewPhoto.Data != "" {
+					showProgress("Uploading Invoice ...")
+					invoice.NewPhoto.Data = ImageCache.GetImage()
+				}
 				done := false
 				rpcClient.Call("TaskRPC.UpdateInvoice", shared.TaskItemRPCData{
 					Channel: Session.Channel,
@@ -1437,6 +1441,7 @@ func taskInvoice(context *router.Context) {
 				}, &done)
 				// Session.Navigate(BackURL)
 				Session.Reload(context)
+				hideProgress()
 			}()
 		})
 

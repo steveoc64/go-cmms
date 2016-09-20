@@ -466,6 +466,10 @@ func (t *TaskRPC) Get(data shared.TaskRPCData, task *shared.Task) error {
 		log.Println(err.Error())
 	}
 
+	// Get the total invoice value for this task
+	DB.SQL(`select coalesce(sum(value),0) from task_item where task_id=$1`, data.ID).
+		QueryScalar(&task.OtherCost)
+
 	// Now get all the parts for this task
 	DB.SQL(`select 
 		t.*,p.name as part_name,p.stock_code as stock_code,p.qty_type as qty_type
@@ -1093,5 +1097,42 @@ func (t *TaskRPC) InsertInvoice(data shared.TaskItemRPCData, newID *int) error {
 		fmt.Sprintf("%v %v %v", data.Item.Vendor, data.Item.Ref, data.Item.Descr),
 		data.Channel, conn.UserID, "task_item", *newID, true)
 
+	return nil
+}
+
+func (t *TaskRPC) UpdateInvoice(data shared.TaskItemRPCData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	DB.Update("task_item").
+		SetWhitelist(data.Item, "task_id", "date", "ref", "descr", "value", "vendor").
+		Where("id=$1", data.ID).
+		Exec()
+
+	if data.Item.NewPhoto.Data != "" {
+		println("Adding new photo", data.Item.NewPhoto.Data[:22])
+		photo := shared.Photo{
+			Data:     data.Item.NewPhoto.Data,
+			Filename: data.Item.NewPhoto.Filename,
+			Entity:   "invoice",
+			EntityID: data.ID,
+		}
+
+		// decodePhoto(photo.Data, &photo.Preview, &photo.Thumb)
+		decodePhoto(&photo)
+		DB.InsertInto("photo").
+			Columns("entity", "entity_id", "photo", "thumb", "preview", "type", "datatype", "filename").
+			Record(photo).
+			Exec()
+	}
+
+	logger(start, "Task.UpdateInvoice",
+		fmt.Sprintf("Channel %d, Task %d Inv %d User %d %s %s",
+			data.Channel, data.Item.TaskID, data.Item.ID, conn.UserID, conn.Username, conn.UserRole),
+		fmt.Sprintf("%v %v %v", data.Item.Vendor, data.Item.Ref, data.Item.Descr),
+		data.Channel, conn.UserID, "task_item", data.ID, true)
+
+	*done = true
 	return nil
 }
