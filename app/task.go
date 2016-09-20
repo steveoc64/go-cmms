@@ -1417,7 +1417,7 @@ func taskInvoice(context *router.Context) {
 			invoice.ID = id
 			go func() {
 				done := false
-				rpcClient.Call("TaskRPC.Delete", shared.TaskItemRPCData{
+				rpcClient.Call("TaskRPC.DeleteInvoice", shared.TaskItemRPCData{
 					Channel: Session.Channel,
 					ID:      id,
 				}, &done)

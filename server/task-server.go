@@ -1136,3 +1136,23 @@ func (t *TaskRPC) UpdateInvoice(data shared.TaskItemRPCData, done *bool) error {
 	*done = true
 	return nil
 }
+
+func (t *TaskRPC) DeleteInvoice(data shared.TaskItemRPCData, done *bool) error {
+	start := time.Now()
+
+	conn := Connections.Get(data.Channel)
+
+	if conn.UserRole == "Admin" {
+
+		DB.SQL(`delete from task_item where id=$1`, data.ID).Exec()
+
+		logger(start, "Task.DeleteInvoice",
+			fmt.Sprintf("Channel %d, Inv %d User %d %s %s",
+				data.Channel, data.ID, conn.UserID, conn.Username, conn.UserRole),
+			"Deleted",
+			data.Channel, conn.UserID, "task_item", data.ID, true)
+
+	}
+	*done = true
+	return nil
+}
