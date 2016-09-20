@@ -327,7 +327,7 @@ func (t *TaskRPC) List(channel int, tasks *[]shared.Task) error {
 
 		// derive the total other costs as needed
 		otherCost := 0.0
-		DB.SQL(`select sum(value) from task_item where task_id=$1`, v.ID).QueryScalar(&otherCost)
+		DB.SQL(`select coalesce(sum(value),0) from task_item where task_id=$1`, v.ID).QueryScalar(&otherCost)
 		(*tasks)[i].OtherCost = otherCost
 	}
 
