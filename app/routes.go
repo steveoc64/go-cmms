@@ -43,7 +43,7 @@ func loadTemplate(template string, selector string, data interface{}) error {
 
 func enableRoutes(Role string) {
 
-	print("enabling routes for role", Role)
+	print("enabling routes for role", Role, "session", Session)
 
 	switch Role {
 	case "Admin", "Site Manager":
@@ -110,16 +110,36 @@ func enableRoutes(Role string) {
 			"usersonline":            usersOnline,
 		}
 	case "Technician":
-		Session.AppFn = map[string]router.Handler{
-			"sitemap":        siteMap,
-			"sitemachines":   siteMachines,
-			"task-list":      taskList,
-			"task-edit":      taskEdit,
-			"task-part-list": taskPartList,
-			"stoppages":      stoppageList,
-			"parts":          partList,
-			"reports":        technicianReports,
-			"diary":          technicianDiary,
+		if Session.CanAllocate {
+			print("enable routes and can alloc is", Session)
+			Session.AppFn = map[string]router.Handler{
+				"sitemap":            siteMap,
+				"sitemachines":       siteMachines,
+				"task-list":          taskList,
+				"task-edit":          taskEdit,
+				"task-part-list":     taskPartList,
+				"stoppages":          stoppageList,
+				"stoppage-list":      stoppageList,
+				"stoppage-edit":      stoppageEdit,
+				"stoppage-complete":  stoppageComplete,
+				"stoppage-new-task":  stoppageNewTask,
+				"stoppage-task-list": stoppageTaskList,
+				"parts":              partList,
+				"reports":            technicianReports,
+				"stops":              stops,
+			}
+		} else {
+			Session.AppFn = map[string]router.Handler{
+				"sitemap":        siteMap,
+				"sitemachines":   siteMachines,
+				"task-list":      taskList,
+				"task-edit":      taskEdit,
+				"task-part-list": taskPartList,
+				"stoppages":      stoppageList,
+				"parts":          partList,
+				"reports":        technicianReports,
+				"stops":          stops,
+			}
 		}
 	case "Floor":
 		Session.AppFn = map[string]router.Handler{

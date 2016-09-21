@@ -186,7 +186,7 @@ func (e *EventRPC) List(channel int, events *[]shared.Event) error {
 	conn := Connections.Get(channel)
 
 	switch conn.UserRole {
-	case "Site Manager":
+	case "Site Manager", "Technician":
 		// Limit the tasks to just the sites that we are in control of
 		sites := []int{}
 

@@ -29,12 +29,12 @@ func Login(username string, passwd string, rem bool) {
 	}
 	if lr.Result == "OK" {
 		// createMenu(lr.Menu)
-		loadRoutes(lr.Role, lr.Routes)
 		Session.Username = lc.Username
 		Session.UserRole = lr.Role
 		Session.UserID = lr.ID
 		Session.CanAllocate = lr.CanAllocate
 		// print("login =", Session)
+		loadRoutes(lr.Role, lr.Routes)
 		hideLoginForm()
 		GetPDFImage() // cache the PDF thumbnail
 	} else {

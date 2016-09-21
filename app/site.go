@@ -127,7 +127,12 @@ func _siteMap(action string, id int) {
 
 			}
 		case "Technician":
-			loadTemplate("technician-actions", "#action-grid", nil)
+			print("session", Session)
+			if Session.CanAllocate {
+				loadTemplate("technician-super-actions", "#action-grid", nil)
+			} else {
+				loadTemplate("technician-actions", "#action-grid", nil)
+			}
 		}
 
 		// Add a click handler to navigate to the page

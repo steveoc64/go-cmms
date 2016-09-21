@@ -78,7 +78,7 @@ func _stoppageList(action string, id int) {
 
 	// completed events
 
-	if Session.UserRole == "Admin" {
+	if Session.UserRole == "Admin" || Session.CanAllocate {
 
 		cevents := []shared.Event{}
 		rpcClient.Call("EventRPC.ListCompleted", Session.Channel, &cevents)
@@ -188,9 +188,12 @@ func stops(context *router.Context) {
 			Session.Navigate("/")
 		})
 
-		form.RowEvent(func(key string) {
-			Session.Navigate("/stoppage/" + key)
-		})
+		switch Session.UserRole {
+		case "Admin":
+			form.RowEvent(func(key string) {
+				Session.Navigate("/stoppage/" + key)
+			})
+		}
 
 		form.PrintEvent(func(evt dom.Event) {
 			dom.GetWindow().Print()
@@ -219,9 +222,11 @@ func stops(context *router.Context) {
 		mform.Column("Description", "Descr")
 		mform.Column("Status", "Status")
 
-		mform.RowEvent(func(key string) {
-			Session.Navigate("/machine/" + key)
-		})
+		if Session.UserRole == "Admin" {
+			mform.RowEvent(func(key string) {
+				Session.Navigate("/machine/" + key)
+			})
+		}
 		// force a page break for printing
 		w := dom.GetWindow()
 		doc := w.Document()
@@ -337,6 +342,32 @@ func _stoppageEdit(action string, id int) {
 
 		form.Row(1).
 			AddCustom(1, "", "TaskList", "")
+
+	case "Technician":
+		if Session.CanAllocate {
+
+			form.Row(2).
+				AddDisplay(1, "Site", "SiteName").
+				AddDisplay(1, "Machine", "MachineName")
+
+			form.Row(3).
+				AddDisplay(1, "Component", "ToolType").
+				AddDisplay(1, "StartDate", "DisplayDate").
+				AddDisplay(1, "Raised By", "Username")
+
+			form.Row(5).
+				AddPhoto(1, "Add Photo", "NewPhoto").
+				AddCustom(4, "Attachments", "Photos", "")
+
+			form.Row(1).
+				AddDisplayArea(1, "Notes", "Notes")
+
+			// form.Row(1).
+			// 	AddCustom(1, "Assigned To", "AssignedTo", "")
+
+			form.Row(1).
+				AddCustom(1, "", "TaskList", "")
+		}
 	}
 
 	// Add event handlers
@@ -424,7 +455,7 @@ func _stoppageEdit(action string, id int) {
 		form.ActionGrid("event-actions", "#action-grid", event, func(url string) {
 			Session.Navigate(url)
 		})
-	case "Site Manager":
+	case "Site Manager", "Technician":
 		// lookup the current user, if can allocate, then give them the admin options
 		u := shared.User{}
 		rpcClient.Call("UserRPC.Get", shared.UserRPCData{
