@@ -400,6 +400,10 @@ func _stoppageEdit(action string, id int) {
 				evt.PreventDefault()
 				form.Bind(&event)
 
+				// Performance Tweak - no need to send derived arrays back to the server
+				event.Tasks = nil
+				event.Photos = nil
+
 				if event.NewPhoto.Data != "" {
 					showProgress("Updating Event ...")
 

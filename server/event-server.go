@@ -561,6 +561,8 @@ func (e *EventRPC) Update(data shared.EventRPCData, done *bool) error {
 
 	conn := Connections.Get(data.Channel)
 
+	println("passed in event with photos array size ", len(data.Event.Photos))
+
 	DB.Update("event").
 		SetWhitelist(data.Event, "notes").
 		Where("id = $1", data.Event.ID).

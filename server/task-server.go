@@ -23,6 +23,9 @@ type TaskRPC struct{}
 func (t *TaskRPC) Update(data shared.TaskRPCData, updatedTask *shared.Task) error {
 	start := time.Now()
 
+	// check to see how much of the task was completed and sent over the wire
+	// print("updating task with photos =", len(data.Task.Photos))
+
 	conn := Connections.Get(data.Channel)
 	canAllocate := false
 	DB.SQL(`select can_allocate from users where id=$1`, conn.UserID).QueryScalar(&canAllocate)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"strconv"
+	"time"
 
 	"itrak-cmms/shared"
 
@@ -11,7 +12,65 @@ import (
 )
 
 func adminReports(context *router.Context) {
-	print("TODO - adminReports")
+
+	rep := shared.Report{}
+
+	rep.DateFrom = time.Now()
+	rep.DateTo = time.Now()
+	// loc, err := time.LoadLocation("Local")
+	// if err != nil {
+	// 	print("err", err.Error())
+	// }
+	// print("loc", loc)
+	// now := time.Now()
+	// year, month, day := now.Date()
+	// print("now", day, month, year)
+	// rep.DateFrom = time.Date(year, 1, 1, 0, 0, 0, 0, loc)
+	// nextMonth := month + 1
+	// nextYear := year
+	// if nextMonth > 12 {
+	// 	nextMonth = 1
+	// 	nextYear++
+	// }
+	// rep.DateTo = time.Date(nextYear, nextMonth, 1, 0, 0, 0, 0, loc)
+
+	BackURL := "/"
+	title := "Reports"
+	form := formulate.EditForm{}
+	form.New("fa-bar-chart", title)
+
+	// Layout the fields
+	form.Row(2).
+		AddDate(1, "From", "DateFrom").
+		AddDate(1, "To", "DateTo")
+
+	// Add event handlers
+	form.CancelEvent(func(evt dom.Event) {
+		evt.PreventDefault()
+		Session.Navigate(BackURL)
+	})
+
+	var bechanged = func(what string) {
+		print(what, "has bechanged")
+		print("pre bind", rep, rep.DateFrom.String(), rep.DateTo.String())
+		form.Bind(&rep)
+		print("post bind", rep, rep.DateFrom.String(), rep.DateTo.String())
+	}
+
+	w := dom.GetWindow()
+	doc := w.Document()
+
+	// All done, so render the form
+	form.Render("edit-form", "main", &rep)
+
+	// auto update on change of date fields
+	doc.QuerySelector("[name=DateFrom]").AddEventListener("change", false, func(evt dom.Event) {
+		bechanged("DateFrom")
+	})
+
+	doc.QuerySelector("[name=DateTo]").AddEventListener("change", false, func(evt dom.Event) {
+		bechanged("DateTo")
+	})
 }
 
 func hashtagList(context *router.Context) {
