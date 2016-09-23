@@ -211,6 +211,7 @@ func userList(context *router.Context) {
 		form.BoolColumn("Local", "Local")
 		form.Column("Role", "Role")
 		form.BoolColumn("Tech ?", "IsTech")
+		form.BoolColumn("Alloc ?", "CanAllocate")
 
 		if Session.UserRole == "Admin" {
 			form.Column("Hourly Rate", "HourlyRate")
