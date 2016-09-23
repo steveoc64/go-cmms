@@ -7,6 +7,7 @@ import (
 	"itrak-cmms/shared"
 
 	"github.com/go-humble/router"
+	"github.com/gopherjs/gopherjs/js"
 	"github.com/steveoc64/formulate"
 	"honnef.co/go/js/dom"
 )
@@ -85,10 +86,46 @@ func adminReports(context *router.Context) {
 		})
 	}
 
-	graph := doc.QuerySelector("[name=Report]")
-	if graph != nil {
-		graph.SetInnerHTML("")
+	// var chart = c3.generate({
+	//     bindto: '#chart',
+	//     data: {
+	//       columns: [
+	//         ['data1', 30, 200, 100, 400, 150, 250],
+	//         ['data2', 50, 20, 10, 40, 15, 25]
+	//       ]
+	//     }
+	// });
+	c3 := js.Global.Get("c3")
+	data1 := make([]interface{}, 7)
+	data2 := make([]interface{}, 7)
+	cols := make([]interface{}, 2)
+	data1[0] = "data1"
+	data1[1] = 30
+	data1[2] = 200
+	data1[3] = 100
+	data1[4] = 400
+	data1[5] = 150
+	data1[6] = 250
+	data2[0] = "data2"
+	data2[1] = 50
+	data2[2] = 20
+	data2[3] = 10
+	data2[4] = 40
+	data2[5] = 15
+	data2[6] = 25
+	cols[0] = data1
+	cols[1] = data2
+	// data1 = {"data", 30, 200, 100, 400, 150, 250}
+	// data2 :=	{"data2", 50, 20, 10, 40, 15, 25}
+	params := js.M{
+		"bindto": "[name=Report]",
+		"data": js.M{
+			"columns": cols,
+		},
 	}
+	print("about to call c3 with params", params)
+	c3.Call("generate", params)
+
 }
 
 func hashtagList(context *router.Context) {
