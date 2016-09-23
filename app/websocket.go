@@ -260,7 +260,7 @@ func (c *myClientCodec) Close() error {
 
 func processAsync(method string, msg shared.AsyncMessage) {
 
-	print("processing async with method =", method)
+	// print("processing async with method =", method)
 	// print("and body =", body)
 
 	switch method {

@@ -17,32 +17,20 @@ func adminReports(context *router.Context) {
 
 	rep.DateFrom = time.Now()
 	rep.DateTo = time.Now()
-	// loc, err := time.LoadLocation("Local")
-	// if err != nil {
-	// 	print("err", err.Error())
-	// }
-	// print("loc", loc)
-	// now := time.Now()
-	// year, month, day := now.Date()
-	// print("now", day, month, year)
-	// rep.DateFrom = time.Date(year, 1, 1, 0, 0, 0, 0, loc)
-	// nextMonth := month + 1
-	// nextYear := year
-	// if nextMonth > 12 {
-	// 	nextMonth = 1
-	// 	nextYear++
-	// }
-	// rep.DateTo = time.Date(nextYear, nextMonth, 1, 0, 0, 0, 0, loc)
-
 	BackURL := "/"
 	title := "Reports"
 	form := formulate.EditForm{}
 	form.New("fa-bar-chart", title)
 
 	// Layout the fields
-	form.Row(2).
-		AddDate(1, "From", "DateFrom").
-		AddDate(1, "To", "DateTo")
+	form.Row(1).
+		AddCustom(1, "Selection", "Dates", "")
+
+	form.Row(1).
+		AddCustom(1, "Report", "Report", "")
+
+		// AddDate(1, "From", "DateFrom").
+		// AddDate(1, "To", "DateTo")
 
 	// Add event handlers
 	form.CancelEvent(func(evt dom.Event) {
@@ -50,27 +38,57 @@ func adminReports(context *router.Context) {
 		Session.Navigate(BackURL)
 	})
 
-	var bechanged = func(what string) {
-		print(what, "has bechanged")
-		print("pre bind", rep, rep.DateFrom.String(), rep.DateTo.String())
-		form.Bind(&rep)
-		print("post bind", rep, rep.DateFrom.String(), rep.DateTo.String())
-	}
-
 	w := dom.GetWindow()
 	doc := w.Document()
 
 	// All done, so render the form
 	form.Render("edit-form", "main", &rep)
 
-	// auto update on change of date fields
-	doc.QuerySelector("[name=DateFrom]").AddEventListener("change", false, func(evt dom.Event) {
-		bechanged("DateFrom")
-	})
+	sel := doc.QuerySelector("[name=Dates]")
+	if sel != nil {
+		sel.SetInnerHTML("")
+		sg := doc.CreateElement("div")
+		sg.Class().Add("site-grid")
+		sel.AppendChild(sg)
 
-	doc.QuerySelector("[name=DateTo]").AddEventListener("change", false, func(evt dom.Event) {
-		bechanged("DateTo")
-	})
+		b1 := doc.CreateElement("div")
+		b1.Class().Add("site__item")
+		b2 := doc.CreateElement("div")
+		b2.Class().Add("site__title")
+		b2.SetInnerHTML("Year to Date")
+		b1.AppendChild(b2)
+		sg.AppendChild(b1)
+		b1.AddEventListener("click", false, func(evt dom.Event) {
+			print("clicked on year to date")
+		})
+
+		b1 = doc.CreateElement("div")
+		b1.Class().Add("site__item")
+		b2 = doc.CreateElement("div")
+		b2.Class().Add("site__title")
+		b2.SetInnerHTML("Current Quarter")
+		b1.AppendChild(b2)
+		sg.AppendChild(b1)
+		b1.AddEventListener("click", false, func(evt dom.Event) {
+			print("clicked on quarterly")
+		})
+
+		b1 = doc.CreateElement("div")
+		b1.Class().Add("site__item")
+		b2 = doc.CreateElement("div")
+		b2.Class().Add("site__title")
+		b2.SetInnerHTML("Current Month")
+		b1.AppendChild(b2)
+		sg.AppendChild(b1)
+		b1.AddEventListener("click", false, func(evt dom.Event) {
+			print("clicked on current month")
+		})
+	}
+
+	graph := doc.QuerySelector("[name=Report]")
+	if graph != nil {
+		graph.SetInnerHTML("")
+	}
 }
 
 func hashtagList(context *router.Context) {
