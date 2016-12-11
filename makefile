@@ -76,8 +76,7 @@ dist/public/app.js: app/*.go shared/*.go
 	@mkdir -p dist/public/js
 	cd app && gosimple
 	# cd app && gopherjs build *.go -o ../dist/public/app.js -m
-	# gopherjs build app/*.go -o dist/public/app.js -m
-	gopherjs build app/*.go -o dist/public/app.js -m
+	GOOS=linux gopherjs build app/*.go -o dist/public/app.js -m
 	@ls -l dist/public/app.js
 
 remake: 
@@ -111,3 +110,6 @@ install: sv
 	./terminate
 	cp -Rv dist/* ~/go-cmms/current
 	cd ~/go-cmms/current && nohup ./cmms-server &
+
+tail: 
+	tail -f ~/go-cmms/current/nohup.out ~/logs/cmms*
